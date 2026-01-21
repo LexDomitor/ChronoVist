@@ -95,9 +95,8 @@
         }
         .btn-primary { background: var(--text-main); color: var(--bg-color); border: none; }
         .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent-gray); }
-        .btn:hover { opacity: 0.8; }
 
-        /* --- Footer --- */
+        /* --- Footer (Locked Distribution) --- */
         footer {
             width: 100%;
             padding: 2rem 5%;
@@ -169,12 +168,21 @@
 
     <script>
         const modalData = {
-            about: { title: "About AlphaLine", text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers." },
-            contact: { title: "Contact Us", text: "Reach out to the development team at support@alphaline.dev." },
-            changelog: { title: "Changelog", text: "2026.01.21.08: Added Accept/Decline logic and Account status tracking." },
+            about: { 
+                title: "About AlphaLine", 
+                text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers. We focus on scale, alignment, and minimalist utility." 
+            },
+            contact: { 
+                title: "Contact Us", 
+                text: "Reach out to the development team at support@alphaline.dev. Technical support is available for all Guest and Registered users." 
+            },
+            changelog: { 
+                title: "Changelog", 
+                text: "2026.01.21.11: Added Account navigation hint to cookie prompt.<br>2026.01.21.10: Privacy-first default state logic." 
+            },
             cookies: {
                 title: "Data & Cookies",
-                text: "AlphaLine uses LocalStorage to save your worldbuilding progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons.",
+                text: "AlphaLine uses LocalStorage to save your progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons.<br><br><strong>Note: You can change these preferences at any time in the Account section.</strong>",
                 isCookiePrompt: true
             }
         };
@@ -182,7 +190,7 @@
         function setConsent(choice) {
             localStorage.setItem('alphaline_consent', choice);
             closeModal();
-            // Refresh iframe if user is currently on the Account page
+            // Refresh the internal iframe if it's viewing the Account page
             const frame = document.getElementById('content-frame');
             if (frame.src.includes('account.html')) frame.contentWindow.location.reload();
         }
@@ -194,7 +202,6 @@
             
             document.getElementById('modal-content').innerHTML = `<h2>${data.title}</h2><p>${data.text}</p>`;
             
-            // Clean footer actions
             footer.innerHTML = "";
             if (data.isCookiePrompt) {
                 footer.innerHTML = `
@@ -218,6 +225,7 @@
         }
 
         window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
+        
         function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
 
         function getPSTOffset() {
@@ -249,8 +257,7 @@
         }
 
         function checkCookieConsent() {
-            const consent = localStorage.getItem('alphaline_consent');
-            if (consent === null) {
+            if (localStorage.getItem('alphaline_consent') === null) {
                 setTimeout(() => openModal('cookies'), 1000);
             }
         }
