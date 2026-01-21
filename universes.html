@@ -198,7 +198,7 @@
             const grid = document.getElementById('universe-grid');
             grid.innerHTML = universes.length === 0 ? '<p style="color:#444; font-size:0.75rem; text-transform:uppercase;">Archive empty.</p>' : 
             universes.map(u => `
-                <div class="universe-card" onclick="window.location.href='workspace.html?id=${u.id}'">
+                <div class="universe-card" onclick="launchWorkspace(${u.id})">
                     <div class="edit-trigger" onclick="handleCardEdit(${u.id}, event)">EDIT</div>
                     <div class="card-bg-overlay" style="background-image: url('${u.image || ''}')"></div>
                     <img src="${u.image || ''}" class="universe-thumb" style="display:${u.image ? 'block' : 'none'}">
@@ -217,12 +217,22 @@
             `).join('');
         }
 
+        // --- INTEGRATED RETRACTION TRIGGER ---
+        function launchWorkspace(id) {
+            // Signal the Master Shell to retract the header/footer
+            window.parent.postMessage('RETRACT_FRAME', '*');
+            
+            // Allow a small window for the transition to start before navigation
+            setTimeout(() => {
+                window.location.href = `workspace.html?id=${id}`;
+            }, 50);
+        }
+
         function handleOutsideClick(e) {
             const panel = document.getElementById('edit-panel');
             if (panel.classList.contains('active')) closePanel();
         }
 
-        // New function to handle editing without opening the workspace
         function handleCardEdit(id, event) {
             event.stopPropagation();
             openPanel(id);
