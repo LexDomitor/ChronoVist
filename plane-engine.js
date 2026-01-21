@@ -6,7 +6,6 @@ const PlaneEngine = {
 
         handle.onmousedown = (e) => {
             e.stopPropagation();
-            
             if(el.classList.contains('snapped')) {
                 const rect = el.getBoundingClientRect();
                 el.classList.remove('snapped');
@@ -14,10 +13,8 @@ const PlaneEngine = {
                 el.style.left = (rect.left - worldPos.x) / scale + 'px';
                 el.style.top = (rect.top - worldPos.y) / scale + 'px';
             }
-            
             document.body.classList.add('hide-ui', 'is-dragging');
             let p3 = e.clientX, p4 = e.clientY;
-
             document.onmousemove = (e) => {
                 let p1 = (p3 - e.clientX) / scale, p2 = (p4 - e.clientY) / scale;
                 p3 = e.clientX; p4 = e.clientY;
@@ -25,7 +22,6 @@ const PlaneEngine = {
                 el.style.top = (el.offsetTop - p2) + "px";
                 checkQuads(el);
             };
-
             document.onmouseup = () => {
                 document.onmousemove = null; 
                 document.body.classList.remove('hide-ui', 'is-dragging');
@@ -33,10 +29,7 @@ const PlaneEngine = {
                 const r = el.getBoundingClientRect();
                 if(r.left < t.right && r.bottom > t.top) { 
                     if(confirm("Permanently delete node?")) { el.remove(); sync(); }
-                } else { 
-                    snap(el); 
-                    if (el.dataset.initialized === "true") sync(); 
-                }
+                } else { snap(el); if (el.dataset.initialized === "true") sync(); }
             };
         };
     },
