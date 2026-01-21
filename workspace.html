@@ -6,58 +6,39 @@
     <title>AlphaLine | Creation Plane</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap');
-
-        :root {
-            --bg-color: #0c0c0c;
-            --accent: #2a2a2a;
-            --text: #ffffff;
-            --text-dim: #888;
-            --ui-speed: 0.6s cubic-bezier(0.8, 0, 0.2, 1);
-        }
-
+        :root { --bg: #0c0c0c; --accent: #2a2a2a; --text: #fff; --text-dim: #888; --ui-speed: 0.6s cubic-bezier(0.8, 0, 0.2, 1); }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
         /* --- UI Bars --- */
-        .ui-bar { position: fixed; left: 0; width: 100%; background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed); box-sizing: border-box; border: 1px solid #333; }
+        .ui-bar { position: fixed; left: 0; width: 100%; background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed); border: 1px solid #333; box-sizing: border-box; }
         .top-nav { top: 0; height: 90px; padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; border-width: 0 0 1px 0; }
         .bottom-nav { bottom: 0; height: 60px; padding: 0 3rem; border-width: 1px 0 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
-        
         .is-panning .ui-bar { transform: translateY(-100%); opacity: 0; }
         .is-panning .bottom-nav { transform: translateY(100%); }
 
-        /* --- Grid System --- */
-        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #080808; position: relative; }
-        #world { 
-            position: absolute; width: 10000px; height: 10000px; 
-            background-image: linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
-            background-size: 100px 100px; transform-origin: 0 0;
-            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1); /* For smooth recentering */
-        }
-        .is-panning #world { transition: none; } /* Disable transition while manual panning */
-
-        .grid-cross { position: absolute; color: #333; font-size: 14px; font-weight: 300; pointer-events: none; transform: translate(-50%, -50%); }
+        /* --- Grid --- */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #080808; overflow: hidden; position: relative; }
+        #world { position: absolute; width: 10000px; height: 10000px; background-image: linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px); background-size: 100px 100px; transform-origin: 0 0; transition: transform 0.7s cubic-bezier(0.2, 1, 0.3, 1); }
+        .is-panning #world { transition: none; }
+        .grid-cross { position: absolute; color: #333; font-size: 14px; pointer-events: none; transform: translate(-50%, -50%); }
 
         /* --- Nodes --- */
         .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; z-index: 10; }
         .node-container { width: 450px; height: 350px; background: rgba(15,15,15,0.7); }
-        .handle { height: 14px; background: #1e1e1e; cursor: grab; border-bottom: 1px solid #333; }
-        .node-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-        
-        /* Quadrant Visuals */
-        .quadrant-overlay { position: absolute; top: 14px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; pointer-events: none; }
-        .quad { border: 1px dashed rgba(255,255,255,0.05); transition: 0.2s; }
-        .quad.active { background: rgba(255,255,255,0.1); border: 1px solid #fff; }
+        .handle { height: 16px; background: #1e1e1e; cursor: grab; border-bottom: 1px solid #333; }
+        .node-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        input, textarea { background: #000; border: 1px solid #222; color: #fff; font-size: 0.75rem; padding: 8px; outline: none; font-family: inherit; }
 
-        /* Trashcan */
-        #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255, 50, 50, 0.1); border: 2px dashed rgba(255, 50, 50, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: rgba(255, 50, 50, 0.5); z-index: 1100; transition: 0.3s; opacity: 0; }
+        /* Trash & Tooling */
+        #trash-zone { position: fixed; bottom: 80px; left: 20px; width: 60px; height: 60px; background: rgba(255, 50, 50, 0.1); border: 2px dashed rgba(255, 50, 50, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0; transition: 0.3s; z-index: 1100; }
         .is-dragging #trash-zone { opacity: 1; }
         #trash-zone.active { background: rgba(255, 50, 50, 0.4); border-color: #ff3232; color: #fff; transform: scale(1.1); }
-
-        /* Tool Dock */
         .tool-dock { position: fixed; left: 25px; top: 50%; transform: translateY(-50%); width: 45px; background: #111; border: 1px solid #333; border-radius: 25px; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1100; }
-        .tool-item { width: 32px; height: 32px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.7rem; font-weight: 800; }
-        .tool-item.recenter { background: #222; cursor: pointer; color: #888; border-style: dashed; }
+        .tool-item { width: 32px; height: 32px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.7rem; font-weight: 800; transition: 0.2s; }
         .tool-item:hover { background: #fff; color: #000; }
+        .quadrant-overlay { position: absolute; top: 16px; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; pointer-events: none; }
+        .quad { border: 1px dashed rgba(255,255,255,0.05); }
+        .quad.active { background: rgba(255,255,255,0.1); border: 1px solid #fff; }
     </style>
 </head>
 <body>
@@ -67,9 +48,9 @@
     <nav class="ui-bar top-nav">
         <div class="brand-block">
             <div style="font-weight:800; letter-spacing:4px; font-size:1.1rem;">ALPHALINE <span style="font-weight:300; color:var(--text-dim);">| CREATION PLANE</span></div>
-            <div class="back-arrow" onclick="triggerExitSequence()" style="cursor:pointer; margin-top:10px;">←</div>
+            <div onclick="triggerExitSequence()" style="cursor:pointer; margin-top:10px;">←</div>
         </div>
-        <div id="active-name" style="font-weight:300; letter-spacing:6px; font-size:0.75rem; text-transform:uppercase;">UNIVERSE NAME</div>
+        <div id="active-name" style="letter-spacing:6px; font-size:0.75rem; text-transform:uppercase; font-weight:300;">UNIVERSE</div>
         <div style="width:150px"></div>
     </nav>
 
@@ -83,73 +64,71 @@
         <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
         <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
         <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
-        <div style="height:1px; width:20px; background:#333; margin:5px 0;"></div>
-        <div class="tool-item recenter" onclick="recenter()" title="Recenter to 0,0">0,0</div>
+        <div style="height:1px; width:20px; background:#333;"></div>
+        <div class="tool-item" onclick="recenter()" style="cursor:pointer; border-style:dashed; color:#888;">0,0</div>
     </aside>
 
     <div id="viewport"><div id="world"></div></div>
 
     <script>
         const world = document.getElementById('world');
-        const viewport = document.getElementById('viewport');
-        const trash = document.getElementById('trash-zone');
-        let worldPos = { x: -4500, y: -4500 };
-        let originalPos = { x: 0, y: 0 };
-        let childRegistry = {}; // Tracks which nodes are in which container
+        const params = new URLSearchParams(window.location.search);
+        const universeId = params.get('id');
+        let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+        let activeUniverse = universes.find(u => u.id == universeId);
+        let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
+        let childRegistry = activeUniverse?.childRegistry || {};
 
-        // Initialize Crosses
+        // Generate Grid Crosses
         for(let x=0; x<=10000; x+=100) {
             for(let y=0; y<=10000; y+=100) {
-                const c = document.createElement('div');
-                c.className = 'grid-cross'; c.style.left = x+'px'; c.style.top = y+'px'; c.innerText = '+';
-                world.appendChild(c);
+                const c = document.createElement('div'); c.className='grid-cross'; 
+                c.style.left=x+'px'; c.style.top=y+'px'; c.innerText='+'; world.appendChild(c);
             }
         }
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
-
-        function recenter() {
-            worldPos = { x: -4500, y: -4500 };
-            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-            document.getElementById('coord-display').innerText = `0, 0`;
-        }
+        function recenter() { worldPos = { x: -4500, y: -4500 }; updateWorld(); }
 
         // --- Panning ---
         let isPanning = false, startX, startY;
-        viewport.onmousedown = (e) => { if (e.target !== viewport && e.target !== world) return; isPanning = true; document.body.classList.add('is-panning'); startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y; };
+        viewport.onmousedown = (e) => { if(e.target.id !== 'viewport' && e.target.id !== 'world') return; isPanning=true; document.body.classList.add('is-panning'); startX=e.clientX-worldPos.x; startY=e.clientY-worldPos.y; };
         window.onmousemove = (e) => {
-            if (isPanning) {
-                worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY;
-                world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-                document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x - 4500)}, ${Math.round(-worldPos.y - 4500)}`;
-            }
+            if(isPanning) { worldPos.x=e.clientX-startX; worldPos.y=e.clientY-startY; updateWorld(); }
         };
-        window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); };
+        window.onmouseup = () => { isPanning=false; document.body.classList.remove('is-panning'); sync(); };
+
+        function updateWorld() {
+            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
+            document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x-4500)}, ${Math.round(-worldPos.y-4500)}`;
+        }
 
         // --- Node Logic ---
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
             const type = e.dataTransfer.getData('nodeType');
-            if(!type) return;
-            createNode({ type, x: e.clientX - worldPos.x - 100, y: e.clientY - worldPos.y - 20 });
+            if(type) createNode({ type, x: e.clientX-worldPos.x-100, y: e.clientY-worldPos.y-20 });
         };
 
         function createNode(data) {
             const node = document.createElement('div');
-            const id = 'box_' + Date.now();
+            const id = data.boxId || 'box_' + Date.now();
             node.className = `node node-${data.type}`;
-            node.style.left = data.x + 'px';
-            node.style.top = data.y + 'px';
-            node.dataset.id = id;
-            node.dataset.type = data.type;
+            node.style.left = data.x + 'px'; node.style.top = data.y + 'px';
+            node.dataset.id = id; node.dataset.type = data.type;
 
             let html = `<div class="handle"></div><div class="node-content">`;
             if(data.type === 'container') {
-                html += `<input class="node-title" placeholder="Frame Title"><div class="quadrant-overlay"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div>`;
+                html += `<input class="node-title" placeholder="Frame Title" value="${data.title||''}" oninput="sync()">
+                         <div class="quadrant-overlay"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div>`;
             } else if(data.type === 'text') {
-                html += `<input class="node-title" placeholder="Title"><textarea placeholder="Content..." rows="4"></textarea>`;
+                html += `<input class="node-title" placeholder="Title" value="${data.title||''}" oninput="sync()">
+                         <textarea placeholder="Content..." rows="4" oninput="sync()">${data.body||''}</textarea>`;
             } else if(data.type === 'image') {
-                html += `<div class="img-preview" style="display:none"></div><button onclick="this.nextElementSibling.click()" style="width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; cursor:pointer;">UPLOAD</button><input type="file" style="display:none" onchange="handleImg(this)"><input class="node-title" placeholder="Caption...">`;
+                html += `<div class="img-preview" style="display:${data.url?'block':'none'}">${data.url?`<img src="${data.url}" style="width:100%">`:''}</div>
+                         <button onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}; width:100%; background:#222; color:#fff; border:1px solid #444; padding:8px; cursor:pointer;">UPLOAD</button>
+                         <input type="file" style="display:none" onchange="handleImg(this)">
+                         <input class="node-title" placeholder="Caption..." value="${data.title||''}" oninput="sync()">`;
             }
             node.innerHTML = html + `</div>`;
             world.appendChild(node);
@@ -158,10 +137,12 @@
 
         function handleImg(input) {
             const reader = new FileReader();
-            const preview = input.closest('.node-content').querySelector('.img-preview');
+            const node = input.closest('.node');
             reader.onload = (e) => {
+                const preview = node.querySelector('.img-preview');
                 preview.style.display = 'block'; preview.innerHTML = `<img src="${e.target.result}" style="width:100%">`;
                 input.previousElementSibling.style.display = 'none';
+                node.dataset.base64 = e.target.result; sync();
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -169,95 +150,83 @@
         function makeDraggable(el) {
             const handle = el.querySelector('.handle');
             handle.onmousedown = (e) => {
-                e.stopPropagation();
-                document.body.classList.add('is-dragging');
-                originalPos = { x: el.offsetLeft, y: el.offsetTop };
-                let p3 = e.clientX, p4 = e.clientY;
-
+                e.stopPropagation(); document.body.classList.add('is-dragging');
+                let p3=e.clientX, p4=e.clientY, orig={x:el.offsetLeft, y:el.offsetTop};
                 document.onmousemove = (e) => {
-                    let p1 = p3 - e.clientX, p2 = p4 - e.clientY;
-                    p3 = e.clientX; p4 = e.clientY;
-                    
-                    const newLeft = el.offsetLeft - p1;
-                    const newTop = el.offsetTop - p2;
-                    el.style.left = newLeft + "px";
-                    el.style.top = newTop + "px";
-
-                    // Parent-Child: If this is a container, move registered children
+                    let p1=p3-e.clientX, p2=p4-e.clientY; p3=e.clientX; p4=e.clientY;
+                    el.style.left=(el.offsetLeft-p1)+'px'; el.style.top=(el.offsetTop-p2)+'px';
                     if(childRegistry[el.dataset.id]) {
-                        childRegistry[el.dataset.id].forEach(childId => {
-                            const child = document.querySelector(`[data-id="${childId}"]`);
-                            child.style.left = (parseInt(child.style.left) - p1) + "px";
-                            child.style.top = (parseInt(child.style.top) - p2) + "px";
+                        childRegistry[el.dataset.id].forEach(cid => {
+                            const c = document.querySelector(`[data-id="${cid}"]`);
+                            if(c){ c.style.left=(c.offsetLeft-p1)+'px'; c.style.top=(c.offsetTop-p2)+'px'; }
                         });
                     }
-
-                    checkQuadrantOverlap(el);
+                    checkQuads(el);
                 };
-
-                document.onmouseup = () => {
-                    document.onmousemove = null;
-                    document.body.classList.remove('is-dragging');
-                    handleSnapOrTrash(el);
+                document.onmouseup = () => { 
+                    document.onmousemove=null; document.body.classList.remove('is-dragging');
+                    const t = document.getElementById('trash-zone').getBoundingClientRect();
+                    const r = el.getBoundingClientRect();
+                    if(r.left<t.right && r.bottom>t.top) {
+                        if(confirm("Delete node?")) { 
+                            // Remove from registry
+                            Object.keys(childRegistry).forEach(k => childRegistry[k] = childRegistry[k].filter(i => i !== el.dataset.id));
+                            el.remove(); 
+                        }
+                        else { el.style.left=orig.x+'px'; el.style.top=orig.y+'px'; }
+                    } else { snap(el); }
+                    sync();
                 };
             };
         }
 
-        function checkQuadrantOverlap(el) {
-            document.querySelectorAll('.quad').forEach(q => q.classList.remove('active'));
-            if(el.dataset.type === 'container') return;
-            
-            const containers = document.querySelectorAll('.node-container');
-            const eRect = el.getBoundingClientRect();
-            const ex = eRect.left + eRect.width/2;
-            const ey = eRect.top + eRect.height/2;
-
-            containers.forEach(c => {
-                const cRect = c.getBoundingClientRect();
-                if(ex > cRect.left && ex < cRect.right && ey > cRect.top && ey < cRect.bottom) {
-                    const quads = c.querySelectorAll('.quad');
-                    const qIdx = (ex > cRect.left + cRect.width/2 ? 1 : 0) + (ey > cRect.top + cRect.height/2 ? 2 : 0);
-                    quads[qIdx].classList.add('active');
+        function checkQuads(el) {
+            document.querySelectorAll('.quad').forEach(q=>q.classList.remove('active'));
+            if(el.dataset.type==='container') return;
+            const r = el.getBoundingClientRect(); const ex=r.left+r.width/2, ey=r.top+r.height/2;
+            document.querySelectorAll('.node-container').forEach(c => {
+                const cr = c.getBoundingClientRect();
+                if(ex>cr.left && ex<cr.right && ey>cr.top && ey<cr.bottom) {
+                    const qIdx = (ex > cr.left+cr.width/2 ? 1:0) + (ey > cr.top+cr.height/2 ? 2:0);
+                    c.querySelectorAll('.quad')[qIdx].classList.add('active');
                 }
             });
         }
 
-        function handleSnapOrTrash(el) {
-            const trashZone = trash.getBoundingClientRect();
-            const elRect = el.getBoundingClientRect();
-            
-            if(elRect.left < trashZone.right && elRect.bottom > trashZone.top) {
-                if(confirm("Delete node?")) el.remove();
-                else { el.style.left = originalPos.x+'px'; el.style.top = originalPos.y+'px'; }
-                return;
-            }
-
-            const activeQuad = document.querySelector('.quad.active');
-            if(activeQuad) {
-                const container = activeQuad.closest('.node-container');
-                const cId = container.dataset.id;
-                const quads = Array.from(container.querySelectorAll('.quad'));
-                const idx = quads.indexOf(activeQuad);
-                
-                // Snap math
-                const cx = parseInt(container.style.left);
-                const cy = parseInt(container.style.top);
-                let tx = cx + (container.offsetWidth/4) - (el.offsetWidth/2);
-                let ty = cy + (container.offsetHeight/4) - (el.offsetHeight/2) + 7;
-                if(idx % 2 !== 0) tx += container.offsetWidth/2;
-                if(idx >= 2) ty += container.offsetHeight/2;
-
-                el.style.left = tx+'px'; el.style.top = ty+'px';
-                
-                // Register child to parent
-                if(!childRegistry[cId]) childRegistry[cId] = [];
-                if(!childRegistry[cId].includes(el.dataset.id)) childRegistry[cId].push(el.dataset.id);
-                activeQuad.classList.remove('active');
+        function snap(el) {
+            const q = document.querySelector('.quad.active');
+            if(q) {
+                const c = q.closest('.node-container');
+                const idx = Array.from(c.querySelectorAll('.quad')).indexOf(q);
+                const cx=parseInt(c.style.left), cy=parseInt(c.style.top);
+                let tx=cx+(c.offsetWidth/4)-(el.offsetWidth/2), ty=cy+(c.offsetHeight/4)-(el.offsetHeight/2)+8;
+                if(idx%2!==0) tx+=c.offsetWidth/2; if(idx>=2) ty+=c.offsetHeight/2;
+                el.style.left=tx+'px'; el.style.top=ty+'px';
+                if(!childRegistry[c.dataset.id]) childRegistry[c.dataset.id] = [];
+                if(!childRegistry[c.dataset.id].includes(el.dataset.id)) childRegistry[c.dataset.id].push(el.dataset.id);
+                q.classList.remove('active');
             }
         }
 
-        function triggerExitSequence() { window.parent.postMessage('RESTORE_FRAME', '*'); window.location.href = 'universes.html'; }
-        window.onload = () => { world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`; };
+        function sync() {
+            if(!activeUniverse) return;
+            const nodes = document.querySelectorAll('.node');
+            activeUniverse.timeline = Array.from(nodes).map(n => ({
+                boxId: n.dataset.id, type: n.dataset.type,
+                x: parseInt(n.style.left), y: parseInt(n.style.top),
+                title: n.querySelector('.node-title')?.value || "",
+                body: n.querySelector('textarea')?.value || "",
+                url: n.dataset.base64 || ""
+            }));
+            activeUniverse.camera = worldPos;
+            activeUniverse.childRegistry = childRegistry;
+            const idx = universes.findIndex(u => u.id == universeId);
+            universes[idx] = activeUniverse;
+            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+        }
+
+        function triggerExitSequence() { sync(); window.parent.postMessage('RESTORE_FRAME', '*'); window.location.href='universes.html'; }
+        window.onload = () => { if(activeUniverse) { document.getElementById('active-name').innerText = activeUniverse.name; updateWorld(); if(activeUniverse.timeline) activeUniverse.timeline.forEach(t => createNode(t)); } };
     </script>
 </body>
 </html>
