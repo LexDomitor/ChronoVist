@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <style>
         body {
-            background: transparent; /* Allows index.html background to show through */
+            background: transparent;
             color: white;
             font-family: 'Inter', -apple-system, sans-serif;
             height: 100vh;
@@ -17,10 +17,9 @@
 
         .container {
             max-width: 500px;
-            padding: 2rem;
+            padding: 2.5rem;
             border: 1px solid #333;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.02); /* Slight lift from the background */
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .status-tag {
@@ -29,28 +28,36 @@
             color: #a0a0a0;
             font-size: 0.65rem;
             padding: 4px 10px;
-            border-radius: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 1.5rem;
         }
 
-        h2 {
-            font-weight: 400;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
+        h2 { font-weight: 400; font-size: 1.2rem; margin-bottom: 1rem; }
+        p { color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; }
+
+        /* Privacy Controls Section */
+        .settings-box {
+            border-top: 1px solid #333;
+            padding-top: 2rem;
+            margin-top: 1rem;
         }
 
-        p {
-            color: #a0a0a0;
-            font-size: 0.9rem;
-            line-height: 1.6;
+        .btn-danger {
+            background: transparent;
+            border: 1px solid #442222;
+            color: #ff6666;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s ease;
         }
 
-        .highlight {
-            color: #ffffff;
-            font-weight: 600;
+        .btn-danger:hover {
+            background: #442222;
+            color: white;
         }
     </style>
 </head>
@@ -59,11 +66,22 @@
     <div class="container">
         <div class="status-tag">Under Development</div>
         <h2>Account services are still in development.</h2>
-        <p>
-            You are currently using AlphaLine as a <span class="highlight">Guest</span>. 
-            <br>Please enable functional cookies to save your work.
-        </p>
+        <p>You are currently using AlphaLine as a Guest. Your data is stored locally via functional cookies.</p>
+
+        <div class="settings-box">
+            <p style="font-size: 0.75rem;">PRIVACY CONTROLS</p>
+            <button class="btn-danger" onclick="revokeAccess()">Revoke Cookies & Reset Data</button>
+        </div>
     </div>
 
+    <script>
+        function revokeAccess() {
+            if(confirm("This will delete all saved Universe Canons and reset your preferences. Proceed?")) {
+                localStorage.clear();
+                // Forces the parent shell to refresh and show the cookie prompt again
+                window.parent.location.reload();
+            }
+        }
+    </script>
 </body>
 </html>
