@@ -11,7 +11,7 @@
             --bg-color: #0c0c0c;
             --accent: #222;
             --text: #ffffff;
-            --text-dim: #777; /* Lightened for better visibility per request */
+            --text-dim: #666; 
             --ui-speed: 0.6s cubic-bezier(0.8, 0, 0.2, 1);
         }
 
@@ -32,19 +32,18 @@
         .progress-track { width: 100%; height: 2px; background: #111; margin-top: 20px; }
         .progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* --- UI Bars (Master Shell Style) --- */
+        /* --- UI Bars --- */
         .ui-bar {
             position: fixed; left: 0; width: 100%;
-            background: rgba(12, 12, 12, 0.95); backdrop-filter: blur(20px);
+            background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px);
             z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed);
-            display: flex; align-items: center; box-sizing: border-box;
-            border: 1px solid var(--accent);
+            box-sizing: border-box; border: 1px solid var(--accent);
         }
-        .top-nav { top: 0; height: 90px; padding: 0 3rem; justify-content: space-between; border-width: 0 0 1px 0; }
+        .top-nav { top: 0; height: 90px; padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; border-width: 0 0 1px 0; }
         
-        /* Footer - Mirrored from Index */
+        /* Footer - Elevated text and grid structure */
         .bottom-nav { 
-            bottom: 0; height: 50px; padding: 0 3rem; 
+            bottom: 0; height: 60px; padding: 0 3rem; 
             border-width: 1px 0 0 0; display: grid; 
             grid-template-columns: 1fr auto 1fr; align-items: center;
         }
@@ -52,20 +51,16 @@
         .is-panning .ui-bar { transform: translateY(-100%); opacity: 0; }
         .is-panning .bottom-nav { transform: translateY(100%); }
 
-        /* Typography & Branding */
+        /* Branding */
         .brand-block { display: flex; flex-direction: column; line-height: 1.2; }
         .brand-main { font-weight: 800; letter-spacing: 4px; font-size: 1.1rem; }
         .brand-sub { color: var(--text-dim); font-weight: 400; letter-spacing: 2px; font-size: 0.65rem; }
-        
-        .back-arrow { cursor: pointer; font-size: 1.1rem; margin-top: 10px; transition: 0.3s; width: fit-content; color: #fff; }
-        .back-arrow:hover { color: var(--text-dim); transform: translateX(-4px); }
+        .back-arrow { cursor: pointer; font-size: 1.1rem; margin-top: 10px; transition: 0.3s; width: fit-content; }
+        .back-arrow:hover { color: #aaa; transform: translateX(-4px); }
 
-        .universe-center-title { 
-            font-weight: 300; letter-spacing: 6px; font-size: 0.75rem; 
-            text-transform: uppercase; color: #fff; opacity: 0.9;
-        }
+        .universe-center-title { font-weight: 300; letter-spacing: 6px; font-size: 0.75rem; text-transform: uppercase; }
 
-        /* Tool Dock - Compact Mid-Left */
+        /* Tool Dock */
         .tool-dock {
             position: fixed; left: 25px; top: 50%; transform: translateY(-50%);
             width: 45px; background: #0c0c0c; border: 1px solid var(--accent);
@@ -75,17 +70,15 @@
         }
         .is-panning .tool-dock { opacity: 0; pointer-events: none; }
 
-        /* --- Infinite Canvas --- */
-        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #000; position: relative; }
-        #viewport:active { cursor: grabbing; }
-        
-        /* The Actual Grid Layer */
+        /* --- Canvas & Grid --- */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; background: #000; }
         #world { 
             position: absolute; width: 10000px; height: 10000px; 
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 60px 60px;
+            background-image: 
+                linear-gradient(to right, #111 1px, transparent 1px),
+                linear-gradient(to bottom, #111 1px, transparent 1px);
+            background-size: 100px 100px; /* Traditional Grid Lines */
             transform-origin: 0 0;
-            will-change: transform;
         }
 
         /* --- Nodes --- */
@@ -94,6 +87,8 @@
             border-radius: 4px; width: 280px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             display: flex; flex-direction: column;
         }
+        .node-container { width: 450px; min-height: 300px; background: rgba(15,15,15,0.8); border: 1px solid #444; }
+        
         .handle { height: 14px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; }
         .node-content { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         
@@ -103,7 +98,7 @@
         }
 
         .tool-item { width: 32px; height: 32px; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.7rem; font-weight: 800; transition: 0.2s; }
-        .tool-item:hover { background: #fff; color: #000; border-color: #fff; }
+        .tool-item:hover { background: #fff; color: #000; }
 
         #cursor-tooltip { position: fixed; pointer-events: none; background: #fff; color: #000; padding: 5px 10px; font-size: 0.6rem; font-weight: 800; border-radius: 2px; z-index: 5000; display: none; text-transform: uppercase; }
     </style>
@@ -125,18 +120,19 @@
             <div class="back-arrow" onclick="triggerExitSequence()">←</div>
         </div>
         <div class="universe-center-title" id="active-name">UNIVERSE NAME</div>
-        <div style="width: 150px;"></div> </nav>
+        <div style="width: 150px;"></div>
+    </nav>
 
     <footer class="ui-bar bottom-nav">
-        <div id="footer-date" style="font-size: 0.65rem; color: #555; letter-spacing: 1px;">JAN 21 2026</div>
-        <div style="font-size: 0.6rem; color: #444; letter-spacing: 2px; text-transform: uppercase;">© 2026 ALPHALINE SYSTEMS</div>
-        <div id="coord-display" style="font-size: 0.65rem; color: #555; text-align: right; letter-spacing: 1px;">0, 0</div>
+        <div id="footer-date" style="font-size: 0.65rem; color: #666; letter-spacing: 1px; margin-bottom: 5px;">JAN 21 2026</div>
+        <div style="font-size: 0.6rem; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;">© 2026 ALPHALINE SYSTEMS</div>
+        <div id="coord-display" style="font-size: 0.65rem; color: #666; text-align: right; letter-spacing: 1px; margin-bottom: 5px;">0, 0</div>
     </footer>
 
     <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="e => e.dataTransfer.setData('type','container')">C</div>
-        <div class="tool-item" draggable="true" ondragstart="e => e.dataTransfer.setData('type','text')">T</div>
-        <div class="tool-item" draggable="true" ondragstart="e => e.dataTransfer.setData('type','image')">I</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')" onmouseenter="tip('Create Container Frame')" onmouseleave="untip()">C</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')" onmouseenter="tip('Create Text Node')" onmouseleave="untip()">T</div>
+        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')" onmouseenter="tip('Create Image Node')" onmouseleave="untip()">I</div>
     </aside>
 
     <div id="viewport">
@@ -150,30 +146,22 @@
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
-
-        // State
         let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
+
+        // --- Drag/Drop Data ---
+        function sd(e, type) { e.dataTransfer.setData('nodeType', type); }
 
         window.onload = () => {
             if (activeUniverse) {
                 document.getElementById('active-name').innerText = activeUniverse.name;
                 document.getElementById('loader-msg').innerText = `Transporting to the world of ${activeUniverse.name}`;
             }
-            
             updateTimestamp();
-            
             const bar = document.getElementById('progress-bar');
-            setTimeout(() => {
-                bar.style.width = '100%';
-                window.parent.postMessage('RETRACT_FRAME', '*');
-            }, 100);
-
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    initWorkspace();
-                }, 1000);
+            setTimeout(() => { bar.style.width = '100%'; window.parent.postMessage('RETRACT_FRAME', '*'); }, 100);
+            setTimeout(() => { 
+                document.getElementById('loader').style.opacity = '0'; 
+                setTimeout(() => { document.getElementById('loader').style.display = 'none'; initWorkspace(); }, 1000); 
             }, 3500);
         };
 
@@ -185,40 +173,30 @@
 
         function initWorkspace() {
             world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-            if (activeUniverse?.timeline) {
-                activeUniverse.timeline.forEach(data => createNode(data));
-            }
+            if (activeUniverse?.timeline) { activeUniverse.timeline.forEach(data => createNode(data)); }
         }
 
-        // --- FIXED Panning Engine ---
+        // --- Panning Logic ---
         let isPanning = false, startX, startY;
         viewport.onmousedown = (e) => {
             if (e.target !== viewport && e.target !== world) return;
-            isPanning = true;
-            document.body.classList.add('is-panning');
-            startX = e.clientX - worldPos.x;
-            startY = e.clientY - worldPos.y;
+            isPanning = true; document.body.classList.add('is-panning');
+            startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y;
         };
         window.onmousemove = (e) => {
             if (isPanning) {
-                worldPos.x = e.clientX - startX;
-                worldPos.y = e.clientY - startY;
-                // Transforming the #world moves the background AND all child nodes
+                worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY;
                 world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
                 document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x)}, ${Math.round(-worldPos.y)}`;
             }
+            if(tooltip.style.display === 'block') { tooltip.style.left = e.clientX + 15 + 'px'; tooltip.style.top = e.clientY + 15 + 'px'; }
         };
-        window.onmouseup = () => { 
-            isPanning = false; 
-            document.body.classList.remove('is-panning');
-            syncData();
-        };
+        window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); syncData(); };
 
         // --- Node Logic ---
         viewport.ondragover = e => e.preventDefault();
         viewport.ondrop = e => {
-            const type = e.dataTransfer.getData('type') || 'text';
-            // Coordinate math adjusted for world-space drop
+            const type = e.dataTransfer.getData('nodeType');
             const x = e.clientX - worldPos.x - 140;
             const y = e.clientY - worldPos.y - 50;
             createNode({ type, x, y });
@@ -232,15 +210,19 @@
             node.style.top = data.y + 'px';
             node.dataset.id = data.boxId || 'box_' + Date.now();
 
-            node.innerHTML = `
-                <div class="handle"></div>
-                <div class="node-content">
-                    <input class="node-title" placeholder="Title" value="${data.title || ''}" oninput="syncData()">
-                    ${data.type === 'text' ? `<textarea placeholder="Body Content" rows="5" oninput="syncData()">${data.body || ''}</textarea>` : ''}
-                    ${data.type === 'image' ? `<input placeholder="Image URL" value="${data.url || ''}" oninput="syncData()">` : ''}
-                </div>
-            `;
-            // Appending to #world ensures it moves with the panning
+            let content = `<div class="handle"></div><div class="node-content">`;
+            content += `<input class="node-title" placeholder="Title" value="${data.title || ''}" oninput="syncData()">`;
+            
+            if(data.type === 'text') {
+                content += `<textarea placeholder="Body Content" rows="5" oninput="syncData()">${data.body || ''}</textarea>`;
+            } else if(data.type === 'image') {
+                content += `<input placeholder="Image URL" value="${data.url || ''}" oninput="syncData()">`;
+            } else if(data.type === 'container') {
+                content += `<div style="height:150px; border:1px dashed #333; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#444;">QUADRANT DROP ZONE</div>`;
+            }
+            
+            content += `</div>`;
+            node.innerHTML = content;
             world.appendChild(node);
             makeDraggable(node);
         }
@@ -260,21 +242,10 @@
             };
         }
 
-        function triggerExitSequence() {
-            syncData();
-            const loader = document.getElementById('loader');
-            const bar = document.getElementById('progress-bar');
-            document.getElementById('loader-msg').innerText = "Returning to the Multiverse Hub";
-            bar.style.width = '0%';
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
-            
-            setTimeout(() => bar.style.width = '100%', 50);
-            setTimeout(() => {
-                window.parent.postMessage('RESTORE_FRAME', '*');
-                window.location.href = 'universes.html';
-            }, 2500);
-        }
+        // --- Tooltip ---
+        const tooltip = document.getElementById('cursor-tooltip');
+        function tip(t) { tooltip.innerText = t; tooltip.style.display = 'block'; }
+        function untip() { tooltip.style.display = 'none'; }
 
         function syncData() {
             const blocks = document.querySelectorAll('.node');
@@ -289,10 +260,17 @@
             }));
             activeUniverse.camera = worldPos;
             const idx = universes.findIndex(u => u.id == universeId);
-            if(idx !== -1) {
-                universes[idx] = activeUniverse;
-                localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-            }
+            if(idx !== -1) { universes[idx] = activeUniverse; localStorage.setItem('alphaline_universes', JSON.stringify(universes)); }
+        }
+
+        function triggerExitSequence() {
+            syncData();
+            const l = document.getElementById('loader');
+            document.getElementById('loader-msg').innerText = "Returning to the Multiverse Hub";
+            document.getElementById('progress-bar').style.width = '0%';
+            l.style.display = 'flex'; l.style.opacity = '1';
+            setTimeout(() => document.getElementById('progress-bar').style.width = '100%', 50);
+            setTimeout(() => { window.parent.postMessage('RESTORE_FRAME', '*'); window.location.href = 'universes.html'; }, 2500);
         }
     </script>
 </body>
