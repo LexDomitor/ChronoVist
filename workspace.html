@@ -7,59 +7,81 @@
     <style>
         :root {
             --bg-color: #0c0c0c;
-            --accent: #333; /* Darker, sharper accent */
+            --accent: #333;
             --text: #ffffff;
-            --text-dim: #a0a0a0; /* Increased brightness for visibility */
+            --text-dim: #a0a0a0;
             --block-bg: #161616;
-            --ui-speed: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+            --ui-speed: 0.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         body, html { 
-            margin: 0; padding: 0; height: 100%; 
+            margin: 0; padding: 0; height: 100%; width: 100%;
             background: var(--bg-color); color: var(--text); 
             font-family: 'Inter', sans-serif; overflow: hidden; 
         }
 
-        /* --- Retractable Header --- */
+        /* --- Smart Hover Header --- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%;
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 3rem; border-bottom: 1px solid var(--accent);
-            background: var(--bg-color); height: 80px; box-sizing: border-box;
-            z-index: 1000; transition: transform var(--ui-speed);
+            background: rgba(12, 12, 12, 0.95); height: 80px; box-sizing: border-box;
+            z-index: 1000; transform: translateY(-100%); transition: transform var(--ui-speed);
         }
+        /* Reveal top nav when hovering near the top 50px of screen */
+        .top-trigger { position: fixed; top: 0; left: 0; width: 100%; height: 50px; z-index: 1001; }
+        .top-trigger:hover + .top-nav, .top-nav:hover { transform: translateY(0); }
 
         .brand-section { display: flex; flex-direction: column; gap: 5px; }
-        .back-arrow { 
-            cursor: pointer; font-size: 1.2rem; color: #fff; 
-            width: fit-content; transition: 0.2s; 
-        }
+        .back-arrow { cursor: pointer; font-size: 1.2rem; color: #fff; width: fit-content; transition: 0.2s; }
         .back-arrow:hover { transform: translateX(-5px); color: var(--text-dim); }
 
-        /* --- Retractable Sidebar --- */
+        /* --- Persistent Sidebar Tool Dock --- */
         .tool-dock {
             position: fixed; left: 0; top: 0; bottom: 0;
-            width: 60px; background: #080808; border-right: 1px solid var(--accent);
+            width: 70px; background: #080808; border-right: 1px solid var(--accent);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 900; transition: transform var(--ui-speed);
+            z-index: 1100;
         }
 
-        /* --- THE RETRACT STATE --- */
-        .focused-mode .top-nav { transform: translateY(-100%); }
-        .focused-mode .tool-dock { transform: translateX(-100%); }
-        .focused-mode #canvas { margin-left: 0; width: 100vw; height: 100vh; margin-top: 0; }
+        /* --- The Infinite Canvas --- */
+        #viewport {
+            width: 100vw; height: 100vh;
+            cursor: grab; overflow: hidden;
+            background-color: #0c0c0c;
+        }
+        #viewport:active { cursor: grabbing; }
 
-        /* --- Workspace Canvas --- */
-        #canvas {
-            margin-left: 60px; margin-top: 80px;
-            width: calc(100vw - 60px); height: calc(100vh - 80px);
-            position: relative; overflow: hidden;
-            background-image: radial-gradient(#222 0.5px, transparent 0.5px);
-            background-size: 40px 40px;
-            transition: all var(--ui-speed);
+        #world {
+            position: absolute; top: 0; left: 0;
+            width: 10000px; height: 10000px; /* Simulated infinite space */
+            background-image: 
+                linear-gradient(to right, #1a1a1a 1px, transparent 1px),
+                linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
+            background-size: 100px 100px;
+            transform-origin: 0 0;
         }
 
-        /* --- Apple Loader Overlay --- */
+        /* --- Data Blocks --- */
+        .data-block {
+            position: absolute; width: 300px;
+            background: var(--block-bg); border: 1px solid var(--accent);
+            border-radius: 4px; padding: 15px; cursor: move;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        .block-header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .index-input { background: transparent; border: none; color: #fff; font-size: 0.7rem; font-weight: 800; width: 120px; outline: none; }
+        .block-label { font-size: 0.5rem; color: #555; text-transform: uppercase; margin-top: 8px; margin-bottom: 4px; display: block; }
+        .block-textarea { width: 100%; min-height: 100px; background: #000; border: 1px solid #222; color: #fff; padding: 10px; resize: vertical; outline: none; font-size: 0.8rem; box-sizing: border-box; }
+
+        .tool-item {
+            width: 45px; height: 45px; border: 1px solid #444;
+            border-radius: 4px; cursor: grab; display: flex; align-items: center; justify-content: center;
+            background: #111; color: white; transition: 0.2s; font-size: 1.5rem;
+        }
+        .tool-item:hover { background: #fff; color: #000; border-color: #fff; }
+
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
@@ -69,45 +91,9 @@
         .loader-content { text-align: center; width: 280px; }
         .progress-track { width: 100%; height: 2px; background: #1a1a1a; margin-top: 20px; }
         .progress-bar { width: 0%; height: 100%; background: #fff; transition: width 1.5s ease-in-out; }
-
-        /* --- Data Blocks (Events) --- */
-        .data-block {
-            position: absolute; width: 300px;
-            background: var(--block-bg); border: 1px solid var(--accent);
-            border-radius: 4px; padding: 15px; cursor: move;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
-            animation: expandBloom 0.4s ease-out;
-        }
-        .block-header {
-            display: flex; justify-content: space-between; margin-bottom: 10px;
-            border-bottom: 1px solid #222; padding-bottom: 5px;
-        }
-        .index-input { 
-            background: transparent; border: none; color: #fff; 
-            font-size: 0.7rem; font-weight: 800; width: 100px; outline: none;
-        }
-        .block-textarea {
-            width: 100%; min-height: 100px; background: #000; border: 1px solid #222;
-            color: #fff; padding: 10px; resize: vertical; outline: none; font-size: 0.8rem;
-            box-sizing: border-box;
-        }
-
-        .tool-item {
-            width: 40px; height: 40px; border: 1px solid #444;
-            border-radius: 4px; cursor: grab; display: flex; align-items: center; justify-content: center;
-            background: #111; color: white; transition: 0.2s;
-        }
-        .tool-item:hover { background: #fff; color: #000; }
-
-        #ui-restore {
-            position: fixed; bottom: 20px; right: 20px; width: 30px; height: 30px;
-            border-radius: 50%; border: 1px solid #444; opacity: 0.2; cursor: pointer;
-            z-index: 2000; transition: 0.3s;
-        }
-        #ui-restore:hover { opacity: 1; background: #fff; }
     </style>
 </head>
-<body class="loading">
+<body>
 
     <div id="loader">
         <div class="loader-content">
@@ -116,23 +102,24 @@
         </div>
     </div>
 
+    <div class="top-trigger"></div>
     <nav class="top-nav">
         <div class="brand-section">
             <div style="font-weight:800; letter-spacing:2px; font-size: 1.1rem;">ALPHALINE</div>
             <div class="back-arrow" onclick="triggerExitSequence()">←</div>
         </div>
         <div id="active-name" style="font-weight:400; text-transform:uppercase; letter-spacing:3px; font-size:0.8rem; color: #fff;">---</div>
-        <div style="font-size: 0.6rem; color: #555; letter-spacing: 1px;">AUTO-SYNC ACTIVE</div>
+        <div style="font-size: 0.6rem; color: #555; letter-spacing: 1px;">COORD: <span id="coord-display">0,0</span></div>
     </nav>
 
-    <div class="tool-dock">
+    <aside class="tool-dock">
         <div class="tool-item" draggable="true" ondragstart="event.dataTransfer.setData('type','event')">+</div>
-        <div style="margin-top:auto; margin-bottom: 20px; font-size: 0.5rem; color: #555; letter-spacing: 1px;">DRAG</div>
+        <div style="margin-top:20px; font-size: 0.5rem; color: #555; text-align: center;">NEW<br>NODE</div>
+    </aside>
+
+    <div id="viewport">
+        <div id="world"></div>
     </div>
-
-    <div id="canvas" ondragover="event.preventDefault()" ondrop="handleDrop(event)"></div>
-
-    <div id="ui-restore" onclick="document.body.classList.toggle('focused-mode')"></div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -140,25 +127,51 @@
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
         
-        // Initialize timeline object if it doesn't exist
-        if (activeUniverse && !activeUniverse.timeline) {
-            activeUniverse.timeline = {}; 
-        }
+        const world = document.getElementById('world');
+        const viewport = document.getElementById('viewport');
+        let worldPos = { x: -4500, y: -4500 }; // Start in the middle of the 10k grid
 
         if (activeUniverse) {
             document.getElementById('active-name').innerText = activeUniverse.name;
-            document.getElementById('loader-msg').innerText = `Transporting to ${activeUniverse.name}`;
+            // Load saved camera position if exists
+            if(activeUniverse.camera) worldPos = activeUniverse.camera;
         }
 
+        // --- Infinite Panning Engine ---
+        let isPanning = false;
+        let startX, startY;
+
+        viewport.onmousedown = (e) => {
+            if (e.target !== viewport && e.target !== world) return;
+            isPanning = true;
+            startX = e.clientX - worldPos.x;
+            startY = e.clientY - worldPos.y;
+        };
+
+        window.onmousemove = (e) => {
+            if (isPanning) {
+                worldPos.x = e.clientX - startX;
+                worldPos.y = e.clientY - startY;
+                updateWorldTransform();
+            }
+        };
+
+        window.onmouseup = () => { isPanning = false; syncData(); };
+
+        function updateWorldTransform() {
+            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
+            document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x)}, ${Math.round(-worldPos.y)}`;
+        }
+
+        // --- Data Logic ---
         window.onload = () => {
+            updateWorldTransform();
             const bar = document.getElementById('progress-bar');
             setTimeout(() => bar.style.width = '100%', 100);
             
-            // Render existing blocks from timeline
-            if (activeUniverse.timeline) {
-                Object.keys(activeUniverse.timeline).forEach(year => {
-                    const data = activeUniverse.timeline[year];
-                    createBlock(data.x, data.y, year, data.content);
+            if (activeUniverse && activeUniverse.timeline) {
+                activeUniverse.timeline.forEach(box => {
+                    createBlock(box.x, box.y, box.index, box.eventSynopsis, box.boxId);
                 });
             }
 
@@ -167,79 +180,59 @@
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
                     window.parent.postMessage('RETRACT_FRAME', '*');
-                    document.body.classList.add('focused-mode');
                 }, 800);
             }, 1800);
         };
 
         function syncData() {
             const blocks = document.querySelectorAll('.data-block');
-            activeUniverse.timeline = {}; // Reset and rebuild from DOM
+            activeUniverse.timeline = [];
+            activeUniverse.camera = worldPos;
             
             blocks.forEach(block => {
-                const year = block.querySelector('.index-input').value || "UNKNOWN_DATE";
-                activeUniverse.timeline[year] = {
-                    content: block.querySelector('.block-textarea').value,
+                activeUniverse.timeline.push({
+                    boxId: block.dataset.id,
+                    index: block.querySelector('.index-input').value,
+                    eventSynopsis: block.querySelector('.block-textarea').value,
                     x: parseInt(block.style.left),
                     y: parseInt(block.style.top)
-                };
+                });
             });
 
-            const index = universes.findIndex(u => u.id == universeId);
-            universes[index] = activeUniverse;
+            const idx = universes.findIndex(u => u.id == universeId);
+            universes[idx] = activeUniverse;
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-        }
-
-        function triggerExitSequence() {
-            syncData(); // Final Sync
-            
-            // Fade out the workspace
-            document.body.style.transition = "opacity 0.5s ease";
-            document.body.style.opacity = "0";
-
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                const bar = document.getElementById('progress-bar');
-                const msg = document.getElementById('loader-msg');
-                
-                msg.innerText = "Returning to the Multiverse Hub...";
-                bar.style.width = '0%';
-                loader.style.display = 'flex';
-                loader.style.opacity = '1';
-                document.body.style.opacity = "1";
-
-                setTimeout(() => bar.style.width = '100%', 100);
-
-                setTimeout(() => {
-                    window.parent.postMessage('RESTORE_FRAME', '*');
-                    window.location.href = 'universes.html';
-                }, 1600);
-            }, 500);
         }
 
         function handleDrop(e) {
             e.preventDefault();
-            const canvas = document.getElementById('canvas');
-            const rect = canvas.getBoundingClientRect();
-            createBlock(e.clientX - rect.left - 150, e.clientY - rect.top - 50);
+            // Drop coordinate relative to the world grid, not the screen
+            const x = e.clientX - worldPos.x - 150;
+            const y = e.clientY - worldPos.y - 50;
+            createBlock(x, y);
             syncData();
         }
+        
+        viewport.ondragover = (e) => e.preventDefault();
+        viewport.ondrop = handleDrop;
 
-        function createBlock(x, y, index = "YEAR/ID", content = "") {
+        function createBlock(x, y, indexValue = "YEAR", synopsis = "", id = null) {
             const block = document.createElement('div');
             block.className = 'data-block';
             block.style.left = x + 'px';
             block.style.top = y + 'px';
+            block.dataset.id = id || 'box_' + Date.now();
             
             block.innerHTML = `
                 <div class="block-header">
-                    <input type="text" class="index-input" value="${index}" oninput="syncData()">
-                    <div style="font-size: 0.5rem; color: #444;">EVENT</div>
+                    <input type="text" class="index-input" value="${indexValue}" oninput="syncData()">
+                    <div style="font-size: 0.5rem; color: #444;">EVENT NODE</div>
                 </div>
-                <textarea class="block-textarea" placeholder="Describe the chain of events..." oninput="syncData()">${content}</textarea>
+                <label class="block-label">Event Synopsis</label>
+                <textarea class="block-textarea" placeholder="Describe the chain of events..." oninput="syncData()">${synopsis}</textarea>
             `;
             
-            document.getElementById('canvas').appendChild(block);
+            world.appendChild(block);
             makeDraggable(block);
         }
 
@@ -247,12 +240,9 @@
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             el.onmousedown = (e) => {
                 if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+                e.stopPropagation(); // Prevent panning when dragging block
                 p3 = e.clientX; p4 = e.clientY;
-                document.onmouseup = () => { 
-                    document.onmouseup = null; 
-                    document.onmousemove = null;
-                    syncData(); 
-                };
+                document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; syncData(); };
                 document.onmousemove = (e) => {
                     p1 = p3 - e.clientX; p2 = p4 - e.clientY;
                     p3 = e.clientX; p4 = e.clientY;
@@ -260,6 +250,15 @@
                     el.style.left = (el.offsetLeft - p1) + "px";
                 };
             };
+        }
+
+        function triggerExitSequence() {
+            syncData(); 
+            document.body.style.opacity = "0";
+            setTimeout(() => {
+                window.parent.postMessage('RESTORE_FRAME', '*');
+                window.location.href = 'universes.html';
+            }, 500);
         }
     </script>
 </body>
