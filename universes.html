@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --bg-color: #0f0f0f;
@@ -10,232 +9,181 @@
             --accent: #333;
             --text: #ffffff;
             --text-dim: #888;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --panel-bg: #1a1a1a;
         }
 
-        /* --- Sleek Scrollbar (The Custom Styling) --- */
-        ::-webkit-scrollbar { width: 8px; }
+        /* Sleek Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { 
-            background: #222; 
-            border-radius: 4px; 
-            border: 2px solid var(--bg-color);
-        }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
         body {
             background: var(--bg-color);
             color: var(--text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            padding: 3rem 5%;
+            font-family: 'Inter', -apple-system, sans-serif;
             margin: 0;
-            /* Using overlay ensures the scrollbar doesn't "push" the content when it appears */
-            overflow-y: overlay; 
+            padding: 3rem 5%;
+            overflow-x: hidden;
         }
 
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--accent);
-            padding-bottom: 1.5rem;
-        }
-
-        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
-
-        .universe-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 1.5rem;
-        }
+        /* --- Grid Layout --- */
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; border-bottom: 1px solid var(--accent); padding-bottom: 1.5rem; }
+        .universe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
 
         .universe-card {
             background: var(--card-bg);
             border: 1px solid var(--accent);
             padding: 1.5rem;
-            position: relative;
             display: flex;
             align-items: center;
             gap: 1.2rem;
-            transition: var(--transition);
-        }
-
-        .universe-card:hover { border-color: #666; background: #1a1a1a; }
-
-        /* --- Circular Image Mask --- */
-        .universe-thumb {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #222;
-            object-fit: cover;
-            border: 1px solid var(--accent);
-            flex-shrink: 0;
-        }
-
-        .card-content { flex-grow: 1; }
-        
-        .universe-name { 
-            font-size: 1.1rem; 
-            margin-bottom: 0.5rem; 
-            font-weight: 500;
-            letter-spacing: -0.5px;
-        }
-        
-        /* Multi-line metadata layout */
-        .universe-meta { 
-            font-size: 0.65rem; 
-            color: var(--text-dim); 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            line-height: 1.6;
-        }
-
-        .last-edited {
-            display: block;
-            margin-top: 4px;
-            color: #555;
-            font-weight: 700;
-        }
-
-        /* Edit Button (Visible on Hover) */
-        .edit-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--text-dim);
-            font-size: 0.6rem;
-            padding: 4px 10px;
+            position: relative;
             cursor: pointer;
-            opacity: 0;
-            transition: var(--transition);
-            font-family: inherit;
+            transition: 0.3s;
         }
-        .universe-card:hover .edit-btn { opacity: 1; }
-        .edit-btn:hover { border-color: #fff; color: #fff; }
+        .universe-card:hover { border-color: #666; }
 
-        .btn-new {
-            background: white;
-            color: black;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            letter-spacing: 1.5px;
-            transition: var(--transition);
+        .universe-thumb { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
+
+        .edit-trigger {
+            position: absolute; top: 10px; right: 10px;
+            background: none; border: 1px solid var(--accent);
+            color: var(--text-dim); font-size: 0.6rem; padding: 4px 8px;
+            cursor: pointer; opacity: 0; transition: 0.2s;
         }
-        .btn-new:hover { background: #ccc; }
+        .universe-card:hover .edit-trigger { opacity: 1; }
+
+        /* --- The Slide-out Panel --- */
+        #edit-panel {
+            position: fixed; top: 0; right: -400px;
+            width: 350px; height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--accent);
+            padding: 3rem 2rem;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        #edit-panel.active { right: 0; }
+
+        .field-group { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 1px; }
+        input {
+            width: 100%; background: #000; border: 1px solid var(--accent);
+            padding: 0.8rem; color: white; font-family: inherit; font-size: 0.9rem;
+        }
+        
+        .preview-circle { width: 100px; height: 100px; border-radius: 50%; background: #000; margin: 1rem 0; border: 1px solid var(--accent); object-fit: cover; }
+
+        .btn-save { width: 100%; padding: 1rem; background: white; color: black; border: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-top: 1rem; }
+        .btn-cancel { width: 100%; padding: 1rem; background: transparent; color: var(--text-dim); border: 1px solid var(--accent); margin-top: 0.5rem; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
+
+        .upload-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .btn-mini { flex: 1; padding: 0.5rem; font-size: 0.6rem; background: #222; color: white; border: 1px solid var(--accent); cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="header-row">
         <h1>My Universes</h1>
-        <button id="add-btn" class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
+        <button class="btn-save" style="width:auto" onclick="openPanel()">+ New Canon</button>
     </div>
 
-    <div id="universe-grid" class="universe-grid">
+    <div id="universe-grid" class="universe-grid"></div>
+
+    <div id="edit-panel">
+        <h2 style="font-weight: 300; text-transform: uppercase; font-size: 1rem; margin-bottom: 2rem;">Attributes</h2>
+        
+        <div class="field-group">
+            <label>Universe Name</label>
+            <input type="text" id="inp-name" placeholder="The Obsidian Rim">
         </div>
 
+        <div class="field-group">
+            <label>Thumbnail</label>
+            <img src="" id="prev-img" class="preview-circle">
+            <div class="upload-row">
+                <button class="btn-mini" onclick="document.getElementById('file-upload').click()">Upload File</button>
+                <input type="file" id="file-upload" hidden accept="image/*" onchange="handleUpload(this)">
+            </div>
+            <input type="text" id="inp-img" placeholder="Or paste image URL" style="margin-top:0.5rem" oninput="updatePreview(this.value)">
+        </div>
+
+        <button class="btn-save" onclick="savePanel()">Commit Changes</button>
+        <button class="btn-cancel" onclick="closePanel()">Cancel</button>
+    </div>
+
     <script>
-        const STORAGE_KEY = 'alphaline_universes';
-        const CONSENT_KEY = 'alphaline_consent';
-        let universes = [];
-
-        function hydrateData() {
-            const rawData = localStorage.getItem(STORAGE_KEY);
-            if (rawData) {
-                const parsed = JSON.parse(rawData);
-                // --- Legacy Migration Logic ---
-                // This ensures old universes get new fields (Image, Last Edited) without breaking
-                universes = parsed.map(u => ({
-                    id: u.id,
-                    name: u.name || "Untitled Universe",
-                    author: u.author || "Guest",
-                    image: u.image || "https://via.placeholder.com/150",
-                    created: u.created || "Unknown Date",
-                    lastEdited: u.lastEdited || u.created || "Never"
-                }));
-                syncToStorage(); // Save migrated data back to cookie
-            }
-            renderGrid();
-        }
-
-        function syncToStorage() {
-            if (localStorage.getItem(CONSENT_KEY) === 'true') {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(universes));
-            }
-        }
-
-        function createNewUniverse() {
-            const name = prompt("Universe Identity / Name:");
-            if (!name) return;
-            
-            const img = prompt("Thumbnail URL (Leave blank for default):");
-            const date = new Date().toLocaleDateString(undefined, { 
-                year: 'numeric', month: 'short', day: 'numeric' 
-            }).toUpperCase();
-
-            const newEntry = {
-                id: Date.now(),
-                name: name,
-                author: "Guest " + date,
-                image: img || "https://via.placeholder.com/150",
-                created: date,
-                lastEdited: date
-            };
-
-            universes.push(newEntry);
-            syncToStorage();
-            renderGrid();
-        }
-
-        function editAttributes(id) {
-            const u = universes.find(item => item.id === id);
-            const newName = prompt("Edit Universe Name:", u.name);
-            const newImg = prompt("Edit Thumbnail URL:", u.image);
-            
-            if (newName !== null) {
-                u.name = newName || u.name;
-                u.image = newImg || u.image;
-                u.lastEdited = new Date().toLocaleDateString(undefined, { 
-                    year: 'numeric', month: 'short', day: 'numeric' 
-                }).toUpperCase();
-                
-                syncToStorage();
-                renderGrid();
-            }
-        }
+        let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+        let activeId = null;
 
         function renderGrid() {
             const grid = document.getElementById('universe-grid');
-            if (universes.length === 0) {
-                grid.innerHTML = '<p style="color:#444; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">No local canons archived.</p>';
-                return;
-            }
-
             grid.innerHTML = universes.map(u => `
-                <div class="universe-card">
-                    <button class="edit-btn" onclick="editAttributes(${u.id})">Edit Attributes</button>
+                <div class="universe-card" onclick="openPanel(${u.id})">
+                    <button class="edit-trigger">Edit</button>
                     <img src="${u.image}" class="universe-thumb" onerror="this.src='https://via.placeholder.com/150'">
                     <div class="card-content">
-                        <div class="universe-name">${u.name}</div>
-                        <div class="universe-meta">
+                        <div style="font-size:1.1rem">${u.name}</div>
+                        <div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-top:5px">
                             Authored by ${u.author}<br>
-                            Created on ${u.created}
-                            <span class="last-edited">Last Edited: ${u.lastEdited}</span>
+                            Created ${u.created}
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        window.onload = hydrateData;
+        function openPanel(id = null) {
+            activeId = id;
+            const panel = document.getElementById('edit-panel');
+            if (id) {
+                const u = universes.find(x => x.id === id);
+                document.getElementById('inp-name').value = u.name;
+                document.getElementById('inp-img').value = u.image;
+                document.getElementById('prev-img').src = u.image;
+            } else {
+                document.getElementById('inp-name').value = "";
+                document.getElementById('inp-img').value = "";
+                document.getElementById('prev-img').src = "";
+            }
+            panel.classList.add('active');
+        }
+
+        function closePanel() { document.getElementById('edit-panel').classList.remove('active'); }
+
+        function handleUpload(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                document.getElementById('inp-img').value = reader.result;
+                document.getElementById('prev-img').src = reader.result;
+            }
+            if (file) reader.readAsDataURL(file);
+        }
+
+        function updatePreview(val) { document.getElementById('prev-img').src = val; }
+
+        function savePanel() {
+            const name = document.getElementById('inp-name').value;
+            const img = document.getElementById('inp-img').value;
+            const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+
+            if (activeId) {
+                const u = universes.find(x => x.id === activeId);
+                u.name = name; u.image = img; u.lastEdited = date;
+            } else {
+                universes.push({
+                    id: Date.now(), name, image: img || 'https://via.placeholder.com/150',
+                    author: "Guest " + date, created: date, lastEdited: date
+                });
+            }
+            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+            closePanel();
+            renderGrid();
+        }
+
+        window.onload = renderGrid;
     </script>
 </body>
 </html>
