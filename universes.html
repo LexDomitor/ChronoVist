@@ -1,28 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <style>
         body {
-            background: transparent;
+            background: #0f0f0f;
             color: white;
-            font-family: sans-serif;
-            padding: 5%;
+            font-family: 'Inter', sans-serif;
+            padding: 3rem 5%;
         }
-        .header-area {
-            border-bottom: 1px solid #333;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; }
+
+        /* --- The Grid --- */
+        .universe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .universe-card {
+            background: #161616;
+            border: 1px solid #333;
+            padding: 2rem;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .universe-card:hover { border-color: #666; background: #1a1a1a; }
+
+        .universe-name { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .universe-meta { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- Hover Edit Button --- */
+        .edit-trigger {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            opacity: 0;
+            background: #333;
+            color: white;
+            border: none;
+            font-size: 0.6rem;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .universe-card:hover .edit-trigger { opacity: 1; }
+
+        .btn-new {
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
-    <div class="header-area">
-        <h2>My Universes</h2>
-        <p>Start mapping your worlds here.</p>
+
+    <div class="header-row">
+        <h1>My Universes</h1>
+        <button class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
     </div>
-    
-    <button style="padding: 1rem; background: #333; color: white; border: none; cursor: pointer;">
-        + Create New Universe
-    </button>
+
+    <div id="universe-grid" class="universe-grid">
+        </div>
+
+    <script>
+        // Mocking the Author Name
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+        const defaultAuthor = "Guest " + today;
+
+        function createNewUniverse() {
+            const uName = prompt("Enter Universe Name:");
+            if (uName) {
+                const newUniverse = {
+                    id: Date.now(),
+                    name: uName,
+                    author: defaultAuthor
+                };
+                saveToLocal(newUniverse);
+                renderGrid();
+            }
+        }
+
+        function saveToLocal(obj) {
+            // Check if user allowed cookies/storage
+            if(localStorage.getItem('alphaline_consent') !== 'true') {
+                alert("Data cannot be saved. Please enable cookies in Account.");
+                return;
+            }
+            
+            let data = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+            data.push(obj);
+            localStorage.setItem('alphaline_universes', JSON.stringify(data));
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('universe-grid');
+            const data = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+            
+            grid.innerHTML = data.map(u => `
+                <div class="universe-card">
+                    <button class="edit-trigger" onclick="event.stopPropagation(); alert('Edit Prompt for: ' + '${u.name}')">Edit Attributes</button>
+                    <div class="universe-name">${u.name}</div>
+                    <div class="universe-meta">Authored by ${u.author}</div>
+                </div>
+            `).join('');
+        }
+
+        // Initial Load
+        renderGrid();
+    </script>
 </body>
 </html>
