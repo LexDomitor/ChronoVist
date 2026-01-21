@@ -8,7 +8,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap');
         :root { --bg: #080808; --accent: #2a2a2a; --text: #fff; --text-dim: #888; }
         
-        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; position: fixed; }
+        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; position: fixed; top: 0; left: 0; }
         * { box-sizing: border-box; }
 
         /* --- LOADER --- */
@@ -19,7 +19,7 @@
         .progress-track { width: 100%; height: 2px; background: #111; margin-top: 25px; position: relative; }
         #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s ease; position: absolute; top:0; left:0; }
 
-        /* --- TOP UI BAR --- */
+        /* --- TOP UI BAR (Restored Branding) --- */
         .top-nav { 
             position: fixed; top: 0; left: 0; width: 100%; height: 85px;
             background: rgba(12, 12, 12, 0.98); backdrop-filter: blur(20px); 
@@ -28,12 +28,13 @@
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
         }
         .brand-block { display: flex; align-items: center; gap: 15px; }
-        .exit-btn { cursor: pointer; font-size: 1.5rem; color: #555; transition: 0.3s; }
+        .exit-btn { cursor: pointer; font-size: 1.5rem; color: #555; transition: 0.3s; display: flex; align-items: center; }
         .exit-btn:hover { color: #fff; transform: translateX(-5px); }
-        .nav-text { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: #888; font-weight: 300; }
-        .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; }
         
-        /* STATUS AREA */
+        .nav-text { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: #888; font-weight: 300; display: flex; align-items: center; }
+        .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; margin-right: 5px; }
+        .project-name { color: #fff; margin-left: 10px; border-left: 1px solid #333; padding-left: 15px; }
+
         .status-area { text-align: right; }
         #system-status { font-size: 0.55rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
         #coord-display { font-size: 0.6rem; color: #444; font-family: monospace; }
@@ -42,23 +43,23 @@
 
         /* --- WORLD & NODES --- */
         #viewport { width: 100vw; height: 100vh; cursor: grab; background: var(--bg); position: relative; overflow: hidden; }
-        #world { 
-            position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; 
-            background-image: radial-gradient(circle, #444 1.5px, transparent 1.5px), linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
-            background-size: 100px 100px; background-position: -1px -1px;
-        }
+        #world { position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; background-image: radial-gradient(circle, #444 1.5px, transparent 1.5px), linear-gradient(to right, #1a1a1a 1px, transparent 1px), linear-gradient(to bottom, #1a1a1a 1px, transparent 1px); background-size: 100px 100px; }
 
-        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; }
+        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .handle { height: 20px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #333; }
         .node-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
         input, textarea { background: #000; border: 1px solid #222; color: #fff; font-size: 0.75rem; padding: 8px; outline: none; width: 100%; }
+
+        .img-preview img { width: 100%; border-radius: 2px; margin-bottom: 5px; }
+        .upload-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px; cursor: pointer; font-size: 0.6rem; width: 100%; transition: 0.2s; }
+        .upload-btn:hover { background: #333; }
 
         .node-container { width: 500px; min-height: 320px; }
         .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; position: relative; }
         .quad-layer { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; gap: 12px; padding: 12px; pointer-events: none; }
         .quad { border: 1px dashed rgba(255,255,255,0.05); }
         .quad.active { background: rgba(255,255,255,0.15); border: 1px solid #fff; }
-        .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; }
+        .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; left: auto !important; top: auto !important; box-shadow: none; }
 
         .tool-dock { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 42px; background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1100; }
         .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; }
@@ -84,7 +85,7 @@
         <div class="brand-block">
             <div class="exit-btn" onclick="triggerExitSequence()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> | <span id="active-name">UNIVERSE</span>
+                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-name" class="project-name">UNIVERSE</span>
             </div>
         </div>
         <div class="status-area">
@@ -115,9 +116,7 @@
         let scale = activeUniverse?.scale || 1;
 
         window.onload = () => {
-            if(activeUniverse) {
-                document.getElementById('active-name').innerText = activeUniverse.name;
-            }
+            if(activeUniverse) { document.getElementById('active-name').innerText = activeUniverse.name; }
             updateWorld();
             setTimeout(() => { document.getElementById('progress-bar').style.width = '100%'; }, 100);
             setTimeout(() => { 
@@ -134,15 +133,13 @@
             document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
         }
 
-        // --- CAMERA LOGIC ---
         viewport.addEventListener('wheel', e => {
             e.preventDefault();
             const oldScale = scale;
             scale = Math.min(Math.max(0.15, scale + (-Math.sign(e.deltaY) * 0.08)), 3);
             const rect = viewport.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-            worldPos.x = mouseX - (mouseX - worldPos.x) * (scale / oldScale);
-            worldPos.y = mouseY - (mouseY - worldPos.y) * (scale / oldScale);
+            worldPos.x = (e.clientX - rect.left) - ((e.clientX - rect.left) - worldPos.x) * (scale / oldScale);
+            worldPos.y = (e.clientY - rect.top) - ((e.clientY - rect.top) - worldPos.y) * (scale / oldScale);
             updateWorld();
         }, { passive: false });
 
@@ -155,7 +152,6 @@
         window.onmousemove = e => { if(isPanning) { worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY; updateWorld(); } };
         window.onmouseup = () => { if(isPanning) { isPanning = false; document.body.classList.remove('hide-ui'); sync(); } };
 
-        // --- NODE LOGIC ---
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
         function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); sync(); }
 
@@ -167,27 +163,50 @@
                 const rect = viewport.getBoundingClientRect();
                 const x = (e.clientX - rect.left - worldPos.x) / scale - 110;
                 const y = (e.clientY - rect.top - worldPos.y) / scale - 20;
-                createNode({ type, x, y }, false); // false = don't sync on initial drop
+                createNode({ type, x, y }, false);
             }
         };
+
+        function handleImg(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const node = input.closest('.node');
+                const preview = node.querySelector('.img-preview');
+                preview.innerHTML = `<img src="${e.target.result}">`;
+                input.previousElementSibling.style.display = 'none'; // Hide upload btn
+                node.dataset.base64 = e.target.result; 
+                sync();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
 
         function createNode(data, isLoad) {
             const node = document.createElement('div');
             node.className = `node node-${data.type} ${data.type === 'container' ? 'node-container' : ''}`;
             node.dataset.id = data.boxId || 'box_' + Date.now();
             node.dataset.type = data.type;
+            if(data.url) node.dataset.base64 = data.url;
             
             if (!data.parent) {
                 node.style.left = data.x + 'px'; node.style.top = data.y + 'px';
                 world.appendChild(node);
             }
 
-            node.innerHTML = `<div class="handle"></div><div class="node-content">
-                ${data.type === 'container' ? `<input class="node-title" placeholder="Frame Title" value="${data.title||''}" oninput="sync()">
-                    <div class="container-grid"><div class="quad-layer"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div></div>` : 
-                  data.type === 'text' ? `<input class="node-title" placeholder="Title" value="${data.title||''}" oninput="sync()">
-                    <textarea placeholder="Write..." oninput="sync()">${data.body||''}</textarea>` : ''}
-            </div>`;
+            let html = `<div class="handle"></div><div class="node-content">`;
+            if(data.type === 'container') {
+                html += `<input class="node-title" placeholder="Frame Title" value="${data.title||''}" oninput="sync()">
+                         <div class="container-grid"><div class="quad-layer"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div></div>`;
+            } else if(data.type === 'text') {
+                html += `<input class="node-title" placeholder="Title" value="${data.title||''}" oninput="sync()">
+                         <textarea placeholder="Write..." oninput="sync()">${data.body||''}</textarea>`;
+            } else if(data.type === 'image') {
+                html += `<div class="img-preview">${data.url ? `<img src="${data.url}">` : ''}</div>
+                         <button class="upload-btn" onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}">UPLOAD IMAGE</button>
+                         <input type="file" style="display:none" onchange="handleImg(this)">
+                         <input class="node-title" placeholder="Caption..." value="${data.title||''}" oninput="sync()">`;
+            }
+            html += `</div>`;
+            node.innerHTML = html;
 
             if(data.parent) {
                 node.classList.add('snapped');
@@ -207,25 +226,27 @@
         function sync() {
             if(!activeUniverse) return;
             statusText.innerText = "Syncing..."; statusText.style.color = "#fff";
-            
             activeUniverse.timeline = Array.from(document.querySelectorAll('.node')).map(n => ({
                 boxId: n.dataset.id, type: n.dataset.type,
                 x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
                 y: n.classList.contains('snapped') ? 0 : parseInt(n.style.top),
                 parent: n.classList.contains('snapped') ? n.closest('.node-container').dataset.id : null,
                 title: n.querySelector('.node-title')?.value || "",
-                body: n.querySelector('textarea')?.value || ""
+                body: n.querySelector('textarea')?.value || "",
+                url: n.dataset.base64 || ""
             }));
             activeUniverse.camera = worldPos; activeUniverse.scale = scale;
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-            
             setTimeout(() => { statusText.innerText = "Synced"; statusText.style.color = "#555"; }, 400);
         }
 
         function triggerExitSequence() {
             sync();
-            document.getElementById('loader').style.display = 'flex';
-            document.getElementById('loader').style.opacity = '1';
+            window.parent.postMessage('RESTORE_FRAME', '*'); // Tell the main page to show its bars
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            document.getElementById('progress-bar').style.width = '100%';
             setTimeout(() => { window.location.href = 'universes.html'; }, 1100);
         }
     </script>
