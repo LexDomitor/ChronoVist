@@ -6,6 +6,8 @@ const PlaneEngine = {
 
         handle.onmousedown = (e) => {
             e.stopPropagation();
+            
+            // "Tear out" logic: if snapped, restore to world coordinates
             if(el.classList.contains('snapped')) {
                 const rect = el.getBoundingClientRect();
                 el.classList.remove('snapped');
@@ -13,6 +15,7 @@ const PlaneEngine = {
                 el.style.left = (rect.left - worldPos.x) / scale + 'px';
                 el.style.top = (rect.top - worldPos.y) / scale + 'px';
             }
+            
             document.body.classList.add('hide-ui', 'is-dragging');
             let p3 = e.clientX, p4 = e.clientY;
 
@@ -33,9 +36,30 @@ const PlaneEngine = {
                     if(confirm("Permanently delete node?")) { el.remove(); sync(); }
                 } else { 
                     snap(el); 
-                    // Only sync on drop if the node has content, otherwise wait for input
                     if (el.dataset.initialized === "true") sync(); 
                 }
+            };
+        };
+    },
+
+    makeResizable: function(el, scale, sync) {
+        const resizer = el.querySelector('.resizer');
+        if(!resizer) return;
+
+        resizer.onmousedown = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            let startW = el.offsetWidth;
+            let startX = e.clientX;
+
+            document.onmousemove = (e) => {
+                const deltaX = (e.clientX - startX) / scale;
+                el.style.width = Math.max(150, startW + deltaX) + "px";
+            };
+
+            document.onmouseup = () => {
+                document.onmousemove = null;
+                sync();
             };
         };
     },
