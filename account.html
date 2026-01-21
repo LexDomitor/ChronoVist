@@ -38,7 +38,6 @@
 
         h2 { font-weight: 400; font-size: 1.3rem; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
         
-        /* The requested Status Colors */
         .status-display {
             font-size: 0.75rem;
             font-weight: 700;
@@ -51,9 +50,8 @@
             gap: 8px;
         }
 
-        .status-active { color: #4CAF50; } /* Green */
-        .status-declined { color: #F44336; } /* Red */
-        .status-pending { color: #FFA000; } /* Orange */
+        .status-active { color: #4CAF50; } 
+        .status-disabled { color: #F44336; } 
 
         p { color: #a0a0a0; font-size: 0.9rem; line-height: 1.7; margin-bottom: 2.5rem; }
 
@@ -83,11 +81,9 @@
         .btn-danger { border-color: #552222; color: #ff6666; }
         .btn-danger:hover { background: #ff4444; color: white; border-color: #ff4444; }
 
-        /* Dot indicator */
         .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
         .bg-active { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
-        .bg-declined { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
-        .bg-pending { background-color: #FFA000; }
+        .bg-disabled { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
     </style>
 </head>
 <body>
@@ -95,11 +91,10 @@
     <div class="container">
         <div class="status-tag">System Node: Account</div>
         
-        <div id="status-area" class="status-display">
-            </div>
+        <div id="status-area" class="status-display"></div>
 
         <h2 id="account-heading">Guest Session</h2>
-        <p id="account-desc">Initializing session parameters...</p>
+        <p id="account-desc"></p>
 
         <div class="settings-box">
             <button class="btn" onclick="window.parent.openModal('cookies')">Check Cookie Preferences</button>
@@ -115,6 +110,7 @@
             const desc = document.getElementById('account-desc');
             const revokeBtn = document.getElementById('revoke-btn');
 
+            // Default to Disabled if not explicitly 'true'
             if (consent === 'true') {
                 statusArea.innerHTML = '<span class="dot bg-active"></span> Data Saving: ACTIVE';
                 statusArea.className = "status-display status-active";
@@ -122,17 +118,11 @@
                 desc.innerText = "Your Universe Canons are currently being synced to this device's local storage.";
                 revokeBtn.style.display = "block";
             } 
-            else if (consent === 'false') {
-                statusArea.innerHTML = '<span class="dot bg-declined"></span> Data Saving: DISABLED';
-                statusArea.className = "status-display status-declined";
-                heading.innerText = "Private Session";
-                desc.innerText = "You have declined functional cookies. Changes to your Universe Canons will not persist across sessions.";
-                revokeBtn.style.display = "none";
-            } 
             else {
-                statusArea.innerHTML = '<span class="dot bg-pending"></span> Data Saving: PENDING';
-                statusArea.className = "status-display status-pending";
-                desc.innerText = "Please review cookie preferences to enable persistent worldbuilding features.";
+                statusArea.innerHTML = '<span class="dot bg-disabled"></span> Data Saving: DISABLED';
+                statusArea.className = "status-display status-disabled";
+                heading.innerText = "Private Session";
+                desc.innerText = "Data persistence is currently inactive. Please accept cookies if you wish to save your Universe Canons locally.";
                 revokeBtn.style.display = "none";
             }
         }
@@ -144,7 +134,6 @@
             }
         }
 
-        // Run on load
         updateUI();
     </script>
 </body>
