@@ -3,26 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workspace</title>
+    <title>AlphaLine | Workspace</title>
     <link rel="stylesheet" href="plane.css">
     <style>
-        /* Emergency styles in case plane.css fails to load */
-        body { background: #000; color: #fff; margin: 0; font-family: sans-serif; overflow: hidden; }
-        .top-nav { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.8); z-index: 10; }
-        .nav-btn { background: #fff; color: #000; border: none; padding: 5px 10px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        #canvas-container { width: 100vw; height: 100vh; position: relative; cursor: grab; }
+        /* This ensures it looks exactly like the merged version even if the CSS file lags */
+        :root {
+            --bg-color: #000000;
+            --panel-bg: #0a0a0a;
+            --accent: #333;
+            --text: #ffffff;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg-color); color: var(--text); 
+            font-family: 'Inter', sans-serif; overflow: hidden;
+        }
+
+        .top-nav {
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; background: var(--panel-bg);
+            border-bottom: 1px solid var(--accent); z-index: 1000;
+            box-sizing: border-box; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #workspace-title { 
+            font-size: 1.5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        .nav-btn {
+            background: #fff; color: #000; border: none; padding: 0.6rem 1.2rem;
+            font-weight: 700; text-transform: uppercase; cursor: pointer;
+            font-size: 0.75rem; letter-spacing: 1px; transition: 0.2s;
+        }
+
+        .nav-btn:hover { background: #ccc; }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; background: var(--panel-bg);
+            border-top: 1px solid var(--accent); z-index: 1000;
+            box-sizing: border-box; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Focus Mode Trigger */
+        body.hide-ui .top-nav { transform: translateY(-100%); }
+        body.hide-ui .bottom-nav { transform: translateY(100%); }
+
+        #canvas-container { width: 100vw; height: 100vh; position: relative; }
     </style>
 </head>
 <body>
 
     <div class="top-nav">
-        <div>
+        <div style="display: flex; align-items: center; gap: 20px;">
             <button class="nav-btn" onclick="window.location.href='../universes.html'">← EXIT</button>
-            <span id="workspace-title" style="margin-left: 20px; font-size: 1.5rem; font-weight: bold; text-transform: uppercase;"></span>
+            <div id="workspace-title">LOADING...</div>
         </div>
-        <div>
+        <div style="display: flex; gap: 10px;">
             <button class="nav-btn" onclick="document.body.classList.toggle('hide-ui')">FOCUS (H)</button>
-            <button class="nav-btn" onclick="saveState()" style="margin-left: 10px;">SYNC NOW</button>
+            <button class="nav-btn" onclick="saveState()">SYNC NOW</button>
         </div>
     </div>
 
@@ -30,43 +72,41 @@
         <div id="plane-canvas"></div>
     </div>
 
-    <div class="bottom-nav" style="position:fixed; bottom: 10px; right: 10px; display: flex; gap: 10px;">
-        <button class="nav-btn" onclick="addNode('text')">+ TEXT</button>
-        <button class="nav-btn" onclick="addNode('image')">+ IMAGE</button>
+    <div class="bottom-nav">
+        <div id="coords" style="font-family: monospace; color: #555; font-size: 0.8rem;">X: 0 Y: 0</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="nav-btn" onclick="addNode('text')">+ TEXT</button>
+            <button class="nav-btn" onclick="addNode('image')">+ IMAGE</button>
+        </div>
     </div>
 
     <script src="engine.js"></script>
     <script src="node.js"></script> <script>
         const urlParams = new URLSearchParams(window.location.search);
         const universeId = urlParams.get('id');
-        let currentUniverse = null;
 
         window.onload = () => {
             const all = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-            currentUniverse = all.find(u => u.id == universeId);
+            const current = all.find(u => u.id == universeId);
 
-            if (!currentUniverse) {
-                console.error("Universe ID not found");
-                return;
-            }
-
-            document.getElementById('workspace-title').innerText = currentUniverse.name;
-            
-            // Load existing nodes if they exist
-            if (currentUniverse.data && typeof initEngine === 'function') {
-                initEngine(currentUniverse.data);
+            if (current) {
+                document.getElementById('workspace-title').innerText = current.name;
+                // If engine has an init, run it
+                if (window.initEngine) initEngine(current.data || []);
+            } else {
+                window.location.href = '../universes.html';
             }
         };
 
         function saveState() {
             const all = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
             const idx = all.findIndex(u => u.id == universeId);
-            
-            if (idx !== -1 && typeof exportNodeData === 'function') {
-                all[idx].data = exportNodeData();
+            if (idx !== -1) {
+                // If your node script has an export function
+                all[idx].data = window.exportNodeData ? exportNodeData() : [];
                 all[idx].lastEdited = new Date().toLocaleDateString().toUpperCase();
                 localStorage.setItem('alphaline_universes', JSON.stringify(all));
-                alert("Synced Successfully");
+                alert("SYCHRONIZED");
             }
         }
     </script>
