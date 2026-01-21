@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --card-bg: #161616;
+            --accent: #333;
+            --text: #ffffff;
+            --text-dim: #888;
+        }
+
         body {
-            background: #0f0f0f;
-            color: white;
-            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
             padding: 3rem 5%;
+            margin: 0;
         }
 
         .header-row {
@@ -15,48 +24,30 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 3rem;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 1.5rem;
         }
 
-        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; }
+        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
 
-        /* --- The Grid --- */
         .universe-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
         .universe-card {
-            background: #161616;
-            border: 1px solid #333;
+            background: var(--card-bg);
+            border: 1px solid var(--accent);
             padding: 2rem;
             position: relative;
-            cursor: pointer;
-            transition: 0.3s ease;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .universe-card:hover { border-color: #666; background: #1a1a1a; }
+        .universe-card:hover { border-color: #666; transform: translateY(-2px); }
 
-        .universe-name { font-size: 1.1rem; margin-bottom: 0.5rem; }
-        .universe-meta { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* --- Hover Edit Button --- */
-        .edit-trigger {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            opacity: 0;
-            background: #333;
-            color: white;
-            border: none;
-            font-size: 0.6rem;
-            padding: 5px 10px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .universe-card:hover .edit-trigger { opacity: 1; }
+        .universe-name { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 500; }
+        .universe-meta { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
         .btn-new {
             background: white;
@@ -64,68 +55,97 @@
             border: none;
             padding: 0.8rem 1.5rem;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            transition: 0.3s;
         }
+        .btn-new:hover { background: #ccc; }
+        .btn-new:disabled { background: var(--accent); color: var(--text-dim); cursor: not-allowed; }
     </style>
 </head>
 <body>
 
     <div class="header-row">
         <h1>My Universes</h1>
-        <button class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
+        <button id="add-btn" class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
     </div>
 
     <div id="universe-grid" class="universe-grid">
         </div>
 
     <script>
-        // Mocking the Author Name
-        const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
-        const defaultAuthor = "Guest " + today;
+        // --- 1. CONFIGURATION & STATE ---
+        const STORAGE_KEY = 'alphaline_universes';
+        const CONSENT_KEY = 'alphaline_consent';
+        let universes = [];
 
-        function createNewUniverse() {
-            const uName = prompt("Enter Universe Name:");
-            if (uName) {
-                const newUniverse = {
-                    id: Date.now(),
-                    name: uName,
-                    author: defaultAuthor
-                };
-                saveToLocal(newUniverse);
+        // --- 2. THE SYNC FUNCTIONS ---
+
+        // LOAD: Pulls data from storage on refresh
+        function hydrateData() {
+            const hasConsent = localStorage.getItem(CONSENT_KEY) === 'true';
+            const addBtn = document.getElementById('add-btn');
+
+            if (!hasConsent) {
+                addBtn.disabled = true;
+                addBtn.title = "Please enable cookies in Account to save universes.";
+            }
+
+            const rawData = localStorage.getItem(STORAGE_KEY);
+            if (rawData) {
+                universes = JSON.parse(rawData);
                 renderGrid();
             }
         }
 
-        function saveToLocal(obj) {
-            // Check if user allowed cookies/storage
-            if(localStorage.getItem('alphaline_consent') !== 'true') {
-                alert("Data cannot be saved. Please enable cookies in Account.");
-                return;
+        // SAVE: Pushes current state to storage
+        function syncToStorage() {
+            if (localStorage.getItem(CONSENT_KEY) === 'true') {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(universes));
             }
-            
-            let data = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-            data.push(obj);
-            localStorage.setItem('alphaline_universes', JSON.stringify(data));
+        }
+
+        // --- 3. ACTIONS ---
+
+        function createNewUniverse() {
+            const uName = prompt("Project Identity / Universe Name:");
+            if (uName && uName.trim() !== "") {
+                const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+                
+                const newEntry = {
+                    id: Date.now(),
+                    name: uName,
+                    author: "Guest " + today,
+                    created: today
+                };
+
+                universes.push(newEntry);
+                
+                // Immediate Sync
+                syncToStorage();
+                renderGrid();
+            }
         }
 
         function renderGrid() {
             const grid = document.getElementById('universe-grid');
-            const data = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-            
-            grid.innerHTML = data.map(u => `
+            if (universes.length === 0) {
+                grid.innerHTML = '<p style="color:#555; font-size:0.8rem; text-transform:uppercase;">No canons detected in local archive.</p>';
+                return;
+            }
+
+            grid.innerHTML = universes.map(u => `
                 <div class="universe-card">
-                    <button class="edit-trigger" onclick="event.stopPropagation(); alert('Edit Prompt for: ' + '${u.name}')">Edit Attributes</button>
                     <div class="universe-name">${u.name}</div>
                     <div class="universe-meta">Authored by ${u.author}</div>
                 </div>
             `).join('');
         }
 
-        // Initial Load
-        renderGrid();
+        // --- 4. INITIALIZE ---
+        window.onload = hydrateData;
     </script>
 </body>
 </html>
