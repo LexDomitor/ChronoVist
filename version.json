@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-01-21T10:53:12",
-  "version": "2026.01.21.01",
+  "lastUpdated": "2026-01-21T11:25:10",
+  "version": "2026.01.21.07",
   "author": "Lex Domitor",
-  "description": "Standardized versioning convention. Added Escape-key listener and CSS fade/slide animations for modals."
+  "description": "Full merge. Privacy disclaimer updated. Reset logic ready. Footer grid locked."
 }
