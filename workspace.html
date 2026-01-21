@@ -11,7 +11,7 @@
             --text: #ffffff;
             --text-dim: #a0a0a0;
             --block-bg: #161616;
-            --ui-speed: 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+            --ui-speed: 0.4s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         body, html { 
@@ -20,101 +20,105 @@
             font-family: 'Inter', sans-serif; overflow: hidden; 
         }
 
-        /* --- Smart Hover Header --- */
-        .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 3rem; border-bottom: 1px solid var(--accent);
-            background: rgba(12, 12, 12, 0.95); height: 80px; box-sizing: border-box;
-            z-index: 1000; transform: translateY(-100%); transition: transform var(--ui-speed);
+        /* --- Dynamic Bars --- */
+        .ui-bar {
+            position: fixed; left: 0; width: 100%;
+            background: rgba(12, 12, 12, 0.9); backdrop-filter: blur(10px);
+            z-index: 1000; transition: transform var(--ui-speed), opacity var(--ui-speed);
+            box-sizing: border-box; display: flex; align-items: center;
         }
-        /* Reveal top nav when hovering near the top 50px of screen */
-        .top-trigger { position: fixed; top: 0; left: 0; width: 100%; height: 50px; z-index: 1001; }
-        .top-trigger:hover + .top-nav, .top-nav:hover { transform: translateY(0); }
+        .top-nav { 
+            top: 0; height: 70px; border-bottom: 1px solid var(--accent); 
+            padding: 0 3rem; justify-content: space-between;
+        }
+        .bottom-nav { 
+            bottom: 0; height: 40px; border-top: 1px solid var(--accent); 
+            padding: 0 3rem; justify-content: space-between; font-size: 0.6rem; color: #444;
+        }
+        
+        /* Dragging state hides bars */
+        .is-panning .ui-bar { transform: translateY(-100%); opacity: 0; }
+        .is-panning .bottom-nav { transform: translateY(100%); }
 
-        .brand-section { display: flex; flex-direction: column; gap: 5px; }
-        .back-arrow { cursor: pointer; font-size: 1.2rem; color: #fff; width: fit-content; transition: 0.2s; }
-        .back-arrow:hover { transform: translateX(-5px); color: var(--text-dim); }
-
-        /* --- Persistent Sidebar Tool Dock --- */
+        /* --- Compact Mid-Left Tool Dock --- */
         .tool-dock {
-            position: fixed; left: 0; top: 0; bottom: 0;
-            width: 70px; background: #080808; border-right: 1px solid var(--accent);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1100;
+            position: fixed; left: 20px; top: 50%; transform: translateY(-50%);
+            width: 50px; background: #111; border: 1px solid var(--accent);
+            border-radius: 25px; padding: 15px 0;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            z-index: 1100; box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* --- The Infinite Canvas --- */
-        #viewport {
-            width: 100vw; height: 100vh;
-            cursor: grab; overflow: hidden;
-            background-color: #0c0c0c;
+        /* --- Tooltip --- */
+        #cursor-tooltip {
+            position: fixed; pointer-events: none; background: #fff; color: #000;
+            padding: 5px 10px; font-size: 0.65rem; font-weight: 700; border-radius: 3px;
+            z-index: 2000; display: none; white-space: nowrap; text-transform: uppercase;
         }
+
+        /* --- Viewport & World --- */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; overflow: hidden; }
         #viewport:active { cursor: grabbing; }
-
-        #world {
-            position: absolute; top: 0; left: 0;
-            width: 10000px; height: 10000px; /* Simulated infinite space */
-            background-image: 
-                linear-gradient(to right, #1a1a1a 1px, transparent 1px),
-                linear-gradient(to bottom, #1a1a1a 1px, transparent 1px);
-            background-size: 100px 100px;
-            transform-origin: 0 0;
+        #world { 
+            position: absolute; width: 10000px; height: 10000px; 
+            background-image: radial-gradient(#222 0.8px, transparent 0.8px);
+            background-size: 50px 50px;
         }
 
-        /* --- Data Blocks --- */
+        /* --- Data Blocks (Polymorphic) --- */
         .data-block {
             position: absolute; width: 300px;
             background: var(--block-bg); border: 1px solid var(--accent);
-            border-radius: 4px; padding: 15px; cursor: move;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
-            z-index: 10;
+            border-radius: 8px; padding: 15px; cursor: move;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10;
         }
-        .block-header { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .index-input { background: transparent; border: none; color: #fff; font-size: 0.7rem; font-weight: 800; width: 120px; outline: none; }
-        .block-label { font-size: 0.5rem; color: #555; text-transform: uppercase; margin-top: 8px; margin-bottom: 4px; display: block; }
-        .block-textarea { width: 100%; min-height: 100px; background: #000; border: 1px solid #222; color: #fff; padding: 10px; resize: vertical; outline: none; font-size: 0.8rem; box-sizing: border-box; }
+        .node-type-btn {
+            background: #222; border: 1px solid #444; color: #fff;
+            font-size: 0.5rem; padding: 2px 8px; cursor: pointer; border-radius: 4px;
+        }
+        .node-type-btn:hover { background: #fff; color: #000; }
+        
+        .image-node-preview {
+            width: 100%; height: 160px; background: #000; border: 1px solid #222;
+            margin: 10px 0; display: flex; align-items: center; justify-content: center;
+            background-size: cover; background-position: center; border-radius: 4px;
+        }
+        .node-input-minimal {
+            background: transparent; border: none; color: #fff; width: 100%;
+            outline: none; font-size: 0.8rem; margin-bottom: 5px; border-bottom: 1px solid #222;
+        }
 
         .tool-item {
-            width: 45px; height: 45px; border: 1px solid #444;
-            border-radius: 4px; cursor: grab; display: flex; align-items: center; justify-content: center;
-            background: #111; color: white; transition: 0.2s; font-size: 1.5rem;
+            width: 35px; height: 35px; border: 1px solid #444;
+            border-radius: 50%; cursor: grab; display: flex; align-items: center; justify-content: center;
+            background: #111; color: white; transition: 0.2s; font-size: 1.2rem;
         }
-        .tool-item:hover { background: #fff; color: #000; border-color: #fff; }
-
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
-        }
-        .loader-content { text-align: center; width: 280px; }
-        .progress-track { width: 100%; height: 2px; background: #1a1a1a; margin-top: 20px; }
-        .progress-bar { width: 0%; height: 100%; background: #fff; transition: width 1.5s ease-in-out; }
+        .tool-item:hover { background: #fff; color: #000; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="loader-content">
-            <div id="loader-msg" style="font-size: 0.7rem; letter-spacing: 2px; color: #fff; text-transform: uppercase;">Initializing Plane...</div>
-            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-        </div>
-    </div>
+    <div id="cursor-tooltip">Drag and Drop onto the workspace to create a default text node</div>
 
-    <div class="top-trigger"></div>
-    <nav class="top-nav">
+    <nav class="ui-bar top-nav">
         <div class="brand-section">
             <div style="font-weight:800; letter-spacing:2px; font-size: 1.1rem;">ALPHALINE</div>
             <div class="back-arrow" onclick="triggerExitSequence()">←</div>
         </div>
-        <div id="active-name" style="font-weight:400; text-transform:uppercase; letter-spacing:3px; font-size:0.8rem; color: #fff;">---</div>
-        <div style="font-size: 0.6rem; color: #555; letter-spacing: 1px;">COORD: <span id="coord-display">0,0</span></div>
+        <div id="active-name" style="font-weight:400; text-transform:uppercase; letter-spacing:3px; font-size:0.8rem;">---</div>
     </nav>
 
+    <footer class="ui-bar bottom-nav">
+        <div>© 2026 ALPHALINE SYSTEMS</div>
+        <div id="coord-display">COORD: 0,0</div>
+    </footer>
+
     <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="event.dataTransfer.setData('type','event')">+</div>
-        <div style="margin-top:20px; font-size: 0.5rem; color: #555; text-align: center;">NEW<br>NODE</div>
+        <div class="tool-item" draggable="true" 
+             ondragstart="event.dataTransfer.setData('type','text')"
+             onmouseenter="showTooltip(event)" 
+             onmouseleave="hideTooltip()"
+             onmousemove="moveTooltip(event)">+</div>
     </aside>
 
     <div id="viewport">
@@ -122,28 +126,23 @@
     </div>
 
     <script>
+        // --- Persistence & State ---
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
-        
         const world = document.getElementById('world');
         const viewport = document.getElementById('viewport');
-        let worldPos = { x: -4500, y: -4500 }; // Start in the middle of the 10k grid
+        let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
 
-        if (activeUniverse) {
-            document.getElementById('active-name').innerText = activeUniverse.name;
-            // Load saved camera position if exists
-            if(activeUniverse.camera) worldPos = activeUniverse.camera;
-        }
-
-        // --- Infinite Panning Engine ---
+        // --- Panning & UI Visibility ---
         let isPanning = false;
         let startX, startY;
 
         viewport.onmousedown = (e) => {
             if (e.target !== viewport && e.target !== world) return;
             isPanning = true;
+            document.body.classList.add('is-panning');
             startX = e.clientX - worldPos.x;
             startY = e.clientY - worldPos.y;
         };
@@ -152,95 +151,118 @@
             if (isPanning) {
                 worldPos.x = e.clientX - startX;
                 worldPos.y = e.clientY - startY;
-                updateWorldTransform();
+                world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
+                document.getElementById('coord-display').innerText = `COORD: ${Math.round(-worldPos.x)}, ${Math.round(-worldPos.y)}`;
             }
         };
 
-        window.onmouseup = () => { isPanning = false; syncData(); };
-
-        function updateWorldTransform() {
-            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
-            document.getElementById('coord-display').innerText = `${Math.round(-worldPos.x)}, ${Math.round(-worldPos.y)}`;
-        }
-
-        // --- Data Logic ---
-        window.onload = () => {
-            updateWorldTransform();
-            const bar = document.getElementById('progress-bar');
-            setTimeout(() => bar.style.width = '100%', 100);
-            
-            if (activeUniverse && activeUniverse.timeline) {
-                activeUniverse.timeline.forEach(box => {
-                    createBlock(box.x, box.y, box.index, box.eventSynopsis, box.boxId);
-                });
-            }
-
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    window.parent.postMessage('RETRACT_FRAME', '*');
-                }, 800);
-            }, 1800);
+        window.onmouseup = () => { 
+            isPanning = false; 
+            document.body.classList.remove('is-panning');
+            syncData(); 
         };
 
-        function syncData() {
-            const blocks = document.querySelectorAll('.data-block');
-            activeUniverse.timeline = [];
-            activeUniverse.camera = worldPos;
-            
-            blocks.forEach(block => {
-                activeUniverse.timeline.push({
-                    boxId: block.dataset.id,
-                    index: block.querySelector('.index-input').value,
-                    eventSynopsis: block.querySelector('.block-textarea').value,
-                    x: parseInt(block.style.left),
-                    y: parseInt(block.style.top)
-                });
-            });
-
-            const idx = universes.findIndex(u => u.id == universeId);
-            universes[idx] = activeUniverse;
-            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+        // --- Tooltip Logic ---
+        const tooltip = document.getElementById('cursor-tooltip');
+        function showTooltip() { tooltip.style.display = 'block'; }
+        function hideTooltip() { tooltip.style.display = 'none'; }
+        function moveTooltip(e) {
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY + 15) + 'px';
         }
 
-        function handleDrop(e) {
-            e.preventDefault();
-            // Drop coordinate relative to the world grid, not the screen
-            const x = e.clientX - worldPos.x - 150;
-            const y = e.clientY - worldPos.y - 50;
-            createBlock(x, y);
-            syncData();
-        }
-        
-        viewport.ondragover = (e) => e.preventDefault();
-        viewport.ondrop = handleDrop;
-
-        function createBlock(x, y, indexValue = "YEAR", synopsis = "", id = null) {
+        // --- Node Logic ---
+        function createBlock(data) {
             const block = document.createElement('div');
             block.className = 'data-block';
-            block.style.left = x + 'px';
-            block.style.top = y + 'px';
-            block.dataset.id = id || 'box_' + Date.now();
-            
-            block.innerHTML = `
-                <div class="block-header">
-                    <input type="text" class="index-input" value="${indexValue}" oninput="syncData()">
-                    <div style="font-size: 0.5rem; color: #444;">EVENT NODE</div>
-                </div>
-                <label class="block-label">Event Synopsis</label>
-                <textarea class="block-textarea" placeholder="Describe the chain of events..." oninput="syncData()">${synopsis}</textarea>
-            `;
-            
+            block.style.left = data.x + 'px';
+            block.style.top = data.y + 'px';
+            block.dataset.id = data.boxId || 'box_' + Date.now();
+            block.dataset.type = data.type || 'text';
+
+            renderNodeContent(block, data);
             world.appendChild(block);
             makeDraggable(block);
         }
 
+        function renderNodeContent(block, data) {
+            const type = block.dataset.type;
+            const indexValue = data.index || "2026";
+            
+            let contentHtml = `
+                <div class="block-header">
+                    <input type="text" class="index-input" value="${indexValue}" oninput="syncData()">
+                    <button class="node-type-btn" onclick="toggleNodeType(this.parentElement.parentElement)">${type.toUpperCase()}</button>
+                </div>`;
+
+            if (type === 'text') {
+                contentHtml += `
+                    <label class="block-label">Event Synopsis</label>
+                    <textarea class="block-textarea" oninput="syncData()">${data.eventSynopsis || ""}</textarea>`;
+            } else {
+                contentHtml += `
+                    <input type="text" class="node-input-minimal" placeholder="Title" value="${data.title || ""}" oninput="syncData()">
+                    <input type="text" class="node-input-minimal" style="font-size:0.6rem; color:#666;" placeholder="Subheading" value="${data.subheading || ""}" oninput="syncData()">
+                    <div class="image-node-preview" style="background-image: url('${data.imgUrl || ''}')">
+                        ${!data.imgUrl ? '<span style="font-size:0.5rem; color:#444;">NO IMAGE</span>' : ''}
+                    </div>
+                    <input type="text" class="node-input-minimal" placeholder="Image URL" value="${data.imgUrl || ""}" oninput="changeNodeImage(this)">
+                `;
+            }
+            block.innerHTML = contentHtml;
+        }
+
+        function toggleNodeType(block) {
+            const currentType = block.dataset.type;
+            const hasData = block.querySelector('textarea')?.value || block.querySelector('.node-input-minimal')?.value;
+            
+            if (hasData && !confirm("Warning: Changing node type will clear existing data. Continue?")) return;
+
+            block.dataset.type = currentType === 'text' ? 'image' : 'text';
+            renderNodeContent(block, { x: parseInt(block.style.left), y: parseInt(block.style.top) });
+            syncData();
+        }
+
+        function changeNodeImage(input) {
+            const preview = input.parentElement.querySelector('.image-node-preview');
+            preview.style.backgroundImage = `url('${input.value}')`;
+            preview.innerHTML = input.value ? '' : '<span style="font-size:0.5rem; color:#444;">NO IMAGE</span>';
+            syncData();
+        }
+
+        // --- System Logic ---
+        function syncData() {
+            const blocks = document.querySelectorAll('.data-block');
+            activeUniverse.timeline = Array.from(blocks).map(block => ({
+                boxId: block.dataset.id,
+                type: block.dataset.type,
+                index: block.querySelector('.index-input').value,
+                x: parseInt(block.style.left),
+                y: parseInt(block.style.top),
+                // Text fields
+                eventSynopsis: block.querySelector('textarea')?.value || "",
+                // Image fields
+                title: block.querySelectorAll('.node-input-minimal')[0]?.value || "",
+                subheading: block.querySelectorAll('.node-input-minimal')[1]?.value || "",
+                imgUrl: block.querySelectorAll('.node-input-minimal')[2]?.value || ""
+            }));
+            activeUniverse.camera = worldPos;
+            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+        }
+
+        viewport.ondragover = e => e.preventDefault();
+        viewport.ondrop = e => {
+            const x = e.clientX - worldPos.x - 150;
+            const y = e.clientY - worldPos.y - 50;
+            createBlock({ x, y, type: 'text' });
+            syncData();
+        };
+
         function makeDraggable(el) {
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             el.onmousedown = (e) => {
-                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-                e.stopPropagation(); // Prevent panning when dragging block
+                if (['TEXTAREA', 'INPUT', 'BUTTON'].includes(e.target.tagName)) return;
+                e.stopPropagation();
                 p3 = e.clientX; p4 = e.clientY;
                 document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; syncData(); };
                 document.onmousemove = (e) => {
@@ -251,6 +273,14 @@
                 };
             };
         }
+
+        window.onload = () => {
+            if (activeUniverse) {
+                document.getElementById('active-name').innerText = activeUniverse.name;
+                world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px)`;
+                activeUniverse.timeline?.forEach(data => createBlock(data));
+            }
+        };
 
         function triggerExitSequence() {
             syncData(); 
