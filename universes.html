@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --bg-color: #0f0f0f;
@@ -11,25 +12,46 @@
             --text-dim: #888;
             --panel-bg: #1a1a1a;
             --danger: #ff4444;
+            --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Sleek Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        /* --- Sleek Scrollbar --- */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { 
+            background: #222; 
+            border-radius: 4px; 
+            border: 2px solid var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
 
         body {
             background: var(--bg-color);
             color: var(--text);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 3rem 5%;
             overflow-x: hidden;
+            overflow-y: overlay;
         }
 
         /* --- Grid Layout --- */
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; border-bottom: 1px solid var(--accent); padding-bottom: 1.5rem; }
-        .universe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+        .header-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 3rem; 
+            border-bottom: 1px solid var(--accent); 
+            padding-bottom: 1.5rem; 
+        }
+
+        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
+
+        .universe-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 2rem; 
+        }
 
         .universe-card {
             background: var(--card-bg);
@@ -40,51 +62,114 @@
             gap: 1.2rem;
             position: relative;
             cursor: pointer;
-            transition: 0.3s;
+            transition: var(--transition);
         }
-        .universe-card:hover { border-color: #666; }
+        .universe-card:hover { border-color: #666; background: #1a1a1a; }
 
-        .universe-thumb { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); background: #000; }
+        .universe-thumb { 
+            width: 80px; 
+            height: 80px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1px solid var(--accent); 
+            background: #000; 
+            flex-shrink: 0;
+        }
 
         /* --- The Slide-out Panel --- */
         #edit-panel {
-            position: fixed; top: 0; right: -400px;
-            width: 350px; height: 100%;
+            position: fixed; 
+            top: 0; 
+            right: -450px; /* Hidden by default */
+            width: 380px; 
+            height: 100%;
             background: var(--panel-bg);
             border-left: 1px solid var(--accent);
             padding: 3rem 2rem;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             z-index: 100;
             box-shadow: -10px 0 30px rgba(0,0,0,0.5);
             overflow-y: auto;
+            box-sizing: border-box;
         }
         #edit-panel.active { right: 0; }
 
         .field-group { margin-bottom: 1.5rem; }
         label { display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 1px; }
+        
         input {
-            width: 100%; background: #000; border: 1px solid var(--accent);
-            padding: 0.8rem; color: white; font-family: inherit; font-size: 0.9rem;
+            width: 100%; 
+            background: #000; 
+            border: 1px solid var(--accent);
+            padding: 0.8rem; 
+            color: white; 
+            font-family: inherit; 
+            font-size: 0.9rem;
             box-sizing: border-box;
         }
         
-        .preview-circle { width: 100px; height: 100px; border-radius: 50%; background: #000; margin: 1rem 0; border: 1px solid var(--accent); object-fit: cover; display: block; }
+        .preview-circle { 
+            width: 100px; 
+            height: 100px; 
+            border-radius: 50%; 
+            background: #000; 
+            margin: 1rem 0; 
+            border: 1px solid var(--accent); 
+            object-fit: cover; 
+            display: block; 
+        }
 
-        .btn-save { width: 100%; padding: 1rem; background: white; color: black; border: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-top: 1rem; }
-        .btn-utility { width: 100%; padding: 0.8rem; background: transparent; color: var(--text-dim); border: 1px solid var(--accent); margin-top: 0.5rem; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; font-family: inherit; }
+        .btn-main { 
+            width: 100%; 
+            padding: 1rem; 
+            background: white; 
+            color: black; 
+            border: none; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            cursor: pointer; 
+            margin-top: 1rem; 
+            font-family: inherit;
+        }
+
+        .btn-utility { 
+            width: 100%; 
+            padding: 0.8rem; 
+            background: transparent; 
+            color: var(--text-dim); 
+            border: 1px solid var(--accent); 
+            margin-top: 0.5rem; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-size: 0.7rem; 
+            font-family: inherit; 
+            transition: 0.2s;
+        }
         .btn-utility:hover { color: white; border-color: #666; }
+        
         .btn-danger { color: var(--danger); border-color: #442222; }
         .btn-danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
 
         .upload-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-        .btn-mini { flex: 1; padding: 0.5rem; font-size: 0.6rem; background: #222; color: white; border: 1px solid var(--accent); cursor: pointer; text-transform: uppercase; }
+        .btn-mini { 
+            flex: 1; 
+            padding: 0.5rem; 
+            font-size: 0.6rem; 
+            background: #222; 
+            color: white; 
+            border: 1px solid var(--accent); 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-family: inherit;
+        }
     </style>
 </head>
 <body>
 
     <div class="header-row">
         <h1>My Universes</h1>
-        <button class="btn-save" style="width:auto; margin:0;" onclick="openPanel()">+ New Canon</button>
+        <button class="btn-main" style="width:auto; margin:0;" onclick="openPanel()">+ New Canon</button>
     </div>
 
     <div id="universe-grid" class="universe-grid"></div>
@@ -98,22 +183,22 @@
         </div>
 
         <div class="field-group">
-            <label>Thumbnail</label>
-            <img src="" id="prev-img" class="preview-circle">
+            <label>Thumbnail Preview</label>
+            <img src="https://via.placeholder.com/150" id="prev-img" class="preview-circle">
             <div class="upload-row">
-                <button class="btn-mini" onclick="document.getElementById('file-upload').click()">Upload Local File</button>
+                <button class="btn-mini" onclick="document.getElementById('file-upload').click()">Upload File</button>
                 <input type="file" id="file-upload" hidden accept="image/*" onchange="handleUpload(this)">
             </div>
             <input type="text" id="inp-img" placeholder="Or paste image URL" style="margin-top:0.5rem" oninput="updatePreview(this.value)">
         </div>
 
-        <button class="btn-save" onclick="savePanel()">Commit Changes</button>
+        <button class="btn-main" onclick="savePanel()">Commit Changes</button>
         
         <div style="margin-top: 2rem; border-top: 1px solid var(--accent); padding-top: 1rem;">
-            <label>Management</label>
-            <button class="btn-utility" onclick="exportSingle()">Export to JSON File</button>
+            <label>Project Management</label>
+            <button id="export-btn" class="btn-utility" style="display:none;" onclick="exportSingle()">Export to JSON</button>
             <button id="del-btn" class="btn-utility btn-danger" style="display:none;" onclick="deleteUniverse()">Delete Universe</button>
-            <button class="btn-utility" onclick="closePanel()">Cancel</button>
+            <button class="btn-utility" onclick="closePanel()">Close Panel</button>
         </div>
     </div>
 
@@ -124,16 +209,16 @@
         function renderGrid() {
             const grid = document.getElementById('universe-grid');
             if(universes.length === 0) {
-                grid.innerHTML = '<p style="color:#444; font-size:0.75rem; text-transform:uppercase;">No archived canons.</p>';
+                grid.innerHTML = '<p style="color:#444; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Archive empty. Create a new canon to begin.</p>';
             } else {
                 grid.innerHTML = universes.map(u => `
                     <div class="universe-card" onclick="openPanel(${u.id})">
                         <img src="${u.image}" class="universe-thumb" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="card-content">
-                            <div style="font-size:1.1rem">${u.name}</div>
-                            <div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-top:5px; line-height:1.4">
-                                Authored by ${u.author}<br>
-                                Edited ${u.lastEdited}
+                            <div style="font-size:1.1rem; font-weight:500;">${u.name}</div>
+                            <div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-top:5px; line-height:1.6">
+                                Guest<br>
+                                Edited ${u.lastEdited || u.created}
                             </div>
                         </div>
                     </div>
@@ -145,6 +230,7 @@
             activeId = id;
             const panel = document.getElementById('edit-panel');
             const delBtn = document.getElementById('del-btn');
+            const expBtn = document.getElementById('export-btn');
             const title = document.getElementById('panel-title');
 
             if (id) {
@@ -153,12 +239,14 @@
                 document.getElementById('inp-img').value = u.image;
                 document.getElementById('prev-img').src = u.image;
                 delBtn.style.display = "block";
+                expBtn.style.display = "block";
                 title.innerText = "Edit Attributes";
             } else {
                 document.getElementById('inp-name').value = "";
                 document.getElementById('inp-img').value = "";
                 document.getElementById('prev-img').src = "https://via.placeholder.com/150";
                 delBtn.style.display = "none";
+                expBtn.style.display = "none";
                 title.innerText = "New Universe";
             }
             panel.classList.add('active');
@@ -176,7 +264,9 @@
             if (file) reader.readAsDataURL(file);
         }
 
-        function updatePreview(val) { document.getElementById('prev-img').src = val || "https://via.placeholder.com/150"; }
+        function updatePreview(val) { 
+            document.getElementById('prev-img').src = val || "https://via.placeholder.com/150"; 
+        }
 
         function savePanel() {
             const name = document.getElementById('inp-name').value || "Untitled Universe";
@@ -185,11 +275,17 @@
 
             if (activeId) {
                 const u = universes.find(x => x.id === activeId);
-                u.name = name; u.image = img; u.lastEdited = date;
+                u.name = name; 
+                u.image = img; 
+                u.lastEdited = date;
             } else {
                 universes.push({
-                    id: Date.now(), name, image: img,
-                    author: "Guest", created: date, lastEdited: date
+                    id: Date.now(), 
+                    name: name, 
+                    image: img,
+                    author: "Guest", 
+                    created: date, 
+                    lastEdited: date
                 });
             }
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
@@ -198,8 +294,8 @@
         }
 
         function deleteUniverse() {
-            if (confirm("DANGER: Are you sure you want to delete this universe? This will permanently purge all local data for this project.")) {
-                if (confirm("FINAL CONFIRMATION: This action is irreversible. Proceed?")) {
+            if (confirm("WARNING: Are you sure you want to delete this universe?")) {
+                if (confirm("FINAL VERIFICATION: All local data for this project will be purged. Proceed?")) {
                     universes = universes.filter(x => x.id !== activeId);
                     localStorage.setItem('alphaline_universes', JSON.stringify(universes));
                     closePanel();
@@ -209,12 +305,12 @@
         }
 
         function exportSingle() {
-            const u = universes.find(x => x.id === activeId) || universes[universes.length - 1];
+            const u = universes.find(x => x.id === activeId);
             if(!u) return;
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(u, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", u.name.replace(/\s+/g, '_') + ".json");
+            downloadAnchorNode.setAttribute("download", u.name.replace(/\s+/g, '_') + "_backup.json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
