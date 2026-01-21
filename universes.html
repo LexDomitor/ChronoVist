@@ -11,12 +11,19 @@
             --text-dim: #888;
         }
 
+        /* --- Sleek Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
         body {
             background: var(--bg-color);
             color: var(--text);
             font-family: 'Inter', -apple-system, sans-serif;
             padding: 3rem 5%;
             margin: 0;
+            overflow-y: overlay; /* Keeps layout stable */
         }
 
         .header-row {
@@ -28,12 +35,10 @@
             padding-bottom: 1.5rem;
         }
 
-        h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
-
         .universe-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
         }
 
         .universe-card {
@@ -41,28 +46,57 @@
             border: 1px solid var(--accent);
             padding: 2rem;
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .universe-card:hover { border-color: #666; transform: translateY(-2px); }
+        .universe-card:hover { border-color: #666; }
 
-        .universe-name { font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 500; }
-        .universe-meta { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        /* --- Circular Image Mask --- */
+        .universe-thumb {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #222;
+            object-fit: cover;
+            border: 1px solid var(--accent);
+            flex-shrink: 0;
+        }
+
+        .card-content { flex-grow: 1; }
+        .universe-name { font-size: 1.1rem; margin-bottom: 0.4rem; font-weight: 500; }
+        
+        .universe-meta { 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            line-height: 1.5;
+        }
+
+        .edit-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--text-dim);
+            font-size: 0.6rem;
+            padding: 4px 8px;
+            cursor: pointer;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .universe-card:hover .edit-btn { opacity: 1; }
+        .edit-btn:hover { color: white; border-color: white; }
 
         .btn-new {
-            background: white;
-            color: black;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            letter-spacing: 1.5px;
-            transition: 0.3s;
+            background: white; color: black; border: none;
+            padding: 0.8rem 1.5rem; text-transform: uppercase;
+            font-size: 0.7rem; font-weight: 700; cursor: pointer; letter-spacing: 1.5px;
         }
-        .btn-new:hover { background: #ccc; }
-        .btn-new:disabled { background: var(--accent); color: var(--text-dim); cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -72,58 +106,66 @@
         <button id="add-btn" class="btn-new" onclick="createNewUniverse()">+ New Canon</button>
     </div>
 
-    <div id="universe-grid" class="universe-grid">
-        </div>
+    <div id="universe-grid" class="universe-grid"></div>
 
     <script>
-        // --- 1. CONFIGURATION & STATE ---
         const STORAGE_KEY = 'alphaline_universes';
         const CONSENT_KEY = 'alphaline_consent';
         let universes = [];
 
-        // --- 2. THE SYNC FUNCTIONS ---
-
-        // LOAD: Pulls data from storage on refresh
         function hydrateData() {
-            const hasConsent = localStorage.getItem(CONSENT_KEY) === 'true';
-            const addBtn = document.getElementById('add-btn');
-
-            if (!hasConsent) {
-                addBtn.disabled = true;
-                addBtn.title = "Please enable cookies in Account to save universes.";
-            }
-
             const rawData = localStorage.getItem(STORAGE_KEY);
             if (rawData) {
-                universes = JSON.parse(rawData);
+                const parsed = JSON.parse(rawData);
+                // --- Legacy Data Migration ---
+                universes = parsed.map(u => ({
+                    id: u.id,
+                    name: u.name || "Untitled Universe",
+                    author: u.author || "Guest",
+                    image: u.image || "https://via.placeholder.com/150",
+                    created: u.created || "Unknown Date",
+                    lastEdited: u.lastEdited || u.created || "Unknown Date"
+                }));
+                syncToStorage(); // Update the cookie with missing defaults
                 renderGrid();
             }
         }
 
-        // SAVE: Pushes current state to storage
         function syncToStorage() {
             if (localStorage.getItem(CONSENT_KEY) === 'true') {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(universes));
             }
         }
 
-        // --- 3. ACTIONS ---
-
         function createNewUniverse() {
-            const uName = prompt("Project Identity / Universe Name:");
-            if (uName && uName.trim() !== "") {
-                const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
-                
-                const newEntry = {
-                    id: Date.now(),
-                    name: uName,
-                    author: "Guest " + today,
-                    created: today
-                };
+            const name = prompt("Universe Name:");
+            if (!name) return;
+            const img = prompt("Image URL (leave blank for default):");
+            const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
 
-                universes.push(newEntry);
-                
-                // Immediate Sync
+            const newEntry = {
+                id: Date.now(),
+                name: name,
+                author: "Guest " + date,
+                image: img || "https://via.placeholder.com/150",
+                created: date,
+                lastEdited: date
+            };
+
+            universes.push(newEntry);
+            syncToStorage();
+            renderGrid();
+        }
+
+        function editAttributes(id) {
+            const u = universes.find(item => item.id === id);
+            const newName = prompt("Edit Name:", u.name);
+            const newImg = prompt("Edit Image URL:", u.image);
+            
+            if (newName) {
+                u.name = newName;
+                u.image = newImg;
+                u.lastEdited = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
                 syncToStorage();
                 renderGrid();
             }
@@ -131,20 +173,22 @@
 
         function renderGrid() {
             const grid = document.getElementById('universe-grid');
-            if (universes.length === 0) {
-                grid.innerHTML = '<p style="color:#555; font-size:0.8rem; text-transform:uppercase;">No canons detected in local archive.</p>';
-                return;
-            }
-
             grid.innerHTML = universes.map(u => `
                 <div class="universe-card">
-                    <div class="universe-name">${u.name}</div>
-                    <div class="universe-meta">Authored by ${u.author}</div>
+                    <button class="edit-btn" onclick="editAttributes(${u.id})">EDIT</button>
+                    <img src="${u.image}" class="universe-thumb" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="card-content">
+                        <div class="universe-name">${u.name}</div>
+                        <div class="universe-meta">
+                            Authored by ${u.author}<br>
+                            Created on ${u.created}<br>
+                            <span style="color:#555">Last edited on ${u.lastEdited}</span>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
 
-        // --- 4. INITIALIZE ---
         window.onload = hydrateData;
     </script>
 </body>
