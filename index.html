@@ -10,7 +10,7 @@
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
             --accent-gray: #333333;
-            --modal-bg: #1a1a1a;
+            --modal-bg: #161616;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -26,14 +26,14 @@
             overflow: hidden; 
         }
 
-        /* --- Header & Footer --- */
+        /* --- Header & Footer Architecture --- */
         header, footer { background: var(--bg-color); border-color: var(--accent-gray); border-style: solid; padding: 1.5rem 5%; z-index: 5; }
         header { border-width: 0 0 1px 0; display: flex; justify-content: space-between; align-items: center; }
         footer { border-width: 1px 0 0 0; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
 
-        .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+        .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; letter-spacing: -1px; }
         nav { display: flex; gap: 1rem; }
-        .nav-link, .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; text-transform: uppercase; cursor: pointer; transition: var(--transition); }
+        .nav-link, .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; text-transform: uppercase; cursor: pointer; transition: var(--transition); font-weight: 600; }
         .nav-link:hover, .footer-link:hover { color: var(--text-main); }
         
         /* --- Content Area --- */
@@ -45,47 +45,57 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none; /* Hidden by default */
+            background: rgba(0, 0, 0, 0.8);
+            display: none; 
             justify-content: center;
             align-items: center;
-            z-index: 1000; /* Above everything */
-            backdrop-filter: blur(5px);
+            z-index: 1000; 
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
+
+        #modal-overlay.active { opacity: 1; display: flex; }
 
         .modal-panel {
             background: var(--modal-bg);
             width: 90%;
             max-width: 600px;
-            padding: 2.5rem;
+            padding: 3rem;
             border: 1px solid var(--accent-gray);
-            border-radius: 8px;
+            border-radius: 4px;
             position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
         }
+
+        #modal-overlay.active .modal-panel { transform: translateY(0); }
 
         .modal-close {
             position: absolute;
             top: 1.5rem;
             right: 1.5rem;
             color: var(--text-dim);
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
+            line-height: 1;
             transition: var(--transition);
         }
-        .modal-close:hover { color: var(--text-main); transform: rotate(90deg); }
+        .modal-close:hover { color: var(--text-main); }
 
-        #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; }
-        #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; }
+        #modal-content h2 { margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 300; border-bottom: 1px solid var(--accent-gray); padding-bottom: 0.5rem; }
+        #modal-content p { color: var(--text-dim); line-height: 1.8; font-size: 0.9rem; letter-spacing: 0.02rem; }
 
+        /* --- Technical Data Footer --- */
         .footer-data-grid { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; font-size: 0.65rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
         .last-updated { text-align: left; }
-        .copyright { text-align: center; letter-spacing: 0.15rem; }
+        .copyright { text-align: center; letter-spacing: 0.2rem; font-weight: 500; }
         .user-info { text-align: right; }
 
         @media (max-width: 850px) {
             .footer-data-grid { display: flex; flex-direction: column; gap: 1rem; text-align: center; align-items: center; }
             .user-info { text-align: center; }
+            .modal-panel { padding: 2rem; }
         }
     </style>
 </head>
@@ -103,11 +113,10 @@
         <iframe id="content-frame" src="home.html"></iframe>
     </main>
 
-    <div id="modal-overlay" onclick="closeModal(event)">
+    <div id="modal-overlay" onclick="closeModal()">
         <div class="modal-panel" onclick="event.stopPropagation()">
             <div class="modal-close" onclick="closeModal()">×</div>
-            <div id="modal-content">
-                </div>
+            <div id="modal-content"></div>
         </div>
     </div>
 
@@ -136,22 +145,32 @@
             },
             changelog: {
                 title: "Changelog",
-                text: "v1.2.0: Implemented Universal Modal System.<br>v1.1.1: Precision clock sync and PST offsets.<br>v1.0.0: Initial Alpha Launch."
+                text: "2026.01.21.01: Implemented smooth modal transitions and Escape-key listener.<br>2026.01.21.00: Initial Modal architecture & interaction locking."
             }
         };
 
         function openModal(type) {
             const data = modalData[type];
+            const overlay = document.getElementById('modal-overlay');
             document.getElementById('modal-content').innerHTML = `<h2>${data.title}</h2><p>${data.text}</p>`;
-            document.getElementById('modal-overlay').style.display = 'flex';
-            // Disable background clicking/interaction
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('active'), 10);
             document.getElementById('main-content').style.pointerEvents = 'none';
         }
 
-        function closeModal(e) {
-            document.getElementById('modal-overlay').style.display = 'none';
-            document.getElementById('main-content').style.pointerEvents = 'auto';
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => { 
+                overlay.style.display = 'none';
+                document.getElementById('main-content').style.pointerEvents = 'auto';
+            }, 300);
         }
+
+        // Close on Escape Key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") closeModal();
+        });
 
         function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
 
