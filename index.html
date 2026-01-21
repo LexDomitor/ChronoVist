@@ -11,7 +11,7 @@
             --text-dim: #a0a0a0;
             --accent-gray: #333333;
             --modal-bg: #161616;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1); /* Optimized for retraction */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,15 +35,23 @@
             align-items: center;
             border-bottom: 1px solid var(--accent-gray);
             z-index: 10;
+            background: var(--bg-color);
+            transition: transform var(--transition); /* Motorized property */
         }
 
         .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; letter-spacing: -1px; }
         nav { display: flex; gap: 1rem; }
-        .nav-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.5rem 1rem; text-transform: uppercase; cursor: pointer; transition: var(--transition); }
+        .nav-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.5rem 1rem; text-transform: uppercase; cursor: pointer; transition: 0.3s ease; }
         .nav-link:hover { color: var(--text-main); }
 
         /* --- Content Area --- */
-        main { flex: 1; position: relative; width: 100%; background: var(--bg-color); }
+        main { 
+            flex: 1; 
+            position: relative; 
+            width: 100%; 
+            background: var(--bg-color); 
+            transition: all var(--transition);
+        }
         #content-frame { width: 100%; height: 100%; border: none; display: block; background: transparent; }
 
         /* --- Modal System --- */
@@ -76,7 +84,7 @@
             color: var(--text-dim);
             font-size: 2rem;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.3s ease;
         }
         .modal-close-x:hover { color: var(--text-main); }
         #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; }
@@ -90,13 +98,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
-            transition: var(--transition);
+            transition: 0.3s ease;
             font-family: inherit;
         }
         .btn-primary { background: var(--text-main); color: var(--bg-color); border: none; }
         .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent-gray); }
 
-        /* --- Footer (Locked Distribution) --- */
+        /* --- Footer --- */
         footer {
             width: 100%;
             padding: 2rem 5%;
@@ -105,10 +113,11 @@
             flex-direction: column;
             gap: 1.5rem;
             background: var(--bg-color);
+            transition: transform var(--transition); /* Motorized property */
         }
 
         .footer-nav { display: flex; justify-content: center; gap: 2.5rem; }
-        .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1rem; cursor: pointer; transition: var(--transition); }
+        .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1rem; cursor: pointer; transition: 0.3s ease; }
         .footer-link:hover { color: var(--text-main); }
 
         .footer-data-grid {
@@ -125,6 +134,16 @@
         .copyright { text-align: center; text-transform: uppercase; letter-spacing: 0.15rem; }
         .user-info { text-align: right; }
 
+        /* --- RETRACTION LOGIC --- */
+        body.workspace-mode header { transform: translateY(-100%); }
+        body.workspace-mode footer { transform: translateY(100%); }
+        /* Shift main content to cover the voids left by header/footer */
+        body.workspace-mode main { 
+            margin-top: -70px; /* Offset roughly equal to header height */
+            margin-bottom: -150px; /* Offset roughly equal to footer height */
+            height: 100vh;
+        }
+
         @media (max-width: 850px) {
             .footer-data-grid { display: flex; flex-direction: column; gap: 1rem; text-align: center; }
             .user-info { text-align: center; }
@@ -133,7 +152,7 @@
 </head>
 <body>
 
-    <header>
+    <header id="master-header">
         <div class="logo" onclick="handleNav('home')">AlphaLine</div>
         <nav>
             <a class="nav-link" onclick="handleNav('universes')">My Universes</a>
@@ -153,7 +172,7 @@
         </div>
     </div>
 
-    <footer>
+    <footer id="master-footer">
         <div class="footer-nav">
             <span class="footer-link" onclick="openModal('about')">About Us</span>
             <span class="footer-link" onclick="openModal('contact')">Contact Us</span>
@@ -187,10 +206,19 @@
             }
         };
 
+        // --- RETRACTION BRIDGE ---
+        // Listens for a signal from the iframe (universes.html) to hide the UI
+        window.addEventListener('message', (event) => {
+            if (event.data === 'RETRACT_FRAME') {
+                document.body.classList.add('workspace-mode');
+            } else if (event.data === 'RESTORE_FRAME') {
+                document.body.classList.remove('workspace-mode');
+            }
+        });
+
         function setConsent(choice) {
             localStorage.setItem('alphaline_consent', choice);
             closeModal();
-            // Refresh the internal iframe if it's viewing the Account page
             const frame = document.getElementById('content-frame');
             if (frame.src.includes('account.html')) frame.contentWindow.location.reload();
         }
@@ -226,7 +254,11 @@
 
         window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
         
-        function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
+        function handleNav(page) { 
+            // Ensure UI is restored if navigating via the logo or nav links
+            document.body.classList.remove('workspace-mode');
+            document.getElementById('content-frame').src = page + '.html'; 
+        }
 
         function getPSTOffset() {
             const now = new Date();
