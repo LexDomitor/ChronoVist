@@ -80,9 +80,24 @@
         }
         .modal-close-x:hover { color: var(--text-main); }
         #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; }
-        #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; }
+        #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; margin-bottom: 2rem; }
 
-        /* --- Footer (Fixed Alignment) --- */
+        /* Modal Buttons */
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; }
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .btn-primary { background: var(--text-main); color: var(--bg-color); border: none; }
+        .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent-gray); }
+        .btn:hover { opacity: 0.8; }
+
+        /* --- Footer --- */
         footer {
             width: 100%;
             padding: 2rem 5%;
@@ -93,21 +108,8 @@
             background: var(--bg-color);
         }
 
-        .footer-nav { 
-            display: flex; 
-            justify-content: center; 
-            gap: 2.5rem; 
-        }
-
-        .footer-link { 
-            color: var(--text-dim); 
-            text-decoration: none; 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.1rem; 
-            cursor: pointer;
-            transition: var(--transition);
-        }
+        .footer-nav { display: flex; justify-content: center; gap: 2.5rem; }
+        .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1rem; cursor: pointer; transition: var(--transition); }
         .footer-link:hover { color: var(--text-main); }
 
         .footer-data-grid {
@@ -148,6 +150,7 @@
         <div class="modal-panel" onclick="event.stopPropagation()">
             <div class="modal-close-x" onclick="closeModal()">×</div>
             <div id="modal-content"></div>
+            <div id="modal-footer-actions" class="modal-actions"></div>
         </div>
     </div>
 
@@ -166,28 +169,40 @@
 
     <script>
         const modalData = {
-            about: { 
-                title: "About AlphaLine", 
-                text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers. We focus on scale, alignment, and minimalist utility." 
-            },
-            contact: { 
-                title: "Contact Us", 
-                text: "Reach out to the development team at support@alphaline.dev. Technical support is available for all Guest and Registered users." 
-            },
-            changelog: { 
-                title: "Changelog", 
-                text: "2026.01.21.07: Added privacy disclaimer and account reset logic.<br>2026.01.21.05: Simplified Modal / Fixed Footer Grid alignment." 
-            },
+            about: { title: "About AlphaLine", text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers." },
+            contact: { title: "Contact Us", text: "Reach out to the development team at support@alphaline.dev." },
+            changelog: { title: "Changelog", text: "2026.01.21.08: Added Accept/Decline logic and Account status tracking." },
             cookies: {
                 title: "Data & Cookies",
-                text: "AlphaLine uses LocalStorage to save your worldbuilding progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons."
+                text: "AlphaLine uses LocalStorage to save your worldbuilding progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons.",
+                isCookiePrompt: true
             }
         };
+
+        function setConsent(choice) {
+            localStorage.setItem('alphaline_consent', choice);
+            closeModal();
+            // Refresh iframe if user is currently on the Account page
+            const frame = document.getElementById('content-frame');
+            if (frame.src.includes('account.html')) frame.contentWindow.location.reload();
+        }
 
         function openModal(type) {
             const data = modalData[type];
             const overlay = document.getElementById('modal-overlay');
+            const footer = document.getElementById('modal-footer-actions');
+            
             document.getElementById('modal-content').innerHTML = `<h2>${data.title}</h2><p>${data.text}</p>`;
+            
+            // Clean footer actions
+            footer.innerHTML = "";
+            if (data.isCookiePrompt) {
+                footer.innerHTML = `
+                    <button class="btn btn-primary" onclick="setConsent('true')">Accept Cookies</button>
+                    <button class="btn btn-secondary" onclick="setConsent('false')">Decline</button>
+                `;
+            }
+
             overlay.style.display = 'flex';
             setTimeout(() => overlay.classList.add('active'), 10);
             document.getElementById('main-content').style.pointerEvents = 'none';
@@ -203,7 +218,6 @@
         }
 
         window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
-        
         function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
 
         function getPSTOffset() {
@@ -236,11 +250,8 @@
 
         function checkCookieConsent() {
             const consent = localStorage.getItem('alphaline_consent');
-            if (!consent) {
-                setTimeout(() => {
-                    openModal('cookies');
-                    localStorage.setItem('alphaline_consent', 'true');
-                }, 1000);
+            if (consent === null) {
+                setTimeout(() => openModal('cookies'), 1000);
             }
         }
 
