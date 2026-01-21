@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workspace | AlphaLine</title>
+    <link rel="stylesheet" href="plane.css">
+</head>
+<body>
+    <div class="top-nav">
+        <div class="nav-left">
+            <button class="nav-btn" onclick="window.location.href='../universes.html'">← Exit</button>
+            <h1 id="workspace-title">Loading...</h1>
+        </div>
+        <div class="nav-right">
+            <button class="nav-btn" onclick="toggleUI()">Focus Mode (H)</button>
+            <button class="nav-btn primary" onclick="saveState()">Sync Now</button>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="plane-canvas">
+            </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="coord-display">X: <span id="posX">0</span> Y: <span id="posY">0</span></div>
+        <div class="tool-palette">
+            <button onclick="addNode('text')">+ Text</button>
+            <button onclick="addNode('image')">+ Image</button>
+        </div>
+    </div>
+
+    <script src="engine.js"></script>
+    <script src="nodes.js"></script>
+    <script>
+        // --- HANDSHAKE LOGIC ---
+        let currentUniverse = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const universeId = urlParams.get('id');
+
+        window.onload = () => {
+            const allUniverses = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+            currentUniverse = allUniverses.find(u => u.id == universeId);
+
+            if (!currentUniverse) {
+                alert("Universe not found. Returning to Hub.");
+                window.location.href = '../universes.html';
+                return;
+            }
+
+            // Update UI with the data from the hub
+            document.getElementById('workspace-title').innerText = currentUniverse.name;
+            
+            // Initialize the engine and nodes with existing data
+            initEngine(currentUniverse.data || []); 
+        };
+
+        function saveState() {
+            const allUniverses = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+            const index = allUniverses.findIndex(u => u.id == universeId);
+            
+            if (index !== -1) {
+                // Collect node data from engine/nodes.js
+                allUniverses[index].data = exportNodeData(); 
+                allUniverses[index].lastEdited = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+                
+                localStorage.setItem('alphaline_universes', JSON.stringify(allUniverses));
+                console.log("Sync Complete.");
+            }
+        }
+    </script>
+</body>
+</html>
