@@ -166,9 +166,22 @@
 
     <script>
         const modalData = {
-            about: { title: "About AlphaLine", text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers." },
-            contact: { title: "Contact Us", text: "Reach out to the development team at support@alphaline.dev." },
-            changelog: { title: "Changelog", text: "2026.01.21.05: Simplified Modal / Fixed Footer Grid alignment.<br>2026.01.21.03: Added modal return button (Reverted)." }
+            about: { 
+                title: "About AlphaLine", 
+                text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers. We focus on scale, alignment, and minimalist utility." 
+            },
+            contact: { 
+                title: "Contact Us", 
+                text: "Reach out to the development team at support@alphaline.dev. Technical support is available for all Guest and Registered users." 
+            },
+            changelog: { 
+                title: "Changelog", 
+                text: "2026.01.21.07: Added privacy disclaimer and account reset logic.<br>2026.01.21.05: Simplified Modal / Fixed Footer Grid alignment." 
+            },
+            cookies: {
+                title: "Data & Cookies",
+                text: "AlphaLine uses LocalStorage to save your worldbuilding progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons."
+            }
         };
 
         function openModal(type) {
@@ -190,6 +203,7 @@
         }
 
         window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
+        
         function handleNav(page) { document.getElementById('content-frame').src = page + '.html'; }
 
         function getPSTOffset() {
@@ -220,9 +234,22 @@
             document.getElementById('user-info').innerHTML = `${region.toUpperCase()} (${tzName}) [${getPSTOffset()}]<br>${now.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}).toUpperCase()} | ${now.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
 
-        updateLiveClock();
-        setInterval(updateLiveClock, 1000);
-        loadLastUpdated();
+        function checkCookieConsent() {
+            const consent = localStorage.getItem('alphaline_consent');
+            if (!consent) {
+                setTimeout(() => {
+                    openModal('cookies');
+                    localStorage.setItem('alphaline_consent', 'true');
+                }, 1000);
+            }
+        }
+
+        window.onload = () => {
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+            loadLastUpdated();
+            checkCookieConsent();
+        };
     </script>
 </body>
 </html>
