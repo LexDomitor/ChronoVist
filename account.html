@@ -2,120 +2,150 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background: transparent;
             color: white;
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100vh;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
+            overflow: hidden;
         }
 
         .container {
             max-width: 500px;
-            padding: 2.5rem;
+            padding: 3rem;
             border: 1px solid #333;
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(15, 15, 15, 0.95);
         }
 
         .status-tag {
             display: inline-block;
-            background: #333;
-            color: #a0a0a0;
-            font-size: 0.65rem;
-            padding: 4px 10px;
+            background: #222;
+            color: #888;
+            font-size: 0.6rem;
+            padding: 5px 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            border: 1px solid #333;
         }
 
-        h2 { font-weight: 400; font-size: 1.2rem; margin-bottom: 1rem; }
-        p { color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; }
-
-        .status-indicator {
-            font-size: 0.7rem;
+        h2 { font-weight: 400; font-size: 1.3rem; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
+        
+        /* The requested Status Colors */
+        .status-display {
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .active { color: #4CAF50; }
-        .inactive { color: #F44336; }
+        .status-active { color: #4CAF50; } /* Green */
+        .status-declined { color: #F44336; } /* Red */
+        .status-pending { color: #FFA000; } /* Orange */
+
+        p { color: #a0a0a0; font-size: 0.9rem; line-height: 1.7; margin-bottom: 2.5rem; }
 
         .settings-box {
             border-top: 1px solid #333;
             padding-top: 2rem;
-            margin-top: 1rem;
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            align-items: center;
         }
 
         .btn {
             background: transparent;
             border: 1px solid #444;
             color: white;
-            padding: 0.6rem 1.2rem;
+            padding: 0.8rem 1.5rem;
             font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             cursor: pointer;
-            transition: 0.3s ease;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
         }
 
-        .btn:hover { background: #333; }
-        .btn-danger { border-color: #442222; color: #ff6666; }
-        .btn-danger:hover { background: #442222; color: white; }
+        .btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+        .btn-danger { border-color: #552222; color: #ff6666; }
+        .btn-danger:hover { background: #ff4444; color: white; border-color: #ff4444; }
+
+        /* Dot indicator */
+        .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
+        .bg-active { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+        .bg-declined { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
+        .bg-pending { background-color: #FFA000; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="status-tag">Under Development</div>
-        <h2>Account services are still in development.</h2>
+        <div class="status-tag">System Node: Account</div>
         
-        <div id="status-display" class="status-indicator"></div>
+        <div id="status-area" class="status-display">
+            </div>
 
-        <p id="desc-text">You are currently using AlphaLine as a Guest.</p>
+        <h2 id="account-heading">Guest Session</h2>
+        <p id="account-desc">Initializing session parameters...</p>
 
         <div class="settings-box">
             <button class="btn" onclick="window.parent.openModal('cookies')">Check Cookie Preferences</button>
-            <button id="reset-btn" class="btn btn-danger" style="display:none;" onclick="revokeAccess()">Revoke Cookies & Reset Data</button>
+            <button id="revoke-btn" class="btn btn-danger" style="display: none;" onclick="revokeAll()">Revoke & Purge Data</button>
         </div>
     </div>
 
     <script>
-        const consent = localStorage.getItem('alphaline_consent');
-        const statusEl = document.getElementById('status-display');
-        const descEl = document.getElementById('desc-text');
-        const resetBtn = document.getElementById('reset-btn');
+        function updateUI() {
+            const consent = localStorage.getItem('alphaline_consent');
+            const statusArea = document.getElementById('status-area');
+            const heading = document.getElementById('account-heading');
+            const desc = document.getElementById('account-desc');
+            const revokeBtn = document.getElementById('revoke-btn');
 
-        if (consent === 'true') {
-            statusEl.innerHTML = "● Local Data Saving: ACTIVE";
-            statusEl.className = "status-indicator active";
-            descEl.innerHTML = "Cookies are enabled. Your Universe Canons will be saved locally to this browser.";
-            resetBtn.style.display = "block";
-        } else if (consent === 'false') {
-            statusEl.innerHTML = "● Local Data Saving: DISABLED";
-            statusEl.className = "status-indicator inactive";
-            descEl.innerHTML = "Cookies were declined. Work will not be saved automatically.";
-        } else {
-            statusEl.innerHTML = "● Local Data Saving: PENDING";
-            statusEl.className = "status-indicator";
+            if (consent === 'true') {
+                statusArea.innerHTML = '<span class="dot bg-active"></span> Data Saving: ACTIVE';
+                statusArea.className = "status-display status-active";
+                heading.innerText = "Authorized Guest";
+                desc.innerText = "Your Universe Canons are currently being synced to this device's local storage.";
+                revokeBtn.style.display = "block";
+            } 
+            else if (consent === 'false') {
+                statusArea.innerHTML = '<span class="dot bg-declined"></span> Data Saving: DISABLED';
+                statusArea.className = "status-display status-declined";
+                heading.innerText = "Private Session";
+                desc.innerText = "You have declined functional cookies. Changes to your Universe Canons will not persist across sessions.";
+                revokeBtn.style.display = "none";
+            } 
+            else {
+                statusArea.innerHTML = '<span class="dot bg-pending"></span> Data Saving: PENDING';
+                statusArea.className = "status-display status-pending";
+                desc.innerText = "Please review cookie preferences to enable persistent worldbuilding features.";
+                revokeBtn.style.display = "none";
+            }
         }
 
-        function revokeAccess() {
-            if(confirm("This will delete all saved Universe Canons and reset your preferences. Proceed?")) {
+        function revokeAll() {
+            if (confirm("WARNING: This will permanently delete all local Universe data and reset your privacy settings. Continue?")) {
                 localStorage.clear();
                 window.parent.location.reload();
             }
         }
+
+        // Run on load
+        updateUI();
     </script>
 </body>
 </html>
