@@ -8,38 +8,54 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap');
         :root { --bg: #080808; --accent: #2a2a2a; --text: #fff; --text-dim: #888; }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { 
-            height: 100vh; width: 100vw; 
-            background: #000; color: #fff; 
+        /* THE FIX: Absolute reset to prevent lingering main page headers */
+        html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            height: 100vh; 
+            width: 100vw; 
+            background: #000; 
+            color: #fff; 
             font-family: 'Inter', sans-serif; 
             overflow: hidden; 
+            position: fixed;
+            top: 0;
+            left: 0;
         }
+
+        * { box-sizing: border-box; }
 
         /* --- LOADER --- */
         #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; pointer-events: none; }
-        .loader-content { text-align: center; width: 280px; }
-        .progress-track { width: 100%; height: 2px; background: #111; margin-top: 20px; position: relative; }
+        .loader-content { text-align: center; width: 350px; }
+        #loader-msg { font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase; margin-bottom: 10px; }
+        #loader-sub { font-size: 0.8rem; letter-spacing: 2px; color: #fff; font-weight: 300; text-transform: uppercase; }
+        .progress-track { width: 100%; height: 2px; background: #111; margin-top: 25px; position: relative; }
         #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 2.5s ease; position: absolute; top:0; left:0; }
 
         /* --- UI BARS --- */
         .ui-bar { 
-            position: fixed; left: 0; width: 100%; 
-            background: rgba(20, 20, 20, 0.98); 
+            position: fixed; 
+            left: 0; 
+            width: 100%; 
+            background: rgba(12, 12, 12, 0.98); 
             backdrop-filter: blur(20px); 
             z-index: 1000; 
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; 
             border: 1px solid #333; 
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .top-nav { 
-            top: 0; 
+            top: 0 !important; /* Force pinning to top */
             height: 85px; 
             padding: 0 3rem; 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
             border-width: 0 0 1px 0; 
+            margin-top: 0 !important; /* Prevent main page header overlap */
         }
 
         .brand-block { display: flex; align-items: center; gap: 15px; height: 100%; }
@@ -64,13 +80,7 @@
             display: flex;
             align-items: center;
         }
-
-        .nav-text strong {
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: 5px;
-            margin-right: 5px;
-        }
+        .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; margin-right: 5px; }
 
         .bottom-nav { 
             bottom: 0; 
@@ -82,8 +92,9 @@
             justify-content: space-between; 
         }
         
-        .is-panning .top-nav { transform: translateY(-100%); opacity: 0; }
-        .is-panning .bottom-nav { transform: translateY(100%); opacity: 0; }
+        /* UI Retraction during pan/drag */
+        .hide-ui .top-nav { transform: translateY(-100%); opacity: 0; }
+        .hide-ui .bottom-nav { transform: translateY(100%); opacity: 0; }
 
         /* --- WORLD & GRID --- */
         #viewport { width: 100vw; height: 100vh; cursor: grab; background: var(--bg); position: relative; overflow: hidden; }
@@ -99,7 +110,7 @@
             will-change: transform;
         }
 
-        /* --- NODES & CONTAINERS --- */
+        /* --- NODES --- */
         .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 220px; display: flex; flex-direction: column; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .handle { height: 20px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #333; flex-shrink: 0; }
         .node-content { padding: 12px; display: flex; flex-grow: 1; flex-direction: column; gap: 8px; }
@@ -115,7 +126,6 @@
         .container-footer { height: 32px; border-top: 1px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.6rem; color: #666; letter-spacing: 2px; }
         .container-footer:hover { background: #1a1a1a; color: #fff; }
 
-        /* --- TOOLS & TRASH --- */
         .tool-dock { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 42px; background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1100; }
         .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; }
         .tool-item:hover { background: #fff; color: #000; }
@@ -128,23 +138,24 @@
 
     <div id="loader">
         <div class="loader-content">
-            <div id="loader-msg" style="font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase;">Initializing</div>
+            <div id="loader-msg">Initializing Connection</div>
+            <div id="loader-sub">Transporting to the world of...</div>
             <div class="progress-track"><div id="progress-bar"></div></div>
         </div>
     </div>
 
     <div id="trash-zone">🗑</div>
 
-    <nav class="ui-bar top-nav">
+    <nav class="ui-bar top-nav" id="main-top">
         <div class="brand-block">
             <div class="exit-btn" onclick="triggerExitSequence()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-name" style="margin-left: 10px; color: #555;">UNIVERSE</span>
+                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-name" style="margin-left: 10px; color: #fff;">UNIVERSE</span>
             </div>
         </div>
     </nav>
 
-    <footer class="ui-bar bottom-nav">
+    <footer class="ui-bar bottom-nav" id="main-bottom">
         <div id="system-status" style="font-size: 0.6rem; color: #666; letter-spacing: 1px; font-weight: 400; text-transform: uppercase;">System Standby</div>
         <div id="coord-display" style="font-size: 0.65rem; color: #888; font-family: monospace;">0, 0 | 100%</div>
     </footer>
@@ -174,7 +185,10 @@
         let scale = activeUniverse?.scale || 1;
 
         window.onload = () => {
-            if(activeUniverse) document.getElementById('active-name').innerText = activeUniverse.name;
+            if(activeUniverse) {
+                document.getElementById('active-name').innerText = activeUniverse.name;
+                document.getElementById('loader-sub').innerText = `Transporting to the world of ${activeUniverse.name}`;
+            }
             updateWorld();
             const bar = document.getElementById('progress-bar');
             setTimeout(() => { bar.style.width = '100%'; }, 100);
@@ -210,13 +224,13 @@
         let isPanning = false, startX, startY;
         viewport.onmousedown = (e) => {
             if(e.target.id !== 'viewport' && e.target.id !== 'world') return;
-            isPanning = true; document.body.classList.add('is-panning');
+            isPanning = true; document.body.classList.add('hide-ui');
             startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y;
         };
         window.onmousemove = (e) => {
             if(isPanning) { worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY; updateWorld(); }
         };
-        window.onmouseup = () => { isPanning = false; document.body.classList.remove('is-panning'); sync(); };
+        window.onmouseup = () => { isPanning = false; document.body.classList.remove('hide-ui'); sync(); };
 
         function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
         function recenter() { scale = 1; worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; updateWorld(); }
@@ -298,7 +312,7 @@
                     el.style.left = (rect.left - worldPos.x) / scale + 'px';
                     el.style.top = (rect.top - worldPos.y) / scale + 'px';
                 }
-                document.body.classList.add('is-dragging');
+                document.body.classList.add('hide-ui');
                 let p3 = e.clientX, p4 = e.clientY;
                 document.onmousemove = (e) => {
                     let p1 = (p3 - e.clientX) / scale, p2 = (p4 - e.clientY) / scale;
@@ -308,7 +322,7 @@
                     checkQuads(el);
                 };
                 document.onmouseup = () => {
-                    document.onmousemove = null; document.body.classList.remove('is-dragging');
+                    document.onmousemove = null; document.body.classList.remove('hide-ui');
                     const t = trash.getBoundingClientRect(); const r = el.getBoundingClientRect();
                     if(r.left < t.right && r.bottom > t.top) { if(confirm("Permanently delete node?")) el.remove(); }
                     else { snap(el); }
@@ -370,10 +384,24 @@
 
         function triggerExitSequence() {
             sync();
-            const l = document.getElementById('loader');
-            l.style.display = 'flex'; l.style.opacity = '1';
-            document.getElementById('loader-msg').innerText = "Exiting Plane...";
-            setTimeout(() => { window.location.href = 'universes.html'; }, 1000);
+            const loader = document.getElementById('loader');
+            const progress = document.getElementById('progress-bar');
+            
+            // Update Loader Messages for exit
+            document.getElementById('loader-msg').innerText = "Closing Creation Plane";
+            document.getElementById('loader-sub').innerText = "Returning to Multiverse Hub...";
+            
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            progress.style.transition = 'none';
+            progress.style.width = '0%';
+            
+            setTimeout(() => {
+                progress.style.transition = 'width 1s ease';
+                progress.style.width = '100%';
+            }, 50);
+
+            setTimeout(() => { window.location.href = 'universes.html'; }, 1100);
         }
     </script>
 </body>
