@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlphaLine | Master Shell</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
-        
         :root {
             --bg-color: #0f0f0f;
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
             --accent-gray: #333333;
             --modal-bg: #161616;
-            --transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+            --transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1); /* Optimized for retraction */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +19,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -41,46 +39,69 @@
             transition: transform var(--transition);
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            letter-spacing: -1px;
-        }
-
+        .logo { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; cursor: pointer; letter-spacing: -1px; }
         nav { display: flex; gap: 1rem; }
+        .nav-link { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.5rem 1rem; text-transform: uppercase; cursor: pointer; transition: 0.3s ease; }
+        .nav-link:hover { color: var(--text-main); }
 
-        .nav-link {
+        /* --- Content Area --- */
+        main { 
+            flex: 1; 
+            position: relative; 
+            width: 100%; 
+            background: var(--bg-color); 
+            transition: all var(--transition);
+        }
+        #content-frame { width: 100%; height: 100%; border: none; display: block; background: transparent; }
+
+        /* --- Modal System --- */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #modal-overlay.active { opacity: 1; display: flex; }
+        .modal-panel {
+            background: var(--modal-bg);
+            width: 90%;
+            max-width: 550px;
+            padding: 3rem;
+            border: 1px solid var(--accent-gray);
+            position: relative;
+        }
+        .modal-close-x {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
             color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            text-transform: uppercase;
+            font-size: 2rem;
             cursor: pointer;
             transition: 0.3s ease;
         }
+        .modal-close-x:hover { color: var(--text-main); }
+        #modal-content h2 { margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; }
+        #modal-content p { color: var(--text-dim); line-height: 1.6; font-size: 0.95rem; margin-bottom: 2rem; }
 
-        .nav-link:hover { color: var(--text-main); }
-
-        /* --- Main Content Shell --- */
-        main {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            background: var(--bg-color);
-            transition: all var(--transition);
-            z-index: 5;
+        .modal-actions { display: flex; gap: 1rem; justify-content: flex-start; }
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            font-family: inherit;
         }
-
-        #content-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            background: transparent;
-        }
+        .btn-primary { background: var(--text-main); color: var(--bg-color); border: none; }
+        .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent-gray); }
 
         /* --- Footer --- */
         footer {
@@ -91,26 +112,11 @@
             flex-direction: column;
             gap: 1.5rem;
             background: var(--bg-color);
-            z-index: 10;
             transition: transform var(--transition);
         }
 
-        .footer-nav {
-            display: flex;
-            justify-content: center;
-            gap: 2.5rem;
-        }
-
-        .footer-link {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1rem;
-            cursor: pointer;
-            transition: 0.3s ease;
-        }
-
+        .footer-nav { display: flex; justify-content: center; gap: 2.5rem; }
+        .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1rem; cursor: pointer; transition: 0.3s ease; }
         .footer-link:hover { color: var(--text-main); }
 
         .footer-data-grid {
@@ -121,59 +127,25 @@
             font-size: 0.65rem;
             color: var(--text-dim);
             font-variant-numeric: tabular-nums;
-            line-height: 1.4;
         }
 
         .last-updated { text-align: left; }
         .copyright { text-align: center; text-transform: uppercase; letter-spacing: 0.15rem; }
         .user-info { text-align: right; }
 
-        /* --- RETRACTION ENGINE --- */
+        /* --- RETRACTION LOGIC --- */
         body.workspace-mode header { transform: translateY(-100%); }
         body.workspace-mode footer { transform: translateY(100%); }
         body.workspace-mode main { 
-            margin-top: -85px; 
+            margin-top: -80px; /* Fully slides main up to hide top void */
             margin-bottom: -150px; 
             height: 100vh;
         }
 
-        /* --- Modals --- */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+        @media (max-width: 850px) {
+            .footer-data-grid { display: flex; flex-direction: column; gap: 1rem; text-align: center; }
+            .user-info { text-align: center; }
         }
-
-        .modal {
-            background: var(--modal-bg);
-            border: 1px solid var(--accent-gray);
-            padding: 2.5rem;
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        .modal h2 { font-size: 1rem; letter-spacing: 0.2rem; text-transform: uppercase; margin-bottom: 1rem; }
-        .modal p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 2rem; }
-        
-        .modal-btn {
-            background: #fff;
-            color: #000;
-            border: none;
-            padding: 0.8rem 2rem;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .modal-btn:hover { background: var(--text-dim); }
     </style>
 </head>
 <body>
@@ -190,55 +162,113 @@
         <iframe id="content-frame" src="home.html"></iframe>
     </main>
 
-    <footer id="master-footer">
-        <div class="footer-nav">
-            <span class="footer-link">About Us</span>
-            <span class="footer-link">Contact Us</span>
-            <span class="footer-link">Changelog</span>
-        </div>
-        <div class="footer-data-grid">
-            <div class="last-updated" id="last-updated">LAST UPDATED<br>LOADING...</div>
-            <div class="copyright">©2026 Lex Domitor<br>ALL RIGHTS RESERVED</div>
-            <div class="user-info" id="user-info">LOCATION UNKNOWN<br>00:00:00 AM | JAN 01, 2026</div>
-        </div>
-    </footer>
-
-    <div class="modal-overlay" id="modal-cookies">
-        <div class="modal">
-            <h2>Temporal Cookies</h2>
-            <p>This system uses local storage to anchor your progress in the timeline. By continuing, you accept our data-sharding protocols.</p>
-            <button class="modal-btn" onclick="acceptCookies()">Initialize</button>
+    <div id="modal-overlay" onclick="closeModal()">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-close-x" onclick="closeModal()">×</div>
+            <div id="modal-content"></div>
+            <div id="modal-footer-actions" class="modal-actions"></div>
         </div>
     </div>
 
+    <footer id="master-footer">
+        <div class="footer-nav">
+            <span class="footer-link" onclick="openModal('about')">About Us</span>
+            <span class="footer-link" onclick="openModal('contact')">Contact Us</span>
+            <span class="footer-link" onclick="openModal('changelog')">Changelog</span>
+        </div>
+        <div class="footer-data-grid">
+            <div class="last-updated" id="last-updated">...</div>
+            <div class="copyright">©2026 Lex Domitor</div>
+            <div class="user-info" id="user-info">...</div>
+        </div>
+    </footer>
+
     <script>
-        // --- THE RETRACTION BRIDGE ---
+        const modalData = {
+            about: { 
+                title: "About AlphaLine", 
+                text: "AlphaLine is a high-precision digital journal designed for worldbuilders, writers, and designers. We focus on scale, alignment, and minimalist utility." 
+            },
+            contact: { 
+                title: "Contact Us", 
+                text: "Reach out to the development team at support@alphaline.dev. Technical support is available for all Guest and Registered users." 
+            },
+            changelog: { 
+                title: "Changelog", 
+                text: "2026.01.21.11: Added Account navigation hint to cookie prompt.<br>2026.01.21.10: Privacy-first default state logic." 
+            },
+            cookies: {
+                title: "Data & Cookies",
+                text: "AlphaLine uses LocalStorage to save your progress locally. We do not sell personal information or collect data. Cookies are strictly functional to allow users to load their Universe Canons.<br><br><strong>Note: You can change these preferences at any time in the Account section.</strong>",
+                isCookiePrompt: true
+            }
+        };
+
+        // --- RETRACTION BRIDGE ---
         window.addEventListener('message', (event) => {
             if (event.data === 'RETRACT_FRAME') {
                 document.body.classList.add('workspace-mode');
-            } else if (event.data === 'RESTORE_FRAME' || event.data === 'RESTORE_HUB_UI') {
+            } else if (event.data === 'RESTORE_FRAME') {
                 document.body.classList.remove('workspace-mode');
             }
         });
 
-        function handleNav(page) {
-            document.body.classList.remove('workspace-mode');
-            document.getElementById('content-frame').src = page + '.html';
+        function setConsent(choice) {
+            localStorage.setItem('alphaline_consent', choice);
+            closeModal();
+            const frame = document.getElementById('content-frame');
+            if (frame.src.includes('account.html')) frame.contentWindow.location.reload();
         }
 
-        // --- FOOTER DATA LOGIC ---
+        function openModal(type) {
+            const data = modalData[type];
+            const overlay = document.getElementById('modal-overlay');
+            const footer = document.getElementById('modal-footer-actions');
+            
+            document.getElementById('modal-content').innerHTML = `<h2>${data.title}</h2><p>${data.text}</p>`;
+            
+            footer.innerHTML = "";
+            if (data.isCookiePrompt) {
+                footer.innerHTML = `
+                    <button class="btn btn-primary" onclick="setConsent('true')">Accept Cookies</button>
+                    <button class="btn btn-secondary" onclick="setConsent('false')">Decline</button>
+                `;
+            }
+
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('active'), 10);
+            document.getElementById('main-content').style.pointerEvents = 'none';
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => { 
+                overlay.style.display = 'none';
+                document.getElementById('main-content').style.pointerEvents = 'auto';
+            }, 300);
+        }
+
+        window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
+        
+        function handleNav(page) { 
+            document.body.classList.remove('workspace-mode');
+            document.getElementById('content-frame').src = page + '.html'; 
+        }
+
         function getPSTOffset() {
             const now = new Date();
-            const offset = -480; 
-            const hours = Math.abs(Math.floor(offset / 60));
-            return `GMT-${hours}`;
+            const pstString = now.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour12: false});
+            const pstDate = new Date(pstString);
+            const diff = Math.round((pstDate - now) / 3600000);
+            return `PST ${diff >= 0 ? "+" : ""}${diff}H`;
         }
 
         async function loadLastUpdated() {
             try {
-                const response = await fetch(window.location.href, { method: 'HEAD' });
-                const lastMod = response.headers.get('Last-Modified');
-                const bTime = lastMod ? new Date(lastMod) : new Date();
+                const response = await fetch('version.json');
+                const data = await response.json();
+                const bTime = new Date(data.lastUpdated);
                 document.getElementById('last-updated').innerHTML = `LAST UPDATED<br>${bTime.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}).toUpperCase()} | ${bTime.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}).toUpperCase()}`;
             } catch (e) { document.getElementById('last-updated').innerHTML = "LAST UPDATED<br>OFFLINE"; }
         }
@@ -252,16 +282,6 @@
             } catch(e) {}
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
             document.getElementById('user-info').innerHTML = `${region.toUpperCase()} (${tzName}) [${getPSTOffset()}]<br>${now.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true}).toUpperCase()} | ${now.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'}).toUpperCase()}`;
-        }
-
-        // --- MODAL LOGIC ---
-        function openModal(type) {
-            document.getElementById('modal-' + type).style.display = 'flex';
-        }
-
-        function acceptCookies() {
-            localStorage.setItem('alphaline_consent', 'true');
-            document.getElementById('modal-cookies').style.display = 'none';
         }
 
         function checkCookieConsent() {
