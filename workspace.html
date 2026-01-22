@@ -59,7 +59,7 @@
         }
         input:hover, textarea:hover, input:focus, textarea:focus { border-color: #333; background: rgba(255,255,255,0.03); }
         
-        /* Unified Gray Captions */
+        /* Unified Gallery Traits */
         .node-title { 
             font-weight: 400; color: var(--caption); font-size: 0.75rem; 
             text-transform: none; letter-spacing: 0; font-family: 'Inter', sans-serif;
@@ -256,7 +256,7 @@
 
         function triggerExitSequence() {
             sync();
-            // Match your original index.html listener exactly
+            // Signal index.html to bring back header/footer panels
             window.parent.postMessage('RESTORE_FRAME', '*');
             
             const loader = document.getElementById('loader');
@@ -265,8 +265,11 @@
             progressBar.style.width = '100%';
             
             setTimeout(() => {
-                // Break out to top level to prevent "seizure" / retraction conflict
-                window.top.location.href = 'index.html';
+                // Return to Hub and automatically land on the Universes page
+                const hub = window.top;
+                hub.document.getElementById('content-frame').src = 'universes.html';
+                // Remove the workspace class to ensure UI stays visible
+                hub.document.body.classList.remove('workspace-mode');
             }, 500);
         }
     </script>
