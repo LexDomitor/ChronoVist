@@ -6,54 +6,55 @@
     <title>AlphaLine | Workspace</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
-        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; }
+        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; }
         
         html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
 
+        /* --- Header --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
-            display: flex; align-items: center; 
-            padding: 0 2rem; /* This defines the left-side padding */
-            z-index: 1000;
+            display: flex; align-items: center; padding: 0 2rem; z-index: 1000;
         }
-
         .brand-block { display: flex; align-items: center; gap: 20px; }
         .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; }
         .exit-btn:hover { color: #fff; }
-
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
         .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
-        
-        /* The separator between ALPHALINE and CREATION PLANE */
         .title-sep { margin: 0 15px; color: #333; }
-        
-        /* The Project Name: No | separator here now */
         .universe-name { color: #fff; margin-left: 15px; }
 
-        /* DYNAMIC ALIGNMENT FIX */
-        .status-block { 
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            padding-right: 2rem; /* Perfectly mirrors the left padding of workspace-header */
-            display: flex; 
-            align-items: center; 
-            gap: 40px; 
-            text-align: right; 
-        }
-        
+        .status-block { position: absolute; right: 0; top: 50%; transform: translateY(-50%); padding-right: 2rem; display: flex; align-items: center; gap: 40px; text-align: right; }
         #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
-        
-        .clock-block { 
-            font-family: 'JetBrains Mono', monospace; 
-            font-size: 0.65rem; 
-            color: var(--text-dim); 
-            line-height: 1.4;
-            white-space: nowrap; 
+        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.4; white-space: nowrap; }
+
+        /* --- Timeline Object --- */
+        #timeline-object {
+            position: absolute;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 40px;
+            background: rgba(8, 8, 8, 0.9);
+            border: 2px solid var(--accent); /* Bold Outline */
+            border-radius: 4px;
+            cursor: grab;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        #timeline-object:active { cursor: grabbing; }
+        .timeline-handle { 
+            width: 30px; 
+            height: 4px; 
+            background: #333; 
+            border-radius: 2px;
         }
 
+        /* --- Viewport --- */
         #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; position: relative; }
         canvas { display: block; }
     </style>
@@ -67,7 +68,6 @@
                 <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span id="active-universe-name" class="universe-name">...</span>
             </div>
         </div>
-        
         <div class="status-block">
             <div id="save-indicator">Project Saved</div>
             <div id="workspace-clock" class="clock-block"></div>
@@ -75,32 +75,32 @@
     </header>
 
     <div id="plane-container">
+        <div id="timeline-object">
+            <div class="timeline-handle"></div>
+        </div>
+        
         <canvas id="plane-canvas"></canvas>
     </div>
 
     <script src="creation-plane.js"></script>
     <script>
+        // ... (Clock and Data Logic from previous version) ...
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
-
-        if(activeUniverse) {
-            document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
-        }
+        if(activeUniverse) document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
 
         function updateClock() {
             const now = new Date();
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
             const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
-
             document.getElementById('workspace-clock').innerHTML = 
                 `${region.toUpperCase()} | ${now.toLocaleTimeString().toUpperCase()}<br>` +
                 `${pstStr} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
-        setInterval(updateClock, 1000); 
-        updateClock();
+        setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() {
             window.parent.postMessage('RESTORE_FRAME', '*');
@@ -108,6 +108,42 @@
             hub.document.getElementById('content-frame').src = 'universes.html';
             hub.document.body.classList.remove('workspace-mode');
         }
+
+        // --- Timeline Drag Logic ---
+        const timeline = document.getElementById('timeline-object');
+        let isDraggingTimeline = false;
+        let offset = { x: 0, y: 0 };
+
+        timeline.addEventListener('mousedown', (e) => {
+            isDraggingTimeline = true;
+            offset.x = e.clientX - timeline.offsetLeft;
+            offset.y = e.clientY - timeline.offsetTop;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDraggingTimeline) return;
+
+            let x = e.clientX - offset.x;
+            let y = e.clientY - offset.y;
+
+            // Boundaries
+            const minX = 0;
+            const maxX = window.innerWidth - timeline.offsetWidth;
+            const minY = 65; // Constrained under top bar
+            const maxY = window.innerHeight - timeline.offsetHeight;
+
+            // Clamp values
+            x = Math.max(minX, Math.min(x, maxX));
+            y = Math.max(minY, Math.min(y, maxY));
+
+            timeline.style.left = x + 'px';
+            timeline.style.top = y + 'px';
+            timeline.style.transform = 'none'; // Remove initial centering transform
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDraggingTimeline = false;
+        });
 
         const plane = new CreationPlane('plane-canvas');
     </script>
