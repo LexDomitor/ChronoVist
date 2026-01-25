@@ -15,7 +15,7 @@
             user-select: none; -webkit-user-select: none;
         }
 
-        /* --- HEADER UI --- */
+        /* --- HEADER UI (Restored) --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -30,7 +30,7 @@
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 40px; text-align: right; flex-shrink: 0; }
         .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.3; white-space: nowrap; }
 
-        /* --- PLANE CONTAINER --- */
+        /* --- PLANE --- */
         #plane-container { 
             width: 100vw; height: calc(100vh - 65px); margin-top: 65px;
             background-color: #000;
@@ -39,96 +39,71 @@
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-            background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
-            background-position: 0px 0px;
+            background-size: 20px 20px;
             position: relative; overflow: hidden; cursor: crosshair;
         }
 
-        /* --- SPATIAL NODE SYSTEM --- */
+        /* --- GRID NODES --- */
         #node-group {
             position: absolute; left: 50%; top: 50%; 
             display: none; flex-direction: column; align-items: center;
-            transform-origin: center; z-index: 100; pointer-events: auto;
+            transform-origin: center; z-index: 100;
         }
-
         .grid-node {
             padding: 20px 40px; background: rgba(15, 15, 15, 0.75); 
             backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); 
             display: flex; flex-direction: column; align-items: center;
         }
         .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 2.5rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
-        .node-label { font-size: 0.5rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 5px; }
-
+        .node-label { font-size: 0.5rem; color: #888; letter-spacing: 4px; font-weight: 800; }
         .node-pipe { width: 1px; height: 30px; background: rgba(255,255,255,0.2); }
-
         .sub-node {
             padding: 15px 30px; background: rgba(10, 10, 10, 0.6); 
             backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 50px; text-align: center; max-width: 200px;
+            border-radius: 50px; text-align: center;
         }
-        .faded-instruction { font-size: 0.5rem; color: #444; line-height: 1.4; letter-spacing: 1px; }
-
-        /* --- ADD NODE (+) --- */
-        .add-circle {
-            width: 30px; height: 30px; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: #666; transition: 0.2s; background: rgba(0,0,0,0.3);
-        }
-        .add-circle:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
 
         /* --- PLOT NODES --- */
-        #plot-container { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        
         .plot-node {
-            width: 450px; background: rgba(15,15,15,0.8); border: 1px solid #333;
-            border-radius: 12px; padding: 20px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 15px; pointer-events: auto;
+            width: 500px; background: rgba(12, 12, 12, 0.85); border: 1px solid #333;
+            border-radius: 15px; padding: 25px; display: flex; flex-direction: column; gap: 20px;
         }
-        .plot-title-input {
+        .plot-title-field {
             background: transparent; border: none; border-bottom: 1px solid #222;
-            color: #fff; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
-            padding: 5px 0; outline: none; width: 100%; font-family: 'JetBrains Mono';
+            color: #fff; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase;
+            padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono';
         }
-        .plot-title-input:focus { border-color: var(--accent); }
-
-        /* --- EVENT ROWS --- */
-        .event-row {
-            display: flex; background: rgba(0,0,0,0.4); border-radius: 8px;
-            overflow: hidden; border: 1px solid #222; min-height: 80px;
+        .event-node {
+            display: flex; background: rgba(0,0,0,0.5); border: 1px solid #222;
+            border-radius: 30px; overflow: hidden; align-items: stretch;
         }
-        .event-text-side {
-            flex: 1; padding: 12px; display: flex; flex-direction: column;
-        }
-        .event-textarea {
-            background: transparent; border: none; color: #aaa; resize: none;
-            font-size: 0.7rem; line-height: 1.5; outline: none; height: 100%;
+        .event-left { flex: 1; padding: 15px 20px; }
+        .event-input {
+            background: transparent; border: none; color: #ddd; resize: none;
+            width: 100%; font-size: 0.75rem; line-height: 1.6; outline: none;
             font-family: 'Inter', sans-serif;
         }
-        .event-image-side {
-            width: 100px; background: #111; border-left: 1px solid #222;
-            cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .event-image-side img { width: 100%; height: 100%; object-fit: cover; }
-        .img-placeholder { font-size: 0.5rem; color: #333; text-transform: uppercase; letter-spacing: 1px; }
+        .event-right { width: 120px; background: #111; border-left: 1px solid #222; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .event-right img { width: 100%; height: 100%; object-fit: cover; }
 
         /* --- TIMELINE HUD --- */
         #timeline-hud {
             position: fixed; left: 50%; top: 105px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 1500;
+            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500;
         }
         #timeline-bar {
             width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
             border: 2px solid var(--accent); border-radius: 4px; position: relative;
         }
-        .timeline-axis {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
-            background: rgba(255, 255, 255, 0.2); transform: translateY(-50%); pointer-events: none;
-        }
+        .timeline-axis { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.2); transform: translateY(-50%); }
 
-        /* --- MARKERS --- */
-        .year-dot, .year-line { cursor: pointer; transition: 0.2s; }
-        .year-dot { position: absolute; width: 30px; height: 30px; background: #fff; border-radius: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; }
-        .year-line { position: absolute; width: 2px; height: 20px; background: rgba(255,255,255,0.5); top: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        /* --- BUTTONS (Centered) --- */
+        .timeline-controls { display: flex; justify-content: center; gap: 10px; width: 100%; }
+
+        /* --- YEAR MARKERS & BOXES --- */
+        .year-dot, .year-line { cursor: pointer; transition: 0.2s; position: absolute; top: 50%; transform: translate(-50%, -50%); }
+        .year-dot { width: 30px; height: 30px; background: #fff; border-radius: 50%; z-index: 20; }
+        .year-line { width: 2px; height: 20px; background: rgba(255,255,255,0.4); z-index: 10; }
         .selected-marker { box-shadow: 0 0 20px 5px rgba(255,255,255,0.4); background: #fff !important; height: 35px !important; z-index: 30 !important; }
 
         .year-box {
@@ -137,10 +112,14 @@
         }
         .box-min { right: 100%; margin-right: 20px; top: 50%; transform: translateY(-50%); }
         .box-max { left: 100%; margin-left: 20px; top: 50%; transform: translateY(-50%); }
-        .box-above { bottom: 100%; margin-bottom: 20px; left: 50%; transform: translateX(-50%); }
+        .box-above { bottom: 100%; margin-bottom: 15px; left: 50%; transform: translateX(-50%); }
+        .blip-box { opacity: 0; transition: opacity 0.2s; }
+        .year-line:hover .blip-box, .selected-marker .blip-box { opacity: 1; }
 
-        .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer; }
-        .tm-btn.danger { color: var(--danger); border-color: #311; }
+        .add-circle { width: 35px; height: 35px; border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; transition: 0.3s; }
+        .add-circle:hover { border-color: #fff; color: #fff; }
+        .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 8px 16px; text-transform: uppercase; cursor: pointer; }
+        .tm-btn.danger { color: var(--danger); }
     </style>
 </head>
 <body>
@@ -148,9 +127,12 @@
     <header class="workspace-header">
         <div class="brand-block">
             <div class="back-btn" onclick="exitWorkspace()">←</div>
-            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> PLANE <span class="title-sep">|</span> <span id="active-universe-name">...</span></div>
+            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">UNNAMED</span></div>
         </div>
-        <div class="status-block"><div id="workspace-clock" class="clock-block"></div></div>
+        <div class="status-block">
+            <div style="font-size: 0.6rem; color: #444; letter-spacing: 1px;">PROJECT SAVED</div>
+            <div id="workspace-clock" class="clock-block"></div>
+        </div>
     </header>
 
     <div id="plane-container">
@@ -159,19 +141,15 @@
                 <div class="node-label">YEAR</div>
                 <h2 id="grid-year-display">0000</h2>
             </div>
-            
             <div class="node-pipe"></div>
-            
             <div class="sub-node">
                 <div class="node-label">CHARACTERS</div>
-                <div class="faded-instruction">Drag Character Profiles here to link them.</div>
+                <div style="font-size: 0.5rem; color: #444; font-style: italic;">Drag Profiles here to link.</div>
             </div>
-
             <div class="node-pipe"></div>
-
-            <div id="plot-branch" style="display:flex; flex-direction:column; align-items:center; width:100%;">
-                <div class="add-circle" onclick="addNewPlotNode()">+</div>
-                <div id="plot-list" style="display:flex; flex-direction:column; align-items:center; width:100%;"></div>
+            <div id="plot-root" style="display:flex; flex-direction:column; align-items:center;">
+                <div class="add-circle" onclick="addPlotNode()">+</div>
+                <div id="plot-stack"></div>
             </div>
         </div>
         
@@ -186,15 +164,22 @@
     </div>
 
     <script>
-        // --- DATA STATE ---
         let currentUniverse = { years: [] };
-        let plotsByYear = {}; // { 2024: [ {title: '...', events: [...] } ] }
+        let plotsByYear = {}; 
         let selectedYear = null;
         let isDistributed = false;
         let panX = 0, panY = 0, gridZoom = 1;
         let isPanningGrid = false, startX, startY;
 
-        // --- GRID CONTROLS ---
+        function updateClock() {
+            const now = new Date();
+            const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
+            document.getElementById('workspace-clock').innerHTML = `LOS ANGELES | ${now.toLocaleTimeString().toUpperCase()}<br>${pst.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toUpperCase()} PST | ${now.toLocaleDateString().toUpperCase()}`;
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        function exitWorkspace() { window.top.document.getElementById('content-frame').src = 'universes.html'; window.top.document.body.classList.remove('workspace-mode'); }
+
         const plane = document.getElementById('plane-container');
         const nodeGroup = document.getElementById('node-group');
 
@@ -203,15 +188,12 @@
             isPanningGrid = true; plane.style.cursor = 'grabbing';
             startX = e.clientX - panX; startY = e.clientY - panY;
         });
-
         window.addEventListener('mousemove', (e) => {
             if (!isPanningGrid) return;
             panX = e.clientX - startX; panY = e.clientY - startY;
             updateGridTransform();
         });
-
         window.addEventListener('mouseup', () => { isPanningGrid = false; plane.style.cursor = 'crosshair'; });
-
         plane.addEventListener('wheel', (e) => {
             if (e.target.closest('#timeline-hud')) return;
             e.preventDefault();
@@ -221,98 +203,18 @@
         }, { passive: false });
 
         function updateGridTransform() {
-            const bS = 20 * gridZoom, mS = 100 * gridZoom;
-            plane.style.backgroundSize = `${bS}px ${bS}px, ${bS}px ${bS}px, ${mS}px ${mS}px, ${mS}px ${mS}px`;
+            const bS = 20 * gridZoom;
+            plane.style.backgroundSize = `${bS}px ${bS}px, ${bS}px ${bS}px`;
             plane.style.backgroundPosition = `${panX}px ${panY}px`;
             nodeGroup.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${gridZoom})`;
         }
 
-        // --- PLOT & EVENT ENGINE ---
-        function addNewPlotNode() {
-            if (!selectedYear) return;
-            if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
-            plotsByYear[selectedYear].push({ title: 'New Plot Thread', events: [] });
-            renderPlots();
-        }
-
-        function addEventToPlot(plotIndex) {
-            plotsByYear[selectedYear][plotIndex].events.push({ text: '', img: null });
-            renderPlots();
-        }
-
-        function renderPlots() {
-            const list = document.getElementById('plot-list');
-            list.innerHTML = '';
-            if (!plotsByYear[selectedYear]) return;
-
-            plotsByYear[selectedYear].forEach((plot, pIdx) => {
-                // Pipe leading to Plot
-                const pipe = document.createElement('div'); pipe.className = 'node-pipe';
-                list.appendChild(pipe);
-
-                const plotEl = document.createElement('div');
-                plotEl.className = 'plot-node';
-                plotEl.innerHTML = `
-                    <input class="plot-title-input" value="${plot.title}" onchange="updatePlotTitle(${pIdx}, this.value)">
-                    <div id="events-${pIdx}" style="display:flex; flex-direction:column; gap:10px;"></div>
-                    <button class="tm-btn" style="width:100%; border-radius: 20px; border: 1px dashed #444;" onclick="addEventToPlot(${pIdx})">+ Add Event</button>
-                `;
-                
-                const eventList = plotEl.querySelector(`#events-${pIdx}`);
-                plot.events.forEach((evt, eIdx) => {
-                    const row = document.createElement('div');
-                    row.className = 'event-row';
-                    row.innerHTML = `
-                        <div class="event-text-side">
-                            <textarea class="event-textarea" maxlength="500" placeholder="Describe the event..." 
-                                oninput="updateEventText(${pIdx}, ${eIdx}, this.value)">${evt.text}</textarea>
-                        </div>
-                        <div class="event-image-side" onclick="triggerImageUpload(${pIdx}, ${eIdx})">
-                            ${evt.img ? `<img src="${evt.img}">` : `<span class="img-placeholder">Image</span>`}
-                        </div>
-                    `;
-                    eventList.appendChild(row);
-                });
-
-                list.appendChild(plotEl);
-
-                // Add another branch circle under the plot if it's the last one
-                if (pIdx === plotsByYear[selectedYear].length - 1) {
-                    const bottomPipe = document.createElement('div'); bottomPipe.className = 'node-pipe';
-                    list.appendChild(bottomPipe);
-                    const addNext = document.createElement('div');
-                    addNext.className = 'add-circle'; addNext.innerText = '+';
-                    addNext.onclick = addNewPlotNode;
-                    list.appendChild(addNext);
-                }
-            });
-        }
-
-        function updatePlotTitle(pIdx, val) { plotsByYear[selectedYear][pIdx].title = val; }
-        function updateEventText(pIdx, eIdx, val) { plotsByYear[selectedYear][pIdx].events[eIdx].text = val; }
-
-        function triggerImageUpload(pIdx, eIdx) {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (re) => {
-                    plotsByYear[selectedYear][pIdx].events[eIdx].img = re.target.result;
-                    renderPlots();
-                };
-                reader.readAsDataURL(file);
-            };
-            input.click();
-        }
-
-        // --- TIMELINE CONTROLS ---
         function selectYear(y) {
             selectedYear = y;
             document.getElementById('grid-year-display').innerText = y;
             nodeGroup.style.display = 'flex';
             document.getElementById('delete-btn').style.display = 'block';
-            renderPlots();
+            renderPlotStack();
             renderTimelineMarkers();
             updateGridTransform();
         }
@@ -321,23 +223,38 @@
             const bar = document.getElementById('timeline-bar');
             bar.innerHTML = '<div class="timeline-axis"></div>';
             const years = currentUniverse.years;
-            if (years.length === 0) return;
+            if (!years.length) return;
             const min = years[0], max = years[years.length-1], range = max-min;
-            years.forEach((y, idx) => {
+
+            years.forEach((y, i) => {
                 const marker = document.createElement('div');
-                const pos = isDistributed ? (idx / (years.length-1 || 1)) * 100 : ((y-min)/(range||1))*100;
+                const box = document.createElement('div');
+                box.className = 'year-box';
+                box.innerText = y;
+
+                const pos = isDistributed ? (i/(years.length-1||1))*100 : ((y-min)/(range||1))*100;
                 marker.style.left = pos + '%';
-                marker.className = (idx === 0 || idx === years.length-1) ? 'year-dot' : 'year-line';
+
+                if (i === 0) { marker.className = 'year-dot'; box.classList.add('box-min'); }
+                else if (i === years.length-1) { marker.className = 'year-dot'; box.classList.add('box-max'); }
+                else { marker.className = 'year-line'; box.classList.add('box-above', 'blip-box'); }
+
                 if (y === selectedYear) marker.classList.add('selected-marker');
+                
                 marker.onclick = (e) => { e.stopPropagation(); selectYear(y); };
+                marker.appendChild(box);
                 bar.appendChild(marker);
             });
         }
 
-        function updateClock() {
-            document.getElementById('workspace-clock').innerText = new Date().toLocaleTimeString().toUpperCase();
+        function openYearModal() {
+            const val = prompt("Enter Temporal Year:");
+            if (val && !currentUniverse.years.includes(parseInt(val))) {
+                currentUniverse.years.push(parseInt(val));
+                currentUniverse.years.sort((a,b)=>a-b);
+                renderTimelineMarkers();
+            }
         }
-        setInterval(updateClock, 1000); updateClock();
 
         function toggleDistribution() { 
             isDistributed = !isDistributed; 
@@ -345,14 +262,43 @@
             renderTimelineMarkers(); 
         }
 
-        function openYearModal() {
-            const val = prompt("Enter Year:");
-            if (val && !currentUniverse.years.includes(parseInt(val))) {
-                currentUniverse.years.push(parseInt(val));
-                currentUniverse.years.sort((a,b)=>a-b);
+        function handleDeleteYear() {
+            if (confirm(`CAUTION: Delete year ${selectedYear}?`)) {
+                currentUniverse.years = currentUniverse.years.filter(y => y !== selectedYear);
+                selectedYear = null;
+                nodeGroup.style.display = 'none';
+                document.getElementById('delete-btn').style.display = 'none';
                 renderTimelineMarkers();
             }
         }
+
+        function addPlotNode() {
+            if (!selectedYear) return;
+            if (!plotsByYear[selectedYear]) plotsByYear[selectedYear] = [];
+            plotsByYear[selectedYear].push({ title: 'New Thread', events: [] });
+            renderPlotStack();
+        }
+
+        function renderPlotStack() {
+            const stack = document.getElementById('plot-stack');
+            stack.innerHTML = '';
+            if (!plotsByYear[selectedYear]) return;
+            plotsByYear[selectedYear].forEach((plot, pIdx) => {
+                const p = document.createElement('div'); p.className = 'node-pipe'; stack.appendChild(p);
+                const n = document.createElement('div'); n.className = 'plot-node';
+                n.innerHTML = `<input class="plot-title-field" value="${plot.title}">
+                               <div id="ev-s-${pIdx}"></div>
+                               <button class="tm-btn" onclick="addEv(${pIdx})">+ Add Event</button>`;
+                stack.appendChild(n);
+                const evs = n.querySelector(`#ev-s-${pIdx}`);
+                plot.events.forEach(e => {
+                    const row = document.createElement('div'); row.className = 'event-node';
+                    row.innerHTML = `<div class="event-left"><textarea class="event-input">${e.text}</textarea></div><div class="event-right">IMG</div>`;
+                    evs.appendChild(row);
+                });
+            });
+        }
+        function addEv(idx) { plotsByYear[selectedYear][idx].events.push({text:'',img:null}); renderPlotStack(); }
     </script>
 </body>
 </html>
