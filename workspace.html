@@ -3,290 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlphaLine | Creation Plane</title>
+    <title>AlphaLine | Workspace</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
-        :root { --bg: #080808; --accent: #2a2a2a; --text: #fff; --text-dim: #666; --caption: #8a8a8a; }
+        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; }
         
-        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; position: fixed; top: 0; left: 0; }
-        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; pointer-events: none; }
-        .loader-content { text-align: center; width: 350px; }
-        #loader-msg { font-size: 0.6rem; letter-spacing: 4px; color: #666; text-transform: uppercase; margin-bottom: 10px; }
-        #loader-sub { font-size: 0.8rem; letter-spacing: 2px; color: #fff; font-weight: 300; text-transform: uppercase; }
-        .progress-track { width: 100%; height: 2px; background: #111; margin-top: 25px; position: relative; }
-        #progress-bar { width: 0%; height: 100%; background: #fff; transition: width 0.3s ease; position: absolute; top:0; left:0; }
-
-        .top-nav { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 85px;
-            background: rgba(12, 12, 12, 0.98); backdrop-filter: blur(20px); 
-            z-index: 1000; border-bottom: 1px solid #333;
-            padding: 0 3rem; display: flex; align-items: center; justify-content: space-between;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
-        }
-        .brand-block { display: flex; align-items: center; gap: 15px; }
-        .exit-btn { cursor: pointer; font-size: 1.5rem; color: #555; transition: 0.3s; z-index: 2000; }
-        .exit-btn:hover { color: #fff; transform: translateX(-5px); }
-        .nav-text { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: #888; font-weight: 300; }
-        .nav-text strong { font-weight: 800; color: #fff; letter-spacing: 5px; }
-        .project-name { color: #fff; margin-left: 10px; border-left: 1px solid #333; padding-left: 15px; }
-
-        .status-area { text-align: right; }
-        #system-status { font-size: 0.55rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
-        #coord-display { font-size: 0.6rem; color: #444; font-family: 'JetBrains Mono', monospace; }
-
-        .hide-ui .top-nav { transform: translateY(-100%); opacity: 0; }
-
-        #viewport { width: 100vw; height: 100vh; cursor: grab; background: var(--bg); position: relative; overflow: hidden; }
-        #world { position: absolute; width: 10000px; height: 10000px; transform-origin: 0 0; background-image: radial-gradient(circle, #222 1px, transparent 1px); background-size: 100px 100px; }
-
-        .node { position: absolute; background: #111; border: 1px solid #333; border-radius: 4px; width: 240px; display: flex; flex-direction: column; z-index: 20; }
-        .node-container { z-index: 10; width: 500px; min-height: 320px; }
-        
-        .handle { height: 18px; background: #1a1a1a; cursor: grab; border-bottom: 1px solid #222; opacity: 0.3; transition: 0.3s; position: relative; }
-        .node:hover .handle { opacity: 1; }
-        
-        .resizer { position: absolute; right: 0; bottom: 0; width: 15px; height: 15px; cursor: nwse-resize; z-index: 100; background: linear-gradient(135deg, transparent 50%, #333 50%); border-bottom-right-radius: 4px; opacity: 0; }
-        .node:hover .resizer { opacity: 1; }
-
-        .node-content { padding: 12px; display: flex; flex-direction: column; gap: 4px; text-align: center; }
-        
-        input, textarea { 
-            background: transparent; border: 1px solid transparent; color: #fff; 
-            font-size: 0.75rem; padding: 6px; outline: none; width: 100%; 
-            transition: 0.2s; resize: none; overflow: hidden; text-align: center;
-        }
-        input:hover, textarea:hover, input:focus, textarea:focus { border-color: #333; background: rgba(255,255,255,0.03); }
-        
-        .node-title { 
-            font-weight: 400; color: var(--caption); font-size: 0.75rem; 
-            text-transform: none; letter-spacing: 0; font-family: 'Inter', sans-serif;
-            text-align: center;
+        .workspace-header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
+            background: var(--ui-bg); border-bottom: 1px solid #222;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2rem; z-index: 1000;
         }
 
-        .img-preview { width: 100%; line-height: 0; }
-        .img-preview img { width: 100%; height: auto; display: block; border-radius: 2px; }
-        .upload-btn { background: #1a1a1a; color: #555; border: 1px solid #252525; padding: 15px; cursor: pointer; font-size: 0.6rem; letter-spacing: 2px; width: 100%; border-radius: 2px; }
+        .brand-block { display: flex; align-items: center; gap: 20px; }
+        .exit-btn { cursor: pointer; color: var(--text-dim); transition: 0.3s; font-size: 1.2rem; }
+        .exit-btn:hover { color: #fff; }
 
-        .container-grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 212px; gap: 12px; padding: 12px; position: relative; }
-        .quad-layer { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 212px; gap: 12px; padding: 12px; pointer-events: none; }
-        .quad { border: 1px dashed rgba(255,255,255,0.05); }
-        .node.snapped { position: relative !important; width: 100% !important; height: 100% !important; left: auto !important; top: auto !important; z-index: 25; }
+        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); }
+        .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
+        .universe-name { color: #fff; border-left: 1px solid #333; padding-left: 15px; margin-left: 10px; }
 
-        .tool-dock { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 42px; background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1100; }
-        .tool-item { width: 30px; height: 30px; border: 1px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #111; cursor: grab; font-size: 0.65rem; font-weight: 800; transition: 0.2s; position: relative; }
-        .tool-item:hover { background: #fff; color: #000; }
-        
-        #trash-zone { position: fixed; bottom: 30px; left: 20px; width: 60px; height: 60px; background: rgba(255,50,50,0.1); border: 2px dashed #ff3232; border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; z-index: 1100; font-size: 1.5rem; }
-        .is-dragging #trash-zone { opacity: 1; }
+        .status-block { display: flex; align-items: center; gap: 30px; text-align: right; }
+        #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
+        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.4; }
+
+        #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; position: relative; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="loader-content">
-            <div id="loader-msg">Syncing Universe</div>
-            <div id="loader-sub">Preparing Hub Transfer...</div>
-            <div class="progress-track"><div id="progress-bar"></div></div>
-        </div>
-    </div>
-
-    <div id="trash-zone">🗑</div>
-
-    <nav class="top-nav">
+    <header class="workspace-header">
         <div class="brand-block">
-            <div class="exit-btn" onclick="triggerExitSequence()">←</div>
+            <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-name" class="project-name">UNIVERSE</span>
+                <strong>ALPHALINE</strong> | CREATION PLANE | <span id="active-universe-name" class="universe-name">...</span>
             </div>
         </div>
-        <div class="status-area">
-            <div id="system-status">Standby</div>
-            <div id="coord-display">0, 0 | 100%</div>
+        <div class="status-block">
+            <div id="save-indicator">Project Saved</div>
+            <div id="workspace-clock" class="clock-block"></div>
         </div>
-    </nav>
+    </header>
 
-    <aside class="tool-dock">
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'container')">C</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'text')">T</div>
-        <div class="tool-item" draggable="true" ondragstart="sd(event,'image')">I</div>
-        <div class="tool-item" onclick="recenter()" style="cursor:pointer; border-style:dashed; color:#666;">R</div>
-    </aside>
+    <div id="plane-container">
+        <canvas id="plane-canvas"></canvas>
+    </div>
 
-    <div id="viewport"><div id="world"></div></div>
-
-    <script src="plane-engine.js"></script>
+    <script src="creation-plane.js"></script>
     <script>
-        const viewport = document.getElementById('viewport'), world = document.getElementById('world');
-        const statusText = document.getElementById('system-status');
-        const progressBar = document.getElementById('progress-bar');
         const params = new URLSearchParams(window.location.search);
         const universeId = params.get('id');
-        
         let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
         let activeUniverse = universes.find(u => u.id == universeId);
-        let worldPos = activeUniverse?.camera || { x: -4500, y: -4500 };
-        let scale = activeUniverse?.scale || 1;
 
-        window.onload = () => {
-            if(activeUniverse) document.getElementById('active-name').innerText = activeUniverse.name;
-            updateWorld();
-            progressBar.style.width = '100%';
-            setTimeout(() => { 
-                document.getElementById('loader').style.opacity = '0';
-                if(activeUniverse?.timeline) activeUniverse.timeline.forEach(t => createNode(t, true));
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-            }, 800);
-        };
-
-        function updateWorld() {
-            world.style.transform = `translate(${worldPos.x}px, ${worldPos.y}px) scale(${scale})`;
-            const displayX = Math.round(((viewport.offsetWidth/2 - worldPos.x) / scale) - 5000);
-            const displayY = Math.round(((viewport.offsetHeight/2 - worldPos.y) / scale) - 5000);
-            document.getElementById('coord-display').innerText = `${displayX}, ${displayY} | ${Math.round(scale * 100)}%`;
+        if(activeUniverse) {
+            document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
         }
 
-        function autoGrow(el) { 
-            if(!el) return;
-            el.style.height = "5px"; 
-            el.style.height = (el.scrollHeight) + "px"; 
+        function updateClock() {
+            const now = new Date();
+            const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
+            const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
+            const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
+
+            document.getElementById('workspace-clock').innerHTML = 
+                `${region.toUpperCase()} | ${now.toLocaleTimeString().toUpperCase()}<br>` +
+                `${pstStr} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
+        setInterval(updateClock, 1000); updateClock();
 
-        viewport.addEventListener('wheel', e => {
-            e.preventDefault();
-            const oldScale = scale;
-            scale = Math.min(Math.max(0.15, scale + (-Math.sign(e.deltaY) * 0.08)), 3);
-            const rect = viewport.getBoundingClientRect();
-            worldPos.x = (e.clientX - rect.left) - ((e.clientX - rect.left) - worldPos.x) * (scale / oldScale);
-            worldPos.y = (e.clientY - rect.top) - ((e.clientY - rect.top) - worldPos.y) * (scale / oldScale);
-            updateWorld();
-        }, { passive: false });
-
-        let isPanning = false, startX, startY;
-        viewport.onmousedown = e => {
-            if(e.target.id !== 'viewport' && e.target.id !== 'world') return;
-            isPanning = true; document.body.classList.add('hide-ui');
-            startX = e.clientX - worldPos.x; startY = e.clientY - worldPos.y;
-        };
-        window.onmousemove = e => { if(isPanning) { worldPos.x = e.clientX - startX; worldPos.y = e.clientY - startY; updateWorld(); } };
-        window.onmouseup = () => { if(isPanning) { isPanning = false; document.body.classList.remove('hide-ui'); sync(); } };
-
-        function sd(e, t) { e.dataTransfer.setData('nodeType', t); }
-        function recenter() { 
-            scale = 1; 
-            worldPos = { x: (viewport.offsetWidth/2 - 5000), y: (viewport.offsetHeight/2 - 5000) }; 
-            updateWorld(); 
-            sync(); 
-        }
-
-        viewport.ondragover = e => e.preventDefault();
-        viewport.ondrop = e => {
-            e.preventDefault();
-            const type = e.dataTransfer.getData('nodeType');
-            if(type) {
-                const rect = viewport.getBoundingClientRect();
-                const x = (e.clientX - rect.left - worldPos.x) / scale - 120;
-                const y = (e.clientY - rect.top - worldPos.y) / scale - 20;
-                createNode({ type, x, y }, false);
-            }
-        };
-
-        function markInit(el) {
-            const node = el.closest('.node');
-            node.dataset.initialized = "true";
-            autoGrow(el);
-            sync();
-        }
-
-        function handleImg(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const node = input.closest('.node');
-                node.querySelector('.img-preview').innerHTML = `<img src="${e.target.result}">`;
-                input.previousElementSibling.style.display = 'none';
-                node.dataset.base64 = e.target.result; 
-                node.dataset.initialized = "true";
-                sync();
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-
-        function createNode(data, isLoad) {
-            const node = document.createElement('div');
-            node.className = `node node-${data.type} ${data.type === 'container' ? 'node-container' : ''}`;
-            node.dataset.id = data.boxId || 'box_' + Date.now();
-            node.dataset.type = data.type;
-            node.dataset.initialized = (isLoad || data.title || data.body || data.url) ? "true" : "false";
-            if(data.url) node.dataset.base64 = data.url;
-            if(data.w) node.style.width = data.w + 'px';
-            
-            if (!data.parent) {
-                node.style.left = data.x + 'px'; node.style.top = data.y + 'px';
-                world.appendChild(node);
-            }
-
-            let html = `<div class="handle"></div><div class="node-content">`;
-            if(data.type === 'container') {
-                html += `<textarea class="node-title" placeholder="Frame Title" oninput="markInit(this)">${data.title||''}</textarea>
-                         <div class="container-grid"><div class="quad-layer"><div class="quad"></div><div class="quad"></div><div class="quad"></div><div class="quad"></div></div></div>`;
-            } else if(data.type === 'text') {
-                html += `<textarea class="node-title" placeholder="Topic Title" oninput="markInit(this)">${data.title||''}</textarea>
-                         <textarea placeholder="Write content..." oninput="markInit(this)">${data.body||''}</textarea>`;
-            } else if(data.type === 'image') {
-                html += `<div class="img-preview">${data.url ? `<img src="${data.url}">` : ''}</div>
-                         <button class="upload-btn" onclick="this.nextElementSibling.click()" style="display:${data.url?'none':'block'}">SELECT IMAGE</button>
-                         <input type="file" style="display:none" onchange="handleImg(this)">
-                         <textarea class="node-title" placeholder="Add a caption..." oninput="markInit(this)">${data.title||''}</textarea>`;
-            }
-            html += `</div><div class="resizer"></div>`;
-            node.innerHTML = html;
-
-            if(data.parent) {
-                node.classList.add('snapped');
-                document.querySelector(`[data-id="${data.parent}"] .container-grid`)?.appendChild(node);
-            }
-
-            PlaneEngine.makeDraggable(node, { world, worldPos, scale, sync, trash: document.getElementById('trash-zone') });
-            PlaneEngine.makeResizable(node, scale, sync);
-            setTimeout(() => { node.querySelectorAll('textarea').forEach(el => autoGrow(el)); }, 50);
-        }
-
-        function sync() {
-            if(!activeUniverse) return;
-            statusText.innerText = "Syncing...";
-            activeUniverse.timeline = Array.from(document.querySelectorAll('.node'))
-                .filter(n => n.dataset.initialized === "true")
-                .map(n => ({
-                    boxId: n.dataset.id, type: n.dataset.type,
-                    x: n.classList.contains('snapped') ? 0 : parseInt(n.style.left),
-                    y: n.classList.contains('snapped') ? 0 : parseInt(n.style.top),
-                    w: parseInt(n.style.width) || 240,
-                    parent: n.classList.contains('snapped') ? n.closest('.node-container').dataset.id : null,
-                    title: (n.querySelector('.node-title')?.value || ""),
-                    body: n.querySelector('textarea:not(.node-title)')?.value || "",
-                    url: n.dataset.base64 || ""
-                }));
-            activeUniverse.camera = worldPos; activeUniverse.scale = scale;
-            localStorage.setItem('alphaline_universes', JSON.stringify(universes));
-            statusText.innerText = "Synced";
-        }
-
-        function triggerExitSequence() {
-            sync();
+        function exitWorkspace() {
             window.parent.postMessage('RESTORE_FRAME', '*');
-            
-            const loader = document.getElementById('loader');
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
-            progressBar.style.width = '100%';
-            
-            setTimeout(() => {
-                const hub = window.top;
-                hub.document.getElementById('content-frame').src = 'universes.html';
-                hub.document.body.classList.remove('workspace-mode');
-            }, 500);
+            const hub = window.top;
+            hub.document.getElementById('content-frame').src = 'universes.html';
+            hub.document.body.classList.remove('workspace-mode');
         }
+
+        // Initialize the Plane Engine
+        const plane = new CreationPlane('plane-canvas');
     </script>
 </body>
 </html>
