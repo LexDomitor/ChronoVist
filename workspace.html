@@ -21,8 +21,25 @@
             display: flex; align-items: center; padding: 0 2rem; z-index: 2000;
         }
 
-        .brand-block { display: flex; align-items: center; gap: 20px; }
-        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); }
+        /* Restored and strictly contained brand block */
+        .brand-block { display: flex; align-items: center; gap: 15px; }
+        
+        /* The Back Button: Isolated hit-box */
+        .back-btn {
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            margin-right: 5px;
+        }
+        .back-btn:hover { color: #fff; }
+
+        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
         .nav-text strong { color: #fff; font-weight: 800; }
         .title-sep { margin: 0 15px; color: #333; }
 
@@ -30,7 +47,7 @@
             position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); 
             display: flex; align-items: center; gap: 40px; text-align: right; 
         }
-        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); text-align: right; }
+        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); text-align: right; line-height: 1.3; }
 
         #timeline-hud {
             position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%);
@@ -55,6 +72,7 @@
 
     <header id="main-header" class="workspace-header">
         <div class="brand-block">
+            <div class="back-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
                 <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">...</span>
             </div>
@@ -86,6 +104,21 @@
         }
         setInterval(updateClock, 1000); updateClock();
 
+        function exitWorkspace() {
+            // Logic to return to universes.html
+            const hub = window.top;
+            hub.document.getElementById('content-frame').src = 'universes.html';
+            hub.document.body.classList.remove('workspace-mode');
+        }
+
+        // --- Data Population ---
+        const params = new URLSearchParams(window.location.search);
+        const universeId = params.get('id');
+        const universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+        const active = universes.find(u => u.id == universeId);
+        if(active) document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
+
+        // --- Drag Logic ---
         const hud = document.getElementById('timeline-hud');
         const handle = document.getElementById('timeline-bar');
         const header = document.getElementById('main-header');
