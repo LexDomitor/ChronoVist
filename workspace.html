@@ -15,7 +15,7 @@
             user-select: none; -webkit-user-select: none;
         }
 
-        /* --- Header --- */
+        /* --- HEADER UI --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -30,43 +30,54 @@
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 40px; text-align: right; flex-shrink: 0; }
         .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); line-height: 1.3; white-space: nowrap; }
 
-        /* --- Timeline HUD --- */
+        /* --- TIMELINE HUD --- */
         #timeline-hud {
-            position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500;
+            position: absolute; left: 50%; bottom: 80px; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 25px; z-index: 1500;
         }
         #timeline-bar {
             width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); 
             border: 2px solid var(--accent); border-radius: 4px; cursor: grab;
-            position: relative; overflow: hidden;
+            position: relative; /* Overflow visible for boxes */
         }
-        .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
-        .tm-btn {
-            background: #111; border: 1px solid #333; color: #666;
-            font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer; transition: 0.2s;
+        .timeline-axis {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
+            background: rgba(255, 255, 255, 0.2); transform: translateY(-50%); pointer-events: none;
         }
-        .tm-btn:hover { color: #fff; border-color: #fff; }
 
-        /* --- Marker Styles --- */
-        .year-dot { position: absolute; width: 6px; height: 6px; background: #fff; border-radius: 50%; top: 50%; transform: translateY(-50%); }
-        .year-line { position: absolute; width: 1px; height: 20px; background: rgba(255,255,255,0.4); top: 50%; transform: translateY(-50%); }
+        /* --- MARKERS & BOXES --- */
+        .year-dot { 
+            position: absolute; width: 30px; height: 30px; background: #fff; 
+            border-radius: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; 
+        }
+        .year-line { 
+            position: absolute; width: 2px; height: 20px; background: rgba(255,255,255,0.5); 
+            top: 50%; transform: translate(-50%, -50%); z-index: 10; transition: 0.2s;
+        }
+        .year-line:hover { background: #fff; height: 30px; }
 
-        /* --- Modal Overlay --- */
+        .year-box {
+            position: absolute; background: #000; border: 1px solid #444;
+            padding: 4px 10px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem; color: #fff; white-space: nowrap; pointer-events: none;
+        }
+        .box-min { right: 100%; margin-right: 20px; top: 50%; transform: translateY(-50%); }
+        .box-max { left: 100%; margin-left: 20px; top: 50%; transform: translateY(-50%); }
+        .box-above { bottom: 100%; margin-bottom: 20px; left: 50%; transform: translateX(-50%); }
+        .blip-box { opacity: 0; transition: opacity 0.2s ease; }
+        .year-line:hover .blip-box { opacity: 1; }
+
+        /* --- MODAL --- */
         #year-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
             display: none; justify-content: center; align-items: center; z-index: 3000;
         }
-        .modal-box {
-            background: #080808; border: 1px solid #333; padding: 30px; width: 300px; text-align: center;
-        }
-        .modal-box h3 { font-size: 0.7rem; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 20px; }
-        .modal-input {
-            background: #000; border: 1px solid #444; color: #fff; width: 100%;
-            padding: 10px; font-family: 'JetBrains Mono'; text-align: center; margin-bottom: 20px; outline: none;
-        }
-        .modal-input:focus { border-color: #fff; }
+        .modal-box { background: #080808; border: 1px solid #333; padding: 30px; width: 300px; text-align: center; }
+        .modal-input { background: #000; border: 1px solid #444; color: #fff; width: 100%; padding: 10px; font-family: 'JetBrains Mono'; text-align: center; margin-bottom: 20px; outline: none; }
         .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .tm-btn { background: #111; border: 1px solid #333; color: #666; font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer; }
+        .tm-btn:hover { color: #fff; border-color: #fff; }
 
         #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; }
     </style>
@@ -86,11 +97,11 @@
 
     <div id="year-modal">
         <div class="modal-box">
-            <h3>DEFINE TEMPORAL YEAR</h3>
-            <input type="number" id="year-input" class="modal-input" placeholder="e.g. 2026">
+            <h3 style="font-size:0.7rem; color:#666; letter-spacing:2px; margin-bottom:20px;">DEFINE TEMPORAL YEAR</h3>
+            <input type="number" id="year-input" class="modal-input">
             <div class="modal-actions">
                 <button class="tm-btn" onclick="closeYearModal()">Cancel</button>
-                <button class="tm-btn" style="color: #fff; border-color: #666;" onclick="confirmNewYear()">Confirm</button>
+                <button class="tm-btn" style="color:#fff;" onclick="confirmNewYear()">Confirm</button>
             </div>
         </div>
     </div>
@@ -107,9 +118,8 @@
     </div>
 
     <script>
-        // --- DATA & CLOCK ---
-        let currentUniverse = { years: [] }; 
-        
+        let currentUniverse = { years: [] };
+
         function updateClock() {
             const now = new Date();
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
@@ -119,17 +129,20 @@
 
         function exitWorkspace() { window.top.document.getElementById('content-frame').src = 'universes.html'; window.top.document.body.classList.remove('workspace-mode'); }
 
-        // --- YEAR LOGIC ---
+        const params = new URLSearchParams(window.location.search);
+        const universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+        const active = universes.find(u => u.id == params.get('id'));
+        if(active) document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
+
+        // --- YEAR RENDERING ---
         function openYearModal() { document.getElementById('year-modal').style.display = 'flex'; document.getElementById('year-input').focus(); }
         function closeYearModal() { document.getElementById('year-modal').style.display = 'none'; document.getElementById('year-input').value = ''; }
 
         function confirmNewYear() {
-            const yearVal = parseInt(document.getElementById('year-input').value);
-            if (isNaN(yearVal)) return;
-
-            if (!currentUniverse.years.includes(yearVal)) {
-                currentUniverse.years.push(yearVal);
-                currentUniverse.years.sort((a, b) => a - b);
+            const val = parseInt(document.getElementById('year-input').value);
+            if (!isNaN(val) && !currentUniverse.years.includes(val)) {
+                currentUniverse.years.push(val);
+                currentUniverse.years.sort((a,b) => a-b);
                 renderTimelineMarkers();
             }
             closeYearModal();
@@ -137,62 +150,58 @@
 
         function renderTimelineMarkers() {
             const bar = document.getElementById('timeline-bar');
-            bar.innerHTML = ''; // Clear
-            
-            if (currentUniverse.years.length === 0) return;
+            bar.innerHTML = '<div class="timeline-axis"></div>';
+            const years = currentUniverse.years;
+            if (years.length === 0) return;
 
-            const min = Math.min(...currentUniverse.years);
-            const max = Math.max(...currentUniverse.years);
-            const range = max - min;
-            const barWidth = 600;
+            const min = years[0], max = years[years.length - 1], range = max - min;
 
-            currentUniverse.years.forEach(year => {
-                const el = document.createElement('div');
-                
-                // If there's only one year, or it's the min/max of a range
-                if (range === 0 || year === min || year === max) {
-                    el.className = 'year-dot';
-                    const pos = (range === 0) ? (barWidth / 2) - 3 : (year === min) ? 0 : barWidth - 6;
-                    el.style.left = pos + 'px';
+            years.forEach(y => {
+                const marker = document.createElement('div');
+                const box = document.createElement('div');
+                box.className = 'year-box'; box.innerText = y;
+
+                if (range === 0) {
+                    marker.className = 'year-dot'; marker.style.left = '50%';
+                    box.classList.add('box-above');
+                } else if (y === min) {
+                    marker.className = 'year-dot'; marker.style.left = '0%';
+                    box.classList.add('box-min');
+                } else if (y === max) {
+                    marker.className = 'year-dot'; marker.style.left = '100%';
+                    box.classList.add('box-max');
                 } else {
-                    el.className = 'year-line';
-                    const pct = (year - min) / range;
-                    el.style.left = (pct * barWidth) + 'px';
+                    marker.className = 'year-line'; marker.style.left = ((y - min) / range * 100) + '%';
+                    box.classList.add('box-above', 'blip-box');
                 }
-                bar.appendChild(el);
+                marker.appendChild(box);
+                bar.appendChild(marker);
             });
         }
 
         // --- DRAG LOGIC (STABLE) ---
-        const hud = document.getElementById('timeline-hud');
-        const handle = document.getElementById('timeline-bar');
-        const header = document.getElementById('main-header');
+        const hud = document.getElementById('timeline-hud'), handle = document.getElementById('timeline-bar'), header = document.getElementById('main-header');
         let isDragging = false, startX, startY, initialLeft, initialTop;
 
         handle.addEventListener('mousedown', (e) => {
-            if (e.target !== handle) return; // Don't drag if clicking a marker
-            isDragging = true;
-            const rect = hud.getBoundingClientRect();
-            startX = e.clientX; startY = e.clientY;
-            initialLeft = rect.left; initialTop = rect.top;
+            if (e.target !== handle && e.target.className !== 'timeline-axis') return;
+            isDragging = true; const rect = hud.getBoundingClientRect();
+            startX = e.clientX; startY = e.clientY; initialLeft = rect.left; initialTop = rect.top;
             handle.style.cursor = 'grabbing';
-            hud.style.bottom = 'auto'; hud.style.left = initialLeft + 'px';
-            hud.style.top = initialTop + 'px'; hud.style.transform = 'none';
+            hud.style.bottom = 'auto'; hud.style.left = initialLeft + 'px'; hud.style.top = initialTop + 'px'; hud.style.transform = 'none';
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            let newX = initialLeft + (e.clientX - startX);
-            let newY = initialTop + (e.clientY - startY);
-            const topBarEdge = header.getBoundingClientRect().bottom;
-            const hudRect = hud.getBoundingClientRect();
-            newX = Math.max(0, Math.min(newX, window.innerWidth - hudRect.width));
-            newY = Math.max(topBarEdge, Math.min(newY, window.innerHeight - hudRect.height));
-            hud.style.left = newX + 'px'; hud.style.top = newY + 'px';
+            let nX = initialLeft + (e.clientX - startX), nY = initialTop + (e.clientY - startY);
+            const limit = header.getBoundingClientRect().bottom;
+            nX = Math.max(0, Math.min(nX, window.innerWidth - hud.offsetWidth));
+            nY = Math.max(limit, Math.min(nY, window.innerHeight - hud.offsetHeight));
+            hud.style.left = nX + 'px'; hud.style.top = nY + 'px';
         });
 
         document.addEventListener('mouseup', () => { isDragging = false; handle.style.cursor = 'grab'; });
-        function resetTimeline() { hud.style.left = '50%'; hud.style.top = 'auto'; hud.style.bottom = '60px'; hud.style.transform = 'translateX(-50%)'; }
+        function resetTimeline() { hud.style.left = '50%'; hud.style.top = 'auto'; hud.style.bottom = '80px'; hud.style.transform = 'translateX(-50%)'; }
     </script>
 </body>
 </html>
