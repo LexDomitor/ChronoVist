@@ -7,21 +7,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@300&display=swap');
         
-        :root { 
-            --bg: #000; 
-            --ui-bg: #080808; 
-            --text-dim: #666; 
-            --accent: #fff; 
-        }
+        :root { --bg: #000; --ui-bg: #080808; --text-dim: #666; --accent: #fff; }
         
         html, body { 
             margin: 0; padding: 0; height: 100vh; width: 100vw; 
             background: var(--bg); color: #fff; 
             font-family: 'Inter', sans-serif; overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
+            user-select: none; -webkit-user-select: none;
         }
 
+        /* --- Header Fix: Right Aligned Clock --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -38,60 +33,33 @@
         }
         .nav-text strong { color: #fff; font-weight: 800; letter-spacing: 4px; }
         .title-sep { margin: 0 15px; color: #333; }
-        .universe-name { color: #fff; }
 
         .status-block { 
-            position: absolute; 
-            right: 2rem; 
-            top: 50%; 
-            transform: translateY(-50%); 
-            display: flex; 
-            align-items: center; 
-            gap: 40px; 
-            text-align: right; 
+            position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); 
+            display: flex; align-items: center; gap: 40px; text-align: right; 
         }
-        #save-indicator { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #444; }
         
         .clock-block { 
-            font-family: 'JetBrains Mono', monospace; 
-            font-size: 0.65rem; 
-            color: var(--text-dim); 
-            line-height: 1.4; 
-            white-space: nowrap; 
-            text-align: right;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; 
+            color: var(--text-dim); line-height: 1.4; white-space: nowrap; text-align: right;
         }
 
         /* --- Timeline HUD --- */
         #timeline-wrapper {
-            position: absolute;
-            left: 50%;
-            bottom: 60px;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            z-index: 1500;
-            pointer-events: none;
+            position: absolute; left: 50%; bottom: 60px;
+            transform: translateX(-50%); display: flex;
+            flex-direction: column; align-items: center;
+            gap: 12px; z-index: 1500; pointer-events: none;
         }
 
         #timeline-object {
-            width: 600px;
-            height: 40px;
-            background: rgba(8, 8, 8, 0.95);
-            border: 2px solid var(--accent);
-            border-radius: 4px;
-            cursor: grab;
-            backdrop-filter: blur(10px);
+            width: 600px; height: 40px;
+            background: rgba(8, 8, 8, 0.95); border: 2px solid var(--accent);
+            border-radius: 4px; cursor: grab; backdrop-filter: blur(10px);
             pointer-events: auto;
         }
 
-        .timeline-controls { 
-            display: flex; 
-            gap: 10px; 
-            pointer-events: auto; 
-        }
-
+        .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
         .tm-btn {
             background: #111; border: 1px solid #333; color: #666;
             font-size: 0.55rem; padding: 5px 12px; letter-spacing: 1px;
@@ -109,15 +77,11 @@
         <div class="brand-block">
             <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
-                <strong>ALPHALINE</strong> 
-                <span class="title-sep">|</span> 
-                CREATION PLANE 
-                <span class="title-sep">|</span> 
-                <span id="active-universe-name" class="universe-name">...</span>
+                <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">...</span>
             </div>
         </div>
         <div class="status-block">
-            <div id="save-indicator">Project Saved</div>
+            <div id="save-indicator" style="font-size: 0.6rem; color: #444;">Project Saved</div>
             <div id="workspace-clock" class="clock-block"></div>
         </div>
     </header>
@@ -135,63 +99,58 @@
 
     <script src="creation-plane.js"></script>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const universeId = params.get('id');
-        let universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-        let activeUniverse = universes.find(u => u.id == universeId);
-        
-        if(activeUniverse) {
-            document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
-        }
-
+        // --- DATA & CLOCK ---
         function updateClock() {
             const now = new Date();
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
             const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
-            
             document.getElementById('workspace-clock').innerHTML = 
                 `${region.toUpperCase()} | ${now.toLocaleTimeString().toUpperCase()}<br>` +
                 `${pstStr} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
-        setInterval(updateClock, 1000); 
-        updateClock();
+        setInterval(updateClock, 1000); updateClock();
+
+        const params = new URLSearchParams(window.location.search);
+        const activeUniverse = JSON.parse(localStorage.getItem('alphaline_universes') || "[]").find(u => u.id == params.get('id'));
+        if(activeUniverse) document.getElementById('active-universe-name').innerText = activeUniverse.name.toUpperCase();
 
         function exitWorkspace() {
-            window.parent.postMessage('RESTORE_FRAME', '*');
             const hub = window.top;
             hub.document.getElementById('content-frame').src = 'universes.html';
             hub.document.body.classList.remove('workspace-mode');
         }
 
+        // --- THE FIXED DRAG LOGIC ---
         const wrapper = document.getElementById('timeline-wrapper');
-        const handle = document.getElementById('timeline-object');
+        const timelineBox = document.getElementById('timeline-object');
         let isDragging = false;
-        let startPos = { x: 0, y: 0 };
+        let offset = { x: 0, y: 0 };
 
-        handle.addEventListener('mousedown', (e) => {
+        timelineBox.addEventListener('mousedown', (e) => {
             isDragging = true;
-            startPos = { x: e.clientX - wrapper.offsetLeft, y: e.clientY - wrapper.offsetTop };
-            handle.style.cursor = 'grabbing';
+            const rect = wrapper.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+            timelineBox.style.cursor = 'grabbing';
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
 
-            let x = e.clientX - startPos.x;
-            let y = e.clientY - startPos.y;
+            let x = e.clientX - offset.x;
+            let y = e.clientY - offset.y;
 
-            // --- FIXED BOUNDARY MATH ---
-            const minX = 0;
+            // Constrain X
             const maxX = window.innerWidth - wrapper.offsetWidth;
-            
-            // Allow the top of the box to hit the 65px header exactly
+            x = Math.max(0, Math.min(x, maxX));
+
+            // Constrain Y (The "Snug" Fix)
+            // Top: 65px (The Header)
+            // Bottom: Window Height - Wrapper Height
             const minY = 65; 
-            
-            // Allow the bottom of the buttons to hit the floor
             const maxY = window.innerHeight - wrapper.offsetHeight;
 
-            x = Math.max(minX, Math.min(x, maxX));
             y = Math.max(minY, Math.min(y, maxY));
 
             wrapper.style.left = x + 'px';
@@ -202,7 +161,7 @@
 
         document.addEventListener('mouseup', () => { 
             isDragging = false; 
-            handle.style.cursor = 'grab'; 
+            timelineBox.style.cursor = 'grab'; 
         });
 
         function resetTimeline() {
