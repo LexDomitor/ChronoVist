@@ -16,7 +16,7 @@
             user-select: none; -webkit-user-select: none;
         }
 
-        /* --- Header Fix: Right Aligned Clock --- */
+        /* --- Header --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
@@ -44,22 +44,39 @@
             color: var(--text-dim); line-height: 1.4; white-space: nowrap; text-align: right;
         }
 
-        /* --- Timeline HUD --- */
-        #timeline-wrapper {
-            position: absolute; left: 50%; bottom: 60px;
-            transform: translateX(-50%); display: flex;
-            flex-direction: column; align-items: center;
-            gap: 12px; z-index: 1500; pointer-events: none;
+        /* --- Timeline HUD Wrapper --- */
+        #timeline-hud {
+            position: absolute;
+            /* Initial centering */
+            left: 50%;
+            bottom: 60px;
+            transform: translateX(-50%);
+            
+            display: inline-flex; /* Wraps tightly around content */
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 1500;
+            padding: 10px; /* Internal buffer */
+            pointer-events: none;
         }
 
-        #timeline-object {
+        #timeline-bar {
             width: 600px; height: 40px;
-            background: rgba(8, 8, 8, 0.95); border: 2px solid var(--accent);
-            border-radius: 4px; cursor: grab; backdrop-filter: blur(10px);
+            background: rgba(8, 8, 8, 0.95); 
+            border: 2px solid var(--accent);
+            border-radius: 4px; 
+            cursor: grab; 
+            backdrop-filter: blur(10px);
             pointer-events: auto;
         }
 
-        .timeline-controls { display: flex; gap: 10px; pointer-events: auto; }
+        .timeline-controls { 
+            display: flex; 
+            gap: 10px; 
+            pointer-events: auto; 
+        }
+        
         .tm-btn {
             background: #111; border: 1px solid #333; color: #666;
             font-size: 0.55rem; padding: 5px 12px; letter-spacing: 1px;
@@ -73,7 +90,7 @@
 </head>
 <body>
 
-    <header class="workspace-header">
+    <header id="main-header" class="workspace-header">
         <div class="brand-block">
             <div class="exit-btn" onclick="exitWorkspace()">←</div>
             <div class="nav-text">
@@ -87,8 +104,8 @@
     </header>
 
     <div id="plane-container">
-        <div id="timeline-wrapper">
-            <div id="timeline-object"></div>
+        <div id="timeline-hud">
+            <div id="timeline-bar"></div>
             <div class="timeline-controls">
                 <button class="tm-btn" onclick="resetTimeline()">Reset Position</button>
                 <button class="tm-btn">+ New Year</button>
@@ -99,7 +116,7 @@
 
     <script src="creation-plane.js"></script>
     <script>
-        // --- DATA & CLOCK ---
+        // --- PREVIOUS DATA & CLOCK LOGIC ---
         function updateClock() {
             const now = new Date();
             const region = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace('_', ' ');
@@ -121,54 +138,67 @@
             hub.document.body.classList.remove('workspace-mode');
         }
 
-        // --- THE FIXED DRAG LOGIC ---
-        const wrapper = document.getElementById('timeline-wrapper');
-        const timelineBox = document.getElementById('timeline-object');
-        let isDragging = false;
-        let offset = { x: 0, y: 0 };
+        // --- NEW IMPROVED DRAG LOGIC ---
+        const hud = document.getElementById('timeline-hud');
+        const handle = document.getElementById('timeline-bar');
+        const header = document.getElementById('main-header');
 
-        timelineBox.addEventListener('mousedown', (e) => {
+        let isDragging = false;
+        let grabX = 0;
+        let grabY = 0;
+
+        handle.addEventListener('mousedown', (e) => {
             isDragging = true;
-            const rect = wrapper.getBoundingClientRect();
-            offset.x = e.clientX - rect.left;
-            offset.y = e.clientY - rect.top;
-            timelineBox.style.cursor = 'grabbing';
+            
+            // Get current positions
+            const rect = hud.getBoundingClientRect();
+            
+            // Calculate where inside the HUD the mouse is clicking
+            grabX = e.clientX - rect.left;
+            grabY = e.clientY - rect.top;
+            
+            handle.style.cursor = 'grabbing';
+            
+            // Kill initial CSS centering to allow free movement
+            hud.style.bottom = 'auto';
+            hud.style.left = rect.left + 'px';
+            hud.style.top = rect.top + 'px';
+            hud.style.transform = 'none';
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
 
-            let x = e.clientX - offset.x;
-            let y = e.clientY - offset.y;
+            // Header position detection
+            const headerBottom = header.offsetHeight;
 
-            // Constrain X
-            const maxX = window.innerWidth - wrapper.offsetWidth;
-            x = Math.max(0, Math.min(x, maxX));
+            let newX = e.clientX - grabX;
+            let newY = e.clientY - grabY;
 
-            // Constrain Y (The "Snug" Fix)
-            // Top: 65px (The Header)
-            // Bottom: Window Height - Wrapper Height
-            const minY = 65; 
-            const maxY = window.innerHeight - wrapper.offsetHeight;
+            // Screen Constraints
+            const minX = 0;
+            const maxX = window.innerWidth - hud.offsetWidth;
+            const minY = headerBottom; // SNUG TO HEADER
+            const maxY = window.innerHeight - hud.offsetHeight;
 
-            y = Math.max(minY, Math.min(y, maxY));
+            // Apply clamping
+            newX = Math.max(minX, Math.min(newX, maxX));
+            newY = Math.max(minY, Math.min(newY, maxY));
 
-            wrapper.style.left = x + 'px';
-            wrapper.style.top = y + 'px';
-            wrapper.style.bottom = 'auto';
-            wrapper.style.transform = 'none';
+            hud.style.left = newX + 'px';
+            hud.style.top = newY + 'px';
         });
 
-        document.addEventListener('mouseup', () => { 
-            isDragging = false; 
-            timelineBox.style.cursor = 'grab'; 
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            handle.style.cursor = 'grab';
         });
 
         function resetTimeline() {
-            wrapper.style.left = '50%';
-            wrapper.style.top = 'auto';
-            wrapper.style.bottom = '60px';
-            wrapper.style.transform = 'translateX(-50%)';
+            hud.style.left = '50%';
+            hud.style.top = 'auto';
+            hud.style.bottom = '60px';
+            hud.style.transform = 'translateX(-50%)';
         }
 
         const plane = new CreationPlane('plane-canvas');
