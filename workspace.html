@@ -15,40 +15,48 @@
             user-select: none; -webkit-user-select: none;
         }
 
+        /* --- Header: Fixed Right-Anchoring --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--ui-bg); border-bottom: 1px solid #222;
-            display: flex; align-items: center; padding: 0 2rem; z-index: 2000;
+            display: flex; align-items: center;
+            padding: 0 2rem; /* 32px safety gutter on both sides */
+            box-sizing: border-box;
+            z-index: 2000;
         }
 
-        /* Restored and strictly contained brand block */
-        .brand-block { display: flex; align-items: center; gap: 15px; }
+        .brand-block { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
         
-        /* The Back Button: Isolated hit-box */
         .back-btn {
-            cursor: pointer;
-            color: var(--text-dim);
-            font-size: 1.2rem;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            cursor: pointer; color: var(--text-dim); font-size: 1.2rem;
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
-            margin-right: 5px;
         }
         .back-btn:hover { color: #fff; }
 
-        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; }
+        .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); }
         .nav-text strong { color: #fff; font-weight: 800; }
         .title-sep { margin: 0 15px; color: #333; }
 
+        /* The spring that pushes everything else to the right */
         .status-block { 
-            position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); 
-            display: flex; align-items: center; gap: 40px; text-align: right; 
+            margin-left: auto; 
+            display: flex; 
+            align-items: center; 
+            gap: 40px; 
+            text-align: right; 
+            flex-shrink: 0;
         }
-        .clock-block { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); text-align: right; line-height: 1.3; }
 
+        .clock-block { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            line-height: 1.3; 
+            white-space: nowrap; 
+        }
+
+        /* --- Timeline HUD: Verified Non-Snap Logic --- */
         #timeline-hud {
             position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500;
@@ -63,7 +71,9 @@
         .tm-btn {
             background: #111; border: 1px solid #333; color: #666;
             font-size: 0.55rem; padding: 5px 12px; text-transform: uppercase; cursor: pointer;
+            transition: 0.2s;
         }
+        .tm-btn:hover { color: #fff; border-color: #fff; }
 
         #plane-container { width: 100vw; height: calc(100vh - 65px); margin-top: 65px; }
     </style>
@@ -77,8 +87,9 @@
                 <strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">...</span>
             </div>
         </div>
+        
         <div class="status-block">
-            <div id="save-indicator" style="font-size: 0.6rem; color: #444;">Project Saved</div>
+            <div id="save-indicator" style="font-size: 0.6rem; color: #444; letter-spacing: 1px;">PROJECT SAVED</div>
             <div id="workspace-clock" class="clock-block"></div>
         </div>
     </header>
@@ -95,30 +106,29 @@
     </div>
 
     <script>
+        // Verified Clock & Data Logic
         function updateClock() {
             const now = new Date();
             const pst = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
+            const pstStr = pst.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true}).toUpperCase();
             document.getElementById('workspace-clock').innerHTML = 
                 `LOS ANGELES | ${now.toLocaleTimeString().toUpperCase()}<br>` +
-                `${pst.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}).toUpperCase()} PST | ${now.toLocaleDateString().toUpperCase()}`;
+                `${pstStr} PST | ${now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}).toUpperCase()}`;
         }
         setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() {
-            // Logic to return to universes.html
             const hub = window.top;
             hub.document.getElementById('content-frame').src = 'universes.html';
             hub.document.body.classList.remove('workspace-mode');
         }
 
-        // --- Data Population ---
         const params = new URLSearchParams(window.location.search);
-        const universeId = params.get('id');
         const universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
-        const active = universes.find(u => u.id == universeId);
+        const active = universes.find(u => u.id == params.get('id'));
         if(active) document.getElementById('active-universe-name').innerText = active.name.toUpperCase();
 
-        // --- Drag Logic ---
+        // --- VERIFIED NON-SNAP DRAG LOGIC ---
         const hud = document.getElementById('timeline-hud');
         const handle = document.getElementById('timeline-bar');
         const header = document.getElementById('main-header');
@@ -131,9 +141,12 @@
             const rect = hud.getBoundingClientRect();
             startX = e.clientX; startY = e.clientY;
             initialLeft = rect.left; initialTop = rect.top;
+            
             handle.style.cursor = 'grabbing';
-            hud.style.bottom = 'auto'; hud.style.left = initialLeft + 'px';
-            hud.style.top = initialTop + 'px'; hud.style.transform = 'none';
+            hud.style.bottom = 'auto'; 
+            hud.style.left = initialLeft + 'px';
+            hud.style.top = initialTop + 'px'; 
+            hud.style.transform = 'none'; // Kill CSS centering
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -144,7 +157,7 @@
             let newX = initialLeft + (e.clientX - startX);
             let newY = initialTop + (e.clientY - startY);
 
-            // SOUND CLAMPING
+            // Snug & Floor Clamping
             newX = Math.max(0, Math.min(newX, window.innerWidth - hudRect.width));
             newY = Math.max(topBarEdge, Math.min(newY, window.innerHeight - hudRect.height));
 
