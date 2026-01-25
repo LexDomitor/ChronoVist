@@ -44,6 +44,22 @@
             position: relative; overflow: hidden; cursor: crosshair;
         }
 
+        /* --- SPATIAL GRID OBJECT --- */
+        #grid-object {
+            position: absolute; 
+            left: 50%; top: 50%; 
+            /* Centers the object and applies scale/pan via JS */
+            transform-origin: center;
+            padding: 40px 80px; 
+            background: rgba(15, 15, 15, 0.7); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            display: none; flex-direction: column; align-items: center; gap: 10px;
+            pointer-events: none; z-index: 100;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        #grid-object h2 { font-family: 'JetBrains Mono'; font-size: 3rem; margin: 0; letter-spacing: 8px; font-weight: 300; }
+
         /* --- TIMELINE HUD --- */
         #timeline-hud {
             position: fixed; left: 50%; top: 105px; transform: translateX(-50%);
@@ -64,7 +80,6 @@
         .year-line { position: absolute; width: 2px; height: 20px; background: rgba(255,255,255,0.5); top: 50%; transform: translate(-50%, -50%); z-index: 10; }
         .year-line:hover { background: #fff; height: 30px; }
 
-        /* Selection Glow */
         .selected-marker { 
             box-shadow: 0 0 20px 5px rgba(255,255,255,0.4); 
             background: #fff !important; 
@@ -82,15 +97,6 @@
         .box-above { bottom: 100%; margin-bottom: 20px; left: 50%; transform: translateX(-50%); }
         .blip-box { opacity: 0; transition: opacity 0.2s ease; }
         .year-line:hover .blip-box, .selected-marker .blip-box { opacity: 1; }
-
-        /* --- GRID OBJECT --- */
-        #grid-object {
-            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-            padding: 40px 80px; background: rgba(8,8,8,0.9); border: 1px solid #333;
-            display: none; flex-direction: column; align-items: center; gap: 10px;
-            pointer-events: none; z-index: 100;
-        }
-        #grid-object h2 { font-family: 'JetBrains Mono'; font-size: 2rem; margin: 0; letter-spacing: 5px; }
 
         /* --- CONTROLS --- */
         .timeline-controls { display: flex; gap: 8px; }
@@ -135,7 +141,7 @@
 
     <div id="plane-container">
         <div id="grid-object">
-            <div style="font-size: 0.5rem; color: #666; letter-spacing: 2px;">ACTIVE TEMPORAL COORDINATE</div>
+            <div style="font-size: 0.55rem; color: #aaa; letter-spacing: 4px; font-weight: 800;">YEAR</div>
             <h2 id="grid-year-display">0000</h2>
         </div>
         
@@ -173,17 +179,22 @@
 
         // --- GRID LOGIC ---
         const plane = document.getElementById('plane-container');
+        const gridObj = document.getElementById('grid-object');
+
         plane.addEventListener('mousedown', (e) => {
             if (e.target.closest('#timeline-hud') || e.target.closest('.workspace-header')) return;
             isPanningGrid = true; plane.style.cursor = 'grabbing';
             startX = e.clientX - panX; startY = e.clientY - panY;
         });
+
         window.addEventListener('mousemove', (e) => {
             if (!isPanningGrid) return;
             panX = e.clientX - startX; panY = e.clientY - startY;
             updateGridTransform();
         });
+
         window.addEventListener('mouseup', () => { isPanningGrid = false; plane.style.cursor = 'crosshair'; });
+
         plane.addEventListener('wheel', (e) => {
             if (e.target.closest('#timeline-hud')) return;
             e.preventDefault();
@@ -194,8 +205,13 @@
 
         function updateGridTransform() {
             const bS = 20 * gridZoom, mS = 100 * gridZoom;
+            // Update Grid
             plane.style.backgroundSize = `${bS}px ${bS}px, ${bS}px ${bS}px, ${mS}px ${mS}px, ${mS}px ${mS}px`;
             plane.style.backgroundPosition = `${panX}px ${panY}px`;
+            
+            // Update the Year Box to move and scale with the grid
+            // We use translate(-50%, -50%) to keep it centered on its origin, then add the pan offsets
+            gridObj.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${gridZoom})`;
         }
 
         // --- TIMELINE ENGINE ---
@@ -221,17 +237,19 @@
         function selectYear(y) {
             selectedYear = y;
             document.getElementById('grid-year-display').innerText = y;
-            document.getElementById('grid-object').style.display = 'flex';
+            gridObj.style.display = 'flex';
             document.getElementById('delete-btn').style.display = 'block';
             renderTimelineMarkers();
+            updateGridTransform(); // Ensure position is correct on show
         }
 
         function handleDeleteYear() {
             if (selectedYear === null) return;
-            if (confirm(`CAUTION: Delete year ${selectedYear} and all associated data?`)) {
+            // Professional Warning
+            if (confirm(`CRITICAL ACTION: You are about to wipe year ${selectedYear} from the creation plane. Continue?`)) {
                 currentUniverse.years = currentUniverse.years.filter(y => y !== selectedYear);
                 selectedYear = null;
-                document.getElementById('grid-object').style.display = 'none';
+                gridObj.style.display = 'none';
                 document.getElementById('delete-btn').style.display = 'none';
                 renderTimelineMarkers();
             }
@@ -260,7 +278,6 @@
                 marker.style.left = pos + '%';
                 marker.onclick = (e) => { e.stopPropagation(); selectYear(y); };
 
-                // Apply dynamic classing
                 if (idx === 0) { marker.className = 'year-dot'; box.classList.add('box-min'); }
                 else if (idx === years.length - 1) { marker.className = 'year-dot'; box.classList.add('box-max'); }
                 else { marker.className = 'year-line'; box.classList.add('box-above', 'blip-box'); }
