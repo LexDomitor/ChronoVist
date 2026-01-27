@@ -34,6 +34,7 @@
         .back-btn:hover { color: #fff; }
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display:flex; gap:10px; }
         .nav-text strong { color: #fff; font-weight: 800; }
+        .title-sep { color: #333; }
         
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 30px; text-align: right; }
         .save-indicator { font-size: 0.6rem; color: #444; letter-spacing: 1px; font-weight: 600; }
@@ -104,24 +105,40 @@
         .trigger-left { left: 0; transform: translate(-50%, -50%); }
         .trigger-right { right: 0; transform: translate(50%, -50%); }
 
-        /* --- PLOT COLUMNS --- */
+        /* --- PLOT COLUMNS (Updated for Expansion) --- */
         #plot-grid-container {
             display: flex; align-items: flex-start; gap: 40px; justify-content: center;
-            /* Allow columns to push each other without constraint */
-            width: max-content; 
-            min-width: 100%;
+            width: max-content; min-width: 100%;
         }
-        .plot-column { display: flex; flex-direction: column; align-items: center; min-width: 550px; width: 550px; transition: transform 0.3s; }
+        
+        .plot-column { 
+            display: flex; flex-direction: column; 
+            min-width: 400px; 
+            width: auto; /* Dynamic width */
+            transition: all 0.3s; 
+        }
+
+        /* Pivot Logic */
+        #col-left { align-items: flex-end; }  /* Expands to the left */
+        #col-right { align-items: flex-start; } /* Expands to the right */
+        #col-main { align-items: center; } /* Expands from center */
+
         .side-column { opacity: 0.8; transform: scale(0.95); transform-origin: top center; }
-        /* When expanded or interactive, bring sides to full opacity */
         .side-column:hover { opacity: 1; }
 
         /* --- PLOT & EVENT NODES --- */
-        .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 0px; }
+        .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: auto; margin-bottom: 0px; }
+        
         .plot-node {
-            width: 100%; background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            /* Dynamic sizing based on content */
+            width: max-content; 
+            min-width: 400px;
+            max-width: 1200px; /* Safety cap */
+            background: rgba(12, 12, 12, 0.85); border: 1px solid #333; border-radius: 15px; padding: 25px; 
+            box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
+        
         .plot-title-field {
             background: transparent; border: none; border-bottom: 1px solid #222; color: #fff; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
             padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
@@ -130,19 +147,26 @@
         .event-node {
             display: flex; flex-direction: row; background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.2s;
             min-height: 100px; position: relative;
+            /* Width fits content inside plot-node */
         }
         .event-node.flipped { flex-direction: row-reverse; }
         
-        .event-text-container { flex-grow: 1; padding: 15px 20px; position: relative; display: flex; flex-direction: column; }
+        .event-text-container { flex: 1; min-width: 250px; padding: 15px 20px; position: relative; display: flex; flex-direction: column; }
         .event-input {
             background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
             font-family: 'Inter', sans-serif; height: 100%; display: block; overflow: hidden;
         }
         .char-count { font-size: 0.5rem; color: #444; text-align: right; margin-top: 5px; font-family: 'JetBrains Mono'; }
 
+        /* Dynamic Image Container */
         .event-image-container {
-            width: 140px; flex-shrink: 0; /* Prevents squashing */ background: #111; border-left: 1px solid #222; 
+            /* Removed fixed width. Width is set by JS based on height. */
+            height: auto;
+            min-width: 140px; /* Minimum width */
+            flex-shrink: 0; 
+            background: #111; border-left: 1px solid #222; 
             cursor: pointer; overflow: hidden; display: flex; justify-content: center; align-items: center;
+            transition: width 0.1s ease; /* Smooth expansion */
         }
         .event-node.flipped .event-image-container { border-left: none; border-right: 1px solid #222; }
         .event-image-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
@@ -197,7 +221,7 @@
     <header class="workspace-header">
         <div class="brand-block">
             <div class="back-btn" onclick="exitWorkspace()">←</div>
-            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE</div>
+            <div class="nav-text"><strong>ALPHALINE</strong> <span class="title-sep">|</span> CREATION PLANE <span class="title-sep">|</span> <span id="active-universe-name">LOADING...</span></div>
         </div>
         <div class="status-block">
             <div id="save-status" class="save-indicator">CHANGES SYNCED</div>
@@ -291,12 +315,27 @@
         let dragSrcEl = null;
         let dragType = null; 
 
+        // Initialization
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const universes = JSON.parse(localStorage.getItem('alphaline_universes') || "[]");
+            const active = universes.find(u => u.id == params.get('id'));
+            const titleEl = document.getElementById('active-universe-name');
+            
+            if(active) {
+                titleEl.innerText = active.name.toUpperCase();
+            } else {
+                titleEl.innerText = "UNNAMED";
+            }
+            updateClock();
+        };
+
         function updateClock() {
             const now = new Date();
             const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             document.getElementById('workspace-clock').innerHTML = `SYSTEM TIME | ${now.toLocaleTimeString('en-GB', options)}<br>${now.toLocaleDateString().toUpperCase()}`;
         }
-        setInterval(updateClock, 1000); updateClock();
+        setInterval(updateClock, 1000);
 
         function exitWorkspace() { 
             window.top.document.getElementById('content-frame').src = 'universes.html'; 
@@ -414,8 +453,8 @@
                                 <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx}, '${colName}')">↔</div>
                                 <div class="tool-btn tool-delete" title="Delete Event" onclick="deleteEvent(${pIdx}, ${eIdx}, '${colName}')">×</div>
                             </div>
-                            <textarea class="event-input" maxlength="500" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
-                            <div class="char-count">${ev.text.length}/500</div>
+                            <textarea class="event-input" maxlength="2000" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
+                            <div class="char-count">${ev.text.length}/2000</div>
                         </div>
                         <div class="event-image-container" onclick="openLightbox(${pIdx}, ${eIdx}, '${colName}')">
                             ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">ADD MEDIA</span>'}
@@ -423,7 +462,12 @@
                     `;
                     setupDnD(evNode, 'event');
                     evCont.appendChild(evNode);
-                    setTimeout(() => autoSize(evNode.querySelector('textarea')), 0);
+                    // Init size
+                    setTimeout(() => {
+                        const txt = evNode.querySelector('textarea');
+                        autoSize(txt);
+                        adjustImageRatio(txt);
+                    }, 0);
                 });
 
                 setupDnD(wrapper, 'plot');
@@ -507,7 +551,7 @@
             input.click();
         }
 
-        // --- DRAG & DROP ---
+        // --- DRAG & DROP & TRASH ---
         function setupDnD(el, type) {
             el.addEventListener('dragstart', (e) => {
                 if(e.target.closest('.tool-btn')) return; 
@@ -524,24 +568,6 @@
             el.addEventListener('dragenter', () => el.classList.add('drag-over'));
             el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
             
-            // Trash Logic
-            if(type === 'plot') {
-                const trash = document.getElementById('trash-zone');
-                trash.addEventListener('dragenter', () => trash.classList.add('drag-over'));
-                trash.addEventListener('dragleave', () => trash.classList.remove('drag-over'));
-                trash.addEventListener('dragover', (e) => e.preventDefault());
-                trash.addEventListener('drop', (e) => {
-                    e.stopPropagation();
-                    if(dragType === 'plot') {
-                        if(confirm("Delete this entire Plot Node and its events?")) {
-                            const list = plotsByYear[selectedYear][dragSrcEl.dataset.col];
-                            list.splice(dragSrcEl.dataset.index, 1);
-                            renderPlotStack();
-                        }
-                    }
-                });
-            }
-
             el.addEventListener('drop', (e) => {
                 e.stopPropagation();
                 if (dragSrcEl !== el && dragType === type) {
@@ -556,8 +582,27 @@
             el.addEventListener('dragend', () => {
                 document.body.classList.remove('global-dragging');
                 document.querySelectorAll('.draggable, #trash-zone').forEach(d => d.classList.remove('dragging', 'drag-over'));
+                dragSrcEl = null; // Reset
             });
         }
+
+        // GLOBAL TRASH LISTENERS (To Fix Loop)
+        const trash = document.getElementById('trash-zone');
+        trash.addEventListener('dragenter', () => trash.classList.add('drag-over'));
+        trash.addEventListener('dragleave', () => trash.classList.remove('drag-over'));
+        trash.addEventListener('dragover', (e) => e.preventDefault());
+        trash.addEventListener('drop', (e) => {
+            e.stopPropagation();
+            trash.classList.remove('drag-over');
+            
+            if(dragType === 'plot' && dragSrcEl) {
+                if(confirm("Delete this entire Plot Node and its events?")) {
+                    const list = plotsByYear[selectedYear][dragSrcEl.dataset.col];
+                    list.splice(dragSrcEl.dataset.index, 1);
+                    renderPlotStack();
+                }
+            }
+        });
 
         function movePlot(fromCol, fromIdx, toCol, toIdx) {
             const [moved] = plotsByYear[selectedYear][fromCol].splice(fromIdx, 1);
@@ -575,9 +620,10 @@
         // --- HELPERS ---
         function handleEventText(el, pIdx, eIdx, col) {
             autoSize(el);
+            adjustImageRatio(el);
             plotsByYear[selectedYear][col][pIdx].events[eIdx].text = el.value;
             // Update counter
-            el.nextElementSibling.innerText = `${el.value.length}/500`;
+            el.nextElementSibling.innerText = `${el.value.length}/2000`;
         }
 
         function autoSize(el) {
@@ -585,65 +631,60 @@
             el.style.height = el.scrollHeight + 'px';
         }
 
+        // NEW: Maintains 4:3 Aspect Ratio by adjusting image container width based on text height
+        function adjustImageRatio(textArea) {
+            const height = textArea.scrollHeight;
+            const eventNode = textArea.closest('.event-node');
+            const imgCont = eventNode.querySelector('.event-image-container');
+            
+            // 4:3 Aspect Ratio (Width = Height * 1.333)
+            // If height is 100px, width should be 133px.
+            const newWidth = Math.max(140, height * (4/3)); 
+            imgCont.style.width = `${newWidth}px`;
+        }
+
         // --- TIMELINE NAV ---
         function openYearModal() { document.getElementById('year-modal').style.display = 'flex'; }
         function closeYearModal() { document.getElementById('year-modal').style.display = 'none'; }
         
         function confirmNewYear() {
-            const y = parseInt(document.getElementById('year-input').value);
-            if (!isNaN(y) && !currentUniverse.years.includes(y)) {
-                currentUniverse.years.push(y);
-                currentUniverse.years.sort((a,b)=>a-b);
+            const val = document.getElementById('year-input').value;
+            if(!val) return;
+            const y = parseInt(val);
+            if(!plotsByYear[y]) {
                 ensureYearData(y);
-                selectYear(y);
+                selectedYear = y;
+                renderPlotStack();
+                document.getElementById('grid-year-display').innerText = y;
+            } else {
+                alert("Year already exists!");
             }
             closeYearModal();
         }
 
-        function selectYear(y) {
-            selectedYear = y;
-            ensureYearData(y);
-            document.getElementById('grid-year-display').innerText = y;
-            document.getElementById('node-group').style.display = 'flex';
-            document.getElementById('delete-btn').style.display = 'block';
-            renderTimeline();
-            renderPlotStack();
-            updateGrid();
-        }
-
-        function renderTimeline() {
-            const bar = document.getElementById('timeline-bar');
-            bar.innerHTML = '<div class="timeline-axis"></div>';
-            const yrs = currentUniverse.years;
-            if (!yrs.length) return;
-            const min = yrs[0], max = yrs[yrs.length-1], range = max - min;
-
-            yrs.forEach((y, i) => {
-                const marker = document.createElement('div');
-                const pos = isDistributed ? (i/(yrs.length-1||1))*100 : ((y-min)/(range||1))*100;
-                marker.className = (i===0 || i===yrs.length-1) ? 'year-dot' : 'year-line';
-                if (y === selectedYear) marker.classList.add('selected-marker');
-                marker.style.left = pos + '%';
-                marker.onclick = () => selectYear(y);
-                const box = document.createElement('div');
-                box.className = 'year-box ' + (i===0 ? 'box-min' : (i===yrs.length-1 ? 'box-max' : 'box-above'));
-                box.innerText = y;
-                marker.appendChild(box);
-                bar.appendChild(marker);
-            });
-        }
-
-        function toggleDistribution() { isDistributed = !isDistributed; renderTimeline(); }
-        
         function handleDeleteYear() {
-            if (confirm("Purge this temporal coordinate?")) {
-                currentUniverse.years = currentUniverse.years.filter(y => y !== selectedYear);
+            if(!selectedYear) return;
+            if(confirm(`Delete year ${selectedYear} data?`)) {
                 delete plotsByYear[selectedYear];
                 selectedYear = null;
-                document.getElementById('node-group').style.display = 'none';
-                renderTimeline();
+                document.getElementById('grid-year-display').innerText = "0000";
+                // Clear grid
+                document.getElementById('col-left').innerHTML = '';
+                document.getElementById('col-main').innerHTML = '';
+                document.getElementById('col-right').innerHTML = '';
+                document.getElementById('synopsis-text').value = '';
             }
         }
+
+        // Mock Init for visual test if localstorage empty
+        if(!localStorage.getItem('alphaline_universes')) {
+             selectedYear = 2026;
+             document.getElementById('grid-year-display').innerText = "2026";
+             ensureYearData(2026);
+             plotsByYear[2026].main.push({title: 'Example Plot', events:[{text:'Type here to see expansion...', img:null, flipped:false}]});
+             renderPlotStack();
+        }
+
     </script>
 </body>
 </html>
