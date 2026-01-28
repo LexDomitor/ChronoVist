@@ -10,120 +10,45 @@
         :root { 
             --bg: #000; 
             --ui-bg: #0d0d0d; 
-            --text-primary: #fff;
             --text-dim: #999; 
             --accent: #fff; 
             --danger: #ff4444; 
             --border: #333;
             --grid-line: rgba(255, 255, 255, 0.08);
-            --node-bg: rgba(15, 15, 15, 0.75);
-            --node-border: rgba(255, 255, 255, 0.15);
-            --panel-bg: rgba(12, 12, 12, 0.85);
-            --hud-bg: #0a0a0a;
-            --hud-text: #fff;
-            --hud-border: #222;
-            --pipe-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Light Mode - Everything Light */
-        body.theme-light {
+        body.light-mode {
             --bg: #f5f5f5;
-            --ui-bg: #fff;
-            --text-primary: #1a1a1a;
+            --ui-bg: #e8e8e8;
             --text-dim: #666;
-            --border: #ddd;
-            --grid-line: rgba(0, 0, 0, 0.06);
-            --node-bg: rgba(255, 255, 255, 0.95);
-            --node-border: rgba(0, 0, 0, 0.1);
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --hud-bg: #fff;
-            --hud-text: #1a1a1a;
-            --hud-border: #ddd;
-            --pipe-color: rgba(0, 0, 0, 0.15);
+            --border: #ccc;
+            --grid-line: rgba(0, 0, 0, 0.1);
         }
 
-        /* Dark on Light - Light background, Dark nodes */
-        body.theme-dark-on-light {
-            --bg: #f5f5f5;
-            --ui-bg: #fff;
-            --text-primary: #fff;
-            --text-dim: #999;
-            --border: #ddd;
-            --grid-line: rgba(0, 0, 0, 0.06);
-            --node-bg: rgba(15, 15, 15, 0.85);
-            --node-border: rgba(255, 255, 255, 0.15);
-            --panel-bg: rgba(12, 12, 12, 0.85);
-            --hud-bg: #0a0a0a;
-            --hud-text: #fff;
-            --hud-border: #222;
-            --pipe-color: rgba(30, 30, 30, 0.4);
-        }
-
-        /* Light on Dark - Dark background, Light nodes */
-        body.theme-light-on-dark {
-            --bg: #000;
-            --ui-bg: #0d0d0d;
-            --text-primary: #1a1a1a;
-            --text-dim: #666;
-            --border: #333;
-            --grid-line: rgba(255, 255, 255, 0.08);
-            --node-bg: rgba(255, 255, 255, 0.95);
-            --node-border: rgba(0, 0, 0, 0.1);
-            --panel-bg: rgba(255, 255, 255, 0.95);
-            --hud-bg: #fff;
-            --hud-text: #1a1a1a;
-            --hud-border: #ddd;
-            --pipe-color: rgba(200, 200, 200, 0.4);
-        }
-
-        /* Apply colors to elements */
-        body.theme-light #grid-year-display,
-        body.theme-light .plot-title-field,
-        body.theme-light .episode-title-input,
-        body.theme-light .synopsis-input,
-        body.theme-light .event-input,
-        body.theme-light-on-dark #grid-year-display,
-        body.theme-light-on-dark .plot-title-field,
-        body.theme-light-on-dark .episode-title-input,
-        body.theme-light-on-dark .synopsis-input,
-        body.theme-light-on-dark .event-input {
+        body.light-mode #node-group .grid-node,
+        body.light-mode #node-group .sub-node,
+        body.light-mode #node-group .synopsis-node,
+        body.light-mode .plot-node,
+        body.light-mode .event-node {
             color: #1a1a1a;
         }
 
-        body.theme-light .node-label,
-        body.theme-light-on-dark .node-label {
+        body.light-mode .node-label {
             color: #555;
         }
 
-        body.theme-light .episode-title-input::placeholder,
-        body.theme-light .synopsis-input::placeholder,
-        body.theme-light .event-input::placeholder,
-        body.theme-light-on-dark .episode-title-input::placeholder,
-        body.theme-light-on-dark .synopsis-input::placeholder,
-        body.theme-light-on-dark .event-input::placeholder {
+        body.light-mode #grid-year-display,
+        body.light-mode .plot-title-field,
+        body.light-mode .episode-title-input,
+        body.light-mode .synopsis-input,
+        body.light-mode .event-input {
+            color: #1a1a1a;
+        }
+
+        body.light-mode .episode-title-input::placeholder,
+        body.light-mode .synopsis-input::placeholder,
+        body.light-mode .event-input::placeholder {
             color: #aaa;
-        }
-
-        body.theme-light .char-count,
-        body.theme-light-on-dark .char-count {
-            color: #999;
-        }
-
-        /* Light mode timeline dot shadows */
-        body.theme-light .year-dot,
-        body.theme-light-on-dark .year-dot {
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-        }
-
-        /* Light mode project name colors */
-        body.theme-light #project-name-display,
-        body.theme-light-on-dark #project-name-display {
-            color: #888 !important;
-        }
-
-        body.theme-light #project-name-display span,
-        body.theme-light-on-dark #project-name-display span {
-            color: #555 !important;
         }
         
         html, body { 
@@ -136,15 +61,14 @@
         /* --- HEADER --- */
         .workspace-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 65px;
-            background: var(--hud-bg); 
-            border-bottom: 1px solid var(--hud-border);
+            background: var(--ui-bg); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; padding: 0 2rem; box-sizing: border-box; z-index: 2000;
         }
         .brand-block { display: flex; align-items: center; gap: 15px; }
         .back-btn { cursor: pointer; color: var(--text-dim); font-size: 1.2rem; transition: 0.2s; width: 30px; text-align: center; }
-        .back-btn:hover { color: var(--hud-text); }
+        .back-btn:hover { color: #fff; }
         .nav-text { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); display:flex; gap:10px; align-items: center; }
-        .nav-text strong { color: var(--hud-text); font-weight: 800; }
+        .nav-text strong { color: #fff; font-weight: 800; }
         
         .status-block { margin-left: auto; display: flex; align-items: center; gap: 30px; text-align: right; }
         .save-indicator { font-size: 0.6rem; color: #444; letter-spacing: 1px; font-weight: 600; }
@@ -156,33 +80,8 @@
             background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
             display: none; justify-content: center; align-items: center; z-index: 3000;
         }
-        .modal-content { 
-            background: #080808; 
-            border: 1px solid #333; 
-            padding: 30px; 
-            width: 300px; 
-            text-align: center; 
-            display:flex; 
-            flex-direction:column; 
-            gap:20px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
-        }
-        .modal-title {
-            font-size: 0.65rem;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .modal-input { 
-            background: #111; 
-            border: 1px solid #333; 
-            color: #fff; 
-            padding: 10px; 
-            font-family: 'JetBrains Mono'; 
-            text-align: center; 
-            outline: none; 
-            font-size: 1.2rem; 
-        }
+        .modal-content { background: #080808; border: 1px solid #333; padding: 30px; width: 300px; text-align: center; display:flex; flex-direction:column; gap:20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal-input { background: #111; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; text-align: center; outline: none; font-size: 1.2rem; }
         
         /* Lightbox specific */
         #lightbox-img-container { display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 90vw; max-height: 90vh; }
@@ -222,21 +121,21 @@
         /* --- NODES --- */
         .grid-node { 
             padding: 30px 60px; 
-            background: var(--node-bg);
+            background: rgba(15, 15, 15, 0.75); 
             backdrop-filter: blur(12px); 
-            border: 2px solid var(--node-border);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
         }
-        .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 3rem; margin: 0; letter-spacing: 6px; font-weight: 300; color: var(--text-primary); }
+        .grid-node h2 { font-family: 'JetBrains Mono'; font-size: 3rem; margin: 0; letter-spacing: 6px; font-weight: 300; }
         .node-label { font-size: 0.55rem; color: #888; letter-spacing: 4px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
         
         .episode-title-input {
             background: transparent;
             border: none;
-            border-bottom: 2px solid var(--border);
-            color: var(--text-dim);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #999;
             font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
             text-align: center;
@@ -248,8 +147,8 @@
         }
 
         .episode-title-input:focus {
-            border-bottom-color: var(--text-dim);
-            color: var(--text-primary);
+            border-bottom-color: rgba(255, 255, 255, 0.3);
+            color: #ddd;
         }
 
         .episode-title-input::placeholder {
@@ -258,9 +157,9 @@
         
         .sub-node { 
             padding: 20px 40px; 
-            background: var(--node-bg);
+            background: rgba(10, 10, 10, 0.6); 
             backdrop-filter: blur(8px); 
-            border: 2px solid var(--node-border);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 50px; 
             text-align: center; 
             min-width: 200px; 
@@ -282,8 +181,8 @@
 
         .synopsis-node { 
             width: 500px; 
-            background: var(--panel-bg);
-            border: 2px solid var(--border);
+            background: rgba(20, 20, 20, 0.9); 
+            border: 1px solid #333; 
             border-radius: 8px; 
             padding: 20px; 
             display: flex; 
@@ -294,7 +193,7 @@
             width: 100%; 
             background: transparent; 
             border: none; 
-            color: var(--text-primary);
+            color: #ddd; 
             font-family: 'Inter', sans-serif; 
             font-size: 0.85rem; 
             line-height: 1.5; 
@@ -305,70 +204,18 @@
         }
 
         /* Pipes */
-        .node-pipe { 
-            width: 2px; 
-            height: 40px; 
-            background: var(--pipe-color);
-            position: relative; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
-        .pipe-add { 
-            position: absolute; 
-            width: 22px; 
-            height: 22px; 
-            border-radius: 50%; 
-            background: var(--node-bg);
-            border: 2px solid var(--node-border);
-            color: var(--text-primary);
-            font-size: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            opacity: 0; 
-            transition: 0.2s; 
-            z-index: 10; 
-            transform: scale(0.8); 
-        }
+        .node-pipe { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; display: flex; justify-content: center; align-items: center; }
+        .pipe-add { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1px solid #555; color: #fff; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10; transform: scale(0.8); }
         .node-pipe:hover .pipe-add, .branch-hub:hover .pipe-add { opacity: 1; transform: scale(1); }
 
         /* Branch Hub */
         .branch-hub { display: flex; align-items: center; justify-content: center; position: relative; height: 40px; width: 100%; }
-        .hub-center-line { 
-            width: 2px; 
-            height: 100%; 
-            background: var(--pipe-color);
-            position: relative; 
-            display:flex; 
-            justify-content:center; 
-            align-items:center; 
-        }
-        .hub-arm { 
-            width: 0px; 
-            height: 2px; 
-            background: var(--pipe-color);
-            transition: 0.3s; 
-            position: relative; 
-        }
+        .hub-center-line { width: 1px; height: 100%; background: rgba(255,255,255,0.2); position: relative; display:flex; justify-content:center; align-items:center; }
+        .hub-arm { width: 0px; height: 1px; background: rgba(255,255,255,0.2); transition: 0.3s; position: relative; }
         .hub-trigger { 
-            width: 20px; 
-            height: 20px; 
-            border-radius: 50%; 
-            background: var(--node-bg);
-            border: 2px solid var(--node-border);
-            color: var(--text-primary);
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 12px; 
-            cursor: pointer; 
-            position: absolute; 
-            top: 50%; 
-            transform: translateY(-50%); 
-            opacity: 0; 
-            transition:0.2s;
+            width: 20px; height: 20px; border-radius: 50%; background: #000; border: 1px solid #555; color: #fff; 
+            display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; 
+            position: absolute; top: 50%; transform: translateY(-50%); opacity: 0; transition:0.2s;
         }
         .branch-hub.active .hub-arm { width: 300px; }
         .branch-hub.active .hub-trigger { opacity: 1; }
@@ -397,8 +244,8 @@
         .plot-node-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 0px; }
         .plot-node {
             width: 100%; 
-            background: var(--panel-bg);
-            border: 2px solid var(--border);
+            background: rgba(12, 12, 12, 0.85); 
+            border: 1px solid #333; 
             border-radius: 15px; 
             padding: 25px; 
             box-sizing: border-box;
@@ -409,15 +256,15 @@
             transition: width 0.3s ease;
         }
         .plot-title-field {
-            background: transparent; border: none; border-bottom: 2px solid var(--border); color: var(--text-primary); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
+            background: transparent; border: none; border-bottom: 1px solid #222; color: #fff; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
             padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
         }
         
         .event-node {
             display: flex; 
             flex-direction: row; 
-            background: var(--panel-bg);
-            border: 2px solid var(--border);
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid #222; 
             border-radius: 12px; 
             overflow: hidden; 
             transition: width 0.3s ease;
@@ -436,7 +283,7 @@
             flex-direction: column;
         }
         .event-input {
-            background: transparent; border: none; color: var(--text-primary); resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
+            background: transparent; border: none; color: #ddd; resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
             font-family: 'Inter', sans-serif; min-height: 40px; display: block; overflow: hidden;
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -445,8 +292,8 @@
 
         .event-image-container {
             flex-shrink: 0; 
-            background: var(--node-bg);
-            border-left: 2px solid var(--border);
+            background: #111; 
+            border-left: 1px solid #222; 
             cursor: pointer; 
             overflow: hidden; 
             display: flex; 
@@ -460,26 +307,21 @@
             min-height: 160px;
             max-height: 160px;
         }
-        .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
+        .event-node.flipped .event-image-container { border-left: none; border-right: 1px solid #222; }
         .event-image-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
         .event-image-container:hover img { transform: scale(1.05); opacity: 0.8; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; position: absolute; }
 
         .event-tools {
             position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: 0.2s;
-            background: var(--node-bg);
-            border: 1px solid var(--border);
-            padding: 2px 4px; border-radius: 4px;
+            background: rgba(0,0,0,0.8); padding: 2px 4px; border-radius: 4px;
         }
         .event-node:hover .event-tools { opacity: 1; }
         .tool-btn {
-            cursor: pointer; font-size: 10px; color: var(--text-dim); width: 16px; height: 16px; 
+            cursor: pointer; font-size: 10px; color: #666; width: 16px; height: 16px; 
             display: flex; align-items: center; justify-content: center; border-radius: 3px;
         }
-        .tool-btn:hover { 
-            color: var(--text-primary);
-            background: var(--border);
-        }
+        .tool-btn:hover { color: #fff; background: #333; }
         .tool-delete:hover { color: var(--danger); background: rgba(255, 68, 68, 0.1); }
 
         /* Drag & Drop Styles */
@@ -490,92 +332,27 @@
 
         /* --- TIMELINE HUD --- */
         #timeline-hud { position: fixed; left: 50%; top: 105px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500; }
-        #timeline-bar { 
-            width: 600px; 
-            height: 40px; 
-            background: var(--hud-bg);
-            border: 1px solid var(--hud-border);
-            border-radius: 4px; 
-            position: relative; 
-        }
-        .timeline-axis { 
-            position: absolute; 
-            top: 50%; 
-            left: 0; 
-            width: 100%; 
-            height: 1px; 
-            background: var(--pipe-color);
-            transform: translateY(-50%); 
-        }
+        #timeline-bar { width: 600px; height: 40px; background: rgba(8, 8, 8, 0.95); border: 1px solid var(--border); border-radius: 4px; position: relative; }
+        .timeline-axis { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); transform: translateY(-50%); }
         .year-dot, .year-line { cursor: pointer; position: absolute; top: 50%; transform: translate(-50%, -50%); transition: 0.2s; }
-        .year-dot { 
-            width: 12px; 
-            height: 12px; 
-            background: var(--text-dim);
-            border: 2px solid var(--hud-bg);
-            border-radius: 50%; 
-            z-index: 20; 
-        }
-        .year-line { 
-            width: 2px; 
-            height: 15px; 
-            background: var(--text-dim);
-            z-index: 10; 
-        }
+        .year-dot { width: 12px; height: 12px; background: #333; border: 2px solid #000; border-radius: 50%; z-index: 20; }
+        .year-line { width: 2px; height: 15px; background: #222; z-index: 10; }
         .selected-marker { background: var(--accent) !important; box-shadow: 0 0 15px var(--accent); height: 20px !important; width: 2px !important; }
         
-        .year-box { 
-            position: absolute; 
-            background: var(--hud-bg);
-            border: 1px solid var(--hud-border);
-            padding: 4px 8px; 
-            font-family: 'JetBrains Mono'; 
-            font-size: 0.6rem; 
-            color: var(--hud-text);
-            pointer-events: none; 
-        }
+        .year-box { position: absolute; background: #000; border: 1px solid #333; padding: 4px 8px; font-family: 'JetBrains Mono'; font-size: 0.6rem; color: #fff; pointer-events: none; }
         .box-min { right: 100%; margin-right: 15px; top: 50%; transform: translateY(-50%); }
         .box-max { left: 100%; margin-left: 15px; top: 50%; transform: translateY(-50%); }
         .box-above { bottom: 100%; margin-bottom: 10px; left: 50%; transform: translateX(-50%); opacity: 0; }
         .year-line:hover .box-above, .selected-marker .box-above { opacity: 1; }
 
-        .tm-btn { 
-            background: var(--hud-bg);
-            border: 1px solid var(--hud-border);
-            color: var(--text-dim);
-            font-size: 0.55rem; 
-            padding: 8px 16px; 
-            text-transform: uppercase; 
-            cursor: pointer; 
-            transition: 0.2s; 
-            letter-spacing: 1px; 
-        }
-        .tm-btn:hover { 
-            color: var(--hud-text);
-            border-color: var(--text-dim);
-        }
+        .tm-btn { background: #0a0a0a; border: 1px solid #222; color: #666; font-size: 0.55rem; padding: 8px 16px; text-transform: uppercase; cursor: pointer; transition: 0.2s; letter-spacing: 1px; }
+        .tm-btn:hover { color: #fff; border-color: #555; }
         
         .add-circle {
-            width: 40px; 
-            height: 40px; 
-            border: 1px solid var(--pipe-color);
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer;
-            color: var(--text-dim);
-            font-size: 1.2rem; 
-            transition: 0.3s; 
-            background: var(--node-bg);
-            backdrop-filter: blur(5px); 
-            margin-top: 10px;
+            width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: #666; font-size: 1.2rem; transition: 0.3s; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); margin-top: 10px;
         }
-        .add-circle:hover { 
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-            transform: scale(1.1); 
-        }
+        .add-circle:hover { border-color: #fff; color: #fff; transform: scale(1.1); }
 
         /* --- CHARACTER JOURNAL MODAL --- */
         .character-modal-content {
@@ -1265,71 +1042,6 @@
         .toggle-switch.active .toggle-text-right {
             color: #1a1a1a;
         }
-
-        /* 4-Way Theme Toggle */
-        .theme-toggle-4way {
-            position: relative;
-            width: 100%;
-            height: 80px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            padding: 4px;
-            gap: 4px;
-        }
-
-        .theme-slider {
-            position: absolute;
-            width: calc(25% - 5px);
-            height: calc(100% - 8px);
-            background: #fff;
-            border-radius: 8px;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            left: 4px;
-            top: 4px;
-            z-index: 0;
-        }
-
-        .theme-option {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1;
-            transition: 0.2s;
-            border-radius: 8px;
-        }
-
-        .theme-option span {
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.3;
-            color: #666;
-            transition: 0.2s;
-        }
-
-        .theme-option.active span {
-            color: #1a1a1a;
-        }
-
-        .theme-toggle-4way[data-active="dark"] .theme-slider {
-            left: 4px;
-        }
-
-        .theme-toggle-4way[data-active="light-on-dark"] .theme-slider {
-            left: calc(25% + 1px);
-        }
-
-        .theme-toggle-4way[data-active="dark-on-light"] .theme-slider {
-            left: calc(50% - 2px);
-        }
-
-        .theme-toggle-4way[data-active="light"] .theme-slider {
-            left: calc(75% - 5px);
-        }
     </style>
 </head>
 <body>
@@ -1543,7 +1255,7 @@
         <div id="timeline-hud">
             <div id="timeline-bar"></div>
             <div style="display: flex; gap: 10px;">
-                <button class="tm-btn" onclick="openSettingsModal()" style="font-size: 1rem; padding: 4px 10px;">🔦</button>
+                <button class="tm-btn" onclick="openSettingsModal()">⚙</button>
                 <button class="tm-btn" onclick="toggleDistribution()">Toggle Distribution</button>
                 <button class="tm-btn" onclick="openYearModal()">New Episode</button>
                 <button id="center-btn" class="tm-btn" style="display:none;" onclick="centerAndZoomNodes()">Center Grid</button>
@@ -1563,20 +1275,10 @@
             <div class="settings-content">
                 <div class="setting-row">
                     <label class="setting-label">Theme Mode</label>
-                    <div class="theme-toggle-4way">
-                        <div id="theme-slider-4way" class="theme-slider"></div>
-                        <div class="theme-option" data-theme="dark" onclick="setThemeMode('dark')">
-                            <span>Dark</span>
-                        </div>
-                        <div class="theme-option" data-theme="light-on-dark" onclick="setThemeMode('light-on-dark')">
-                            <span>Light<br>on Dark</span>
-                        </div>
-                        <div class="theme-option" data-theme="dark-on-light" onclick="setThemeMode('dark-on-light')">
-                            <span>Dark<br>on Light</span>
-                        </div>
-                        <div class="theme-option" data-theme="light" onclick="setThemeMode('light')">
-                            <span>Light</span>
-                        </div>
+                    <div class="toggle-switch" onclick="toggleThemeMode()">
+                        <div id="theme-toggle-slider" class="toggle-slider"></div>
+                        <span class="toggle-text-left">Dark</span>
+                        <span class="toggle-text-right">Light</span>
                     </div>
                 </div>
             </div>
@@ -1678,8 +1380,8 @@
         // Center and zoom the node graph
         function centerAndZoomNodes() {
             panX = 0;
-            panY = -50; // Center on Episode node, slight offset to show content above
-            gridZoom = 0.7; // Zoom out to see Episode, Characters, and Synopsis nodes
+            panY = -250; // Offset up to show Episode number, title, characters, synopsis, and plot column tops
+            gridZoom = 0.8; // Zoom out slightly to see more content
             updateGrid();
         }
 
@@ -2136,59 +1838,35 @@
         
         function openSettingsModal() {
             document.getElementById('settings-overlay').style.display = 'flex';
-            // Update toggle to reflect current theme
-            updateThemeToggleUI();
+            // Update toggle switch to reflect current theme
+            const toggle = document.getElementById('theme-toggle-slider').parentElement;
+            if (document.body.classList.contains('light-mode')) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
         }
 
         function closeSettingsModal() {
             document.getElementById('settings-overlay').style.display = 'none';
         }
 
-        function setThemeMode(mode) {
-            // Remove all theme classes
-            document.body.classList.remove('theme-dark', 'theme-light', 'theme-dark-on-light', 'theme-light-on-dark');
-            
-            // Add selected theme class
-            if (mode !== 'dark') {
-                document.body.classList.add(`theme-${mode}`);
-            }
+        function toggleThemeMode() {
+            const toggle = document.getElementById('theme-toggle-slider').parentElement;
+            toggle.classList.toggle('active');
+            document.body.classList.toggle('light-mode');
             
             // Save preference
-            localStorage.setItem('alphaline_theme', mode);
-            
-            // Update UI
-            updateThemeToggleUI();
-        }
-
-        function updateThemeToggleUI() {
-            const currentTheme = getCurrentTheme();
-            const toggle = document.querySelector('.theme-toggle-4way');
-            const options = document.querySelectorAll('.theme-option');
-            
-            if (toggle) {
-                toggle.setAttribute('data-active', currentTheme);
-            }
-            
-            options.forEach(option => {
-                if (option.dataset.theme === currentTheme) {
-                    option.classList.add('active');
-                } else {
-                    option.classList.remove('active');
-                }
-            });
-        }
-
-        function getCurrentTheme() {
-            if (document.body.classList.contains('theme-light')) return 'light';
-            if (document.body.classList.contains('theme-dark-on-light')) return 'dark-on-light';
-            if (document.body.classList.contains('theme-light-on-dark')) return 'light-on-dark';
-            return 'dark';
+            const isLightMode = document.body.classList.contains('light-mode');
+            localStorage.setItem('alphaline_theme', isLightMode ? 'light' : 'dark');
         }
 
         // Load theme preference on page load
         function loadThemePreference() {
-            const savedTheme = localStorage.getItem('alphaline_theme') || 'dark';
-            setThemeMode(savedTheme);
+            const savedTheme = localStorage.getItem('alphaline_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
         }
 
         // --- CHARACTER JOURNAL ---
@@ -2330,93 +2008,80 @@
         let draggedCharacter = null;
         let dragClone = null;
         let isDragging = false;
-        let rafId = null;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
 
         function startCharacterDrag(e, char) {
             e.preventDefault();
             draggedCharacter = char;
             isDragging = true;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
 
             // Create visual clone - styled circle with name
             dragClone = document.createElement('div');
-            dragClone.style.cssText = `
-                position: fixed;
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 5000;
-                opacity: 0.95;
-                background: #000;
-                border: 4px solid ${char.color};
-                will-change: transform;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-                transform: translate(${e.clientX - 60}px, ${e.clientY - 60}px);
-            `;
+            dragClone.style.position = 'fixed';
+            dragClone.style.width = '120px';
+            dragClone.style.height = '120px';
+            dragClone.style.borderRadius = '50%';
+            dragClone.style.pointerEvents = 'none';
+            dragClone.style.zIndex = '5000';
+            dragClone.style.opacity = '0.95';
+            dragClone.style.background = '#000';
+            dragClone.style.border = `4px solid ${char.color}`;
+            dragClone.style.willChange = 'transform';
+            dragClone.style.display = 'flex';
+            dragClone.style.alignItems = 'center';
+            dragClone.style.justifyContent = 'center';
+            dragClone.style.boxShadow = '0 10px 30px rgba(0,0,0,0.8)';
             
             // Add character name
             dragClone.innerHTML = `<div style="color: #fff; font-size: 0.75rem; font-weight: 600; text-align: center; padding: 10px; letter-spacing: 0.5px;">${char.name}</div>`;
 
             document.body.appendChild(dragClone);
+            updateDragClone(e);
 
             document.addEventListener('mousemove', onCharacterDragMove);
             document.addEventListener('mouseup', onCharacterDragEnd);
         }
 
-        function updateDragVisuals() {
-            if (!isDragging || !dragClone) return;
-            
-            // Update clone position
-            dragClone.style.transform = `translate(${lastMouseX - 60}px, ${lastMouseY - 60}px)`;
-            
-            // Check zones
-            const dragZone = document.getElementById('character-drag-zone');
-            const trashZone = document.getElementById('character-trash-zone');
-            
-            if (dragZone && trashZone) {
-                const dragRect = dragZone.getBoundingClientRect();
-                const trashRect = trashZone.getBoundingClientRect();
-                
-                const isOverDrag = lastMouseX >= dragRect.left && lastMouseX <= dragRect.right && 
-                                  lastMouseY >= dragRect.top && lastMouseY <= dragRect.bottom;
-                const isOverTrash = lastMouseX >= trashRect.left && lastMouseX <= trashRect.right && 
-                                   lastMouseY >= trashRect.top && lastMouseY <= trashRect.bottom;
-                
-                dragZone.classList.toggle('drag-over', isOverDrag);
-                trashZone.classList.toggle('drag-over', isOverTrash);
+        function updateDragClone(e) {
+            if (dragClone && isDragging) {
+                // Use transform for better performance
+                dragClone.style.transform = `translate(${e.clientX - 60}px, ${e.clientY - 60}px)`;
             }
-            
-            rafId = null;
         }
 
         function onCharacterDragMove(e) {
             if (!isDragging) return;
             
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-            
-            // Use RAF to throttle at 60fps
-            if (!rafId) {
-                rafId = requestAnimationFrame(updateDragVisuals);
-            }
+            // Throttle updates for performance
+            requestAnimationFrame(() => {
+                updateDragClone(e);
+                
+                // Check if over drag zone
+                const dragZone = document.getElementById('character-drag-zone');
+                const dragRect = dragZone.getBoundingClientRect();
+                const isOverDrag = e.clientX >= dragRect.left && e.clientX <= dragRect.right && e.clientY >= dragRect.top && e.clientY <= dragRect.bottom;
+                
+                // Check if over trash zone
+                const trashZone = document.getElementById('character-trash-zone');
+                const trashRect = trashZone.getBoundingClientRect();
+                const isOverTrash = e.clientX >= trashRect.left && e.clientX <= trashRect.right && e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
+                
+                if (isOverDrag) {
+                    dragZone.classList.add('drag-over');
+                } else {
+                    dragZone.classList.remove('drag-over');
+                }
+
+                if (isOverTrash) {
+                    trashZone.classList.add('drag-over');
+                } else {
+                    trashZone.classList.remove('drag-over');
+                }
+            });
         }
 
         function onCharacterDragEnd(e) {
             document.removeEventListener('mousemove', onCharacterDragMove);
             document.removeEventListener('mouseup', onCharacterDragEnd);
-            
-            if (rafId) {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-            
             isDragging = false;
 
             const dragZone = document.getElementById('character-drag-zone');
@@ -2442,12 +2107,6 @@
             dragZone.classList.remove('drag-over');
             trashZone.classList.remove('drag-over');
             
-            if (dragClone) {
-                dragClone.remove();
-                dragClone = null;
-            }
-            draggedCharacter = null;
-        }
             if (dragClone) {
                 dragClone.remove();
                 dragClone = null;
