@@ -318,7 +318,6 @@
     </div>
 
     <script>
-        let currentUniverse = { years: [] };
         let plotsByYear = {}; 
         let selectedYear = null;
         let isDistributed = false;
@@ -331,9 +330,35 @@
         let dragSrcEl = null;
         let dragType = null; 
 
-        // Set Project Name
-        const projName = localStorage.getItem('currentProjectName') || "UNTITLED PROJECT";
-        document.getElementById('project-name-display').innerText = projName;
+        // Set Project Name from Universe
+        const urlParams = new URLSearchParams(window.location.search);
+        const universeId = urlParams.get('id');
+        let currentUniverse = null;
+        let projName = "UNTITLED PROJECT";
+        let seriesName = "";
+
+        if (universeId) {
+            const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
+            currentUniverse = universes.find(u => u.id === parseInt(universeId));
+            
+            if (currentUniverse) {
+                projName = currentUniverse.name || "UNTITLED PROJECT";
+                seriesName = currentUniverse.series || "";
+            }
+        }
+
+        // Display project name and series
+        const displayHTML = seriesName 
+            ? `<span style="font-size: 0.5rem; color: #666; display: block; margin-bottom: 2px;">${seriesName}</span>${projName}`
+            : projName;
+        document.getElementById('project-name-display').innerHTML = displayHTML;
+
+        // Initialize currentUniverse with years array
+        if (!currentUniverse) {
+            currentUniverse = { years: [] };
+        } else if (!currentUniverse.years) {
+            currentUniverse.years = [];
+        }
 
         function updateClock() {
             const now = new Date();
@@ -343,8 +368,7 @@
         setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() { 
-            window.top.document.getElementById('content-frame').src = 'universes.html'; 
-            window.top.document.body.classList.remove('workspace-mode'); 
+            window.location.href = 'universes.html';
         }
 
         // Camera Controls
@@ -802,10 +826,26 @@
 
         // --- SAVE/LOAD SYSTEM ---
         function saveData() {
-            localStorage.setItem('alphaline_universe', JSON.stringify({
+            if (!universeId) {
+                console.warn('No universe ID - data will not persist');
+                return;
+            }
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            localStorage.setItem(storageKey, JSON.stringify({
                 years: currentUniverse.years,
                 plots: plotsByYear
             }));
+            
+            // Update last edited timestamp in universes list
+            const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
+            const universeEntry = universes.find(u => u.id === parseInt(universeId));
+            if (universeEntry) {
+                const date = new Date().toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'}).toUpperCase();
+                universeEntry.lastEdited = date;
+                localStorage.setItem('alphaline_universes', JSON.stringify(universes));
+            }
+            
             document.getElementById('save-status').innerText = 'CHANGES SYNCED';
             
             // Brief flash to show save
@@ -818,7 +858,15 @@
         }
 
         function loadData() {
-            const saved = localStorage.getItem('alphaline_universe');
+            if (!universeId) {
+                console.warn('No universe ID - cannot load data');
+                renderTimeline();
+                return;
+            }
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
