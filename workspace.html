@@ -386,7 +386,7 @@
             opacity: 0; 
             transition:0.2s;
         }
-        .branch-hub.active .hub-arm { width: 300px; }
+        .branch-hub.active .hub-arm { width: 450px; }
         .branch-hub.active .hub-trigger { opacity: 1; }
         .trigger-left { left: 0; transform: translate(-50%, -50%); }
         .trigger-right { right: 0; transform: translate(50%, -50%); }
@@ -461,7 +461,7 @@
 
         .event-image-container {
             flex-shrink: 0; 
-            background: var(--node-bg);
+            background: #0a0a0a;
             border-left: 2px solid var(--border);
             cursor: pointer; 
             overflow: hidden; 
@@ -477,7 +477,14 @@
             max-height: 213px;
         }
         .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
-        .event-image-container img { width: 100%; height: 100%; object-fit: contain; transition: 0.3s; }
+        .event-image-container img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            width: auto;
+            height: auto;
+            object-fit: contain; 
+            transition: 0.3s; 
+        }
         .event-image-container:hover img { opacity: 0.8; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; position: absolute; }
 
@@ -656,7 +663,7 @@
             border-color: #999;
         }
         
-        .add-circle {
+        .view-center-circle {
             width: 40px; 
             height: 40px; 
             border: 1px solid var(--pipe-color);
@@ -666,13 +673,13 @@
             justify-content: center; 
             cursor: pointer;
             color: var(--text-dim);
-            font-size: 1.2rem; 
+            font-size: 1.1rem; 
             transition: 0.3s; 
             background: var(--node-bg);
             backdrop-filter: blur(5px); 
             margin-top: 10px;
         }
-        .add-circle:hover { 
+        .view-center-circle:hover { 
             border-color: var(--text-primary);
             color: var(--text-primary);
             transform: scale(1.1); 
@@ -1494,6 +1501,29 @@
             letter-spacing: 1px;
         }
 
+        .setting-input {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            outline: none;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .setting-input:focus {
+            border-color: #666;
+        }
+
+        .setting-hint {
+            font-size: 0.6rem;
+            color: #666;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
         .toggle-switch {
             position: relative;
             width: 180px;
@@ -1805,13 +1835,13 @@
 
             <div id="branch-hub" class="branch-hub">
                 <div class="hub-arm">
-                    <div class="hub-trigger trigger-left" onclick="addNewPlotNode(0, 'left')">+</div>
+                    <div class="hub-trigger trigger-left" onclick="centerViewOnColumn('left')" title="Center view on left column">👁</div>
                 </div>
                 <div class="hub-center-line">
-                    <div class="pipe-add" onclick="addNewPlotNode(0, 'main')">+</div>
+                    <div class="pipe-add" onclick="centerViewOnColumn('main')" title="Center view on main column">👁</div>
                 </div>
                 <div class="hub-arm">
-                    <div class="hub-trigger trigger-right" onclick="addNewPlotNode(0, 'right')">+</div>
+                    <div class="hub-trigger trigger-right" onclick="centerViewOnColumn('right')" title="Center view on right column">👁</div>
                 </div>
             </div>
 
@@ -1843,6 +1873,12 @@
             </div>
             
             <div class="settings-content">
+                <div class="setting-row">
+                    <label class="setting-label">Timeline Unit</label>
+                    <input type="text" id="timeline-unit-input" class="setting-input" placeholder="Episode" value="Episode">
+                    <div class="setting-hint">Define the terminology for your timeline units (e.g., "Year", "Project", "Chapter")</div>
+                </div>
+
                 <div class="setting-row">
                     <label class="setting-label">Theme Mode</label>
                     <div class="theme-toggle-4way">
@@ -2021,6 +2057,20 @@
             updateGrid();
         }
 
+        function centerViewOnColumn(colName) {
+            // Center view on specific column
+            const offsets = {
+                'left': -400,   // Left column offset
+                'main': 0,      // Center column
+                'right': 400    // Right column offset
+            };
+            
+            panX = offsets[colName] || 0;
+            panY = 100; // Offset to show column content (below top nodes)
+            gridZoom = 0.85; // Slightly zoomed in to focus on column
+            updateGrid();
+        }
+
         // Logic
         function ensureYearData(y) {
             if (!plotsByYear[y]) plotsByYear[y] = { episodeTitle: "", synopsis: "", main: [], left: [], right: [] };
@@ -2162,10 +2212,11 @@
 
             // Always show trailing (+) for creating new node - even if column is empty
             const trailingAdd = document.createElement('div');
-            trailingAdd.className = 'add-circle';
+            trailingAdd.className = 'view-center-circle';
             trailingAdd.style.marginTop = plots.length > 0 ? '20px' : '0px';
             trailingAdd.onclick = () => appendPlotNode(colName);
-            trailingAdd.innerText = '+';
+            trailingAdd.innerHTML = '+';
+            trailingAdd.title = 'Add new plot node';
             stack.appendChild(trailingAdd);
         }
 
@@ -2266,10 +2317,10 @@
                 const file = e.target.files[0];
                 if (!file) return;
                 
-                // Warn about large files
+                // Warn about very large files (over 25MB)
                 const fileSizeMB = file.size / 1024 / 1024;
-                if (fileSizeMB > 0.5) {
-                    const proceed = confirm(`⚠️ Large Image (${fileSizeMB.toFixed(1)}MB)\n\nLarge images may exceed browser storage limits.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 500KB\n\nContinue anyway?`);
+                if (fileSizeMB > 25) {
+                    const proceed = confirm(`⚠️ Very Large Image (${fileSizeMB.toFixed(1)}MB)\n\nThis image is extremely large and may cause issues.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 25MB\n\nContinue anyway?`);
                     if (!proceed) return;
                 }
                 
@@ -2750,10 +2801,10 @@
             const file = input.files[0];
             if (!file) return;
             
-            // Warn about large files
+            // Warn about very large files (over 25MB)
             const fileSizeMB = file.size / 1024 / 1024;
-            if (fileSizeMB > 0.5) {
-                const proceed = confirm(`⚠️ Large Image (${fileSizeMB.toFixed(1)}MB)\n\nLarge images may exceed browser storage limits.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 500KB\n\nContinue anyway?`);
+            if (fileSizeMB > 25) {
+                const proceed = confirm(`⚠️ Very Large Image (${fileSizeMB.toFixed(1)}MB)\n\nThis image is extremely large and may cause issues.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 25MB\n\nContinue anyway?`);
                 if (!proceed) {
                     input.value = ''; // Clear the file input
                     return;
@@ -3042,6 +3093,14 @@
                     characters: characters
                 });
                 
+                // Calculate approximate size
+                const dataSizeMB = new Blob([dataToSave]).size / 1024 / 1024;
+                
+                // Warn if approaching localStorage limits (typically 5-10MB)
+                if (dataSizeMB > 5) {
+                    console.warn(`⚠️ Large data size: ${dataSizeMB.toFixed(2)}MB. May exceed browser storage limits.`);
+                }
+                
                 localStorage.setItem(storageKey, dataToSave);
                 
                 // Update last edited timestamp in universes list
@@ -3067,10 +3126,18 @@
                 
                 // Check if it's a quota exceeded error
                 if (e.name === 'QuotaExceededError' || e.code === 22) {
-                    document.getElementById('save-status').innerText = 'SAVE FAILED - IMAGES TOO LARGE';
+                    document.getElementById('save-status').innerText = 'SAVE FAILED - STORAGE FULL';
                     document.getElementById('save-status').style.color = '#f44';
                     
-                    alert('⚠️ Storage Limit Exceeded\n\nYour images are too large for browser storage.\n\nTips to reduce size:\n• Use smaller/compressed images\n• Use external image hosting (Imgur, etc.)\n• Paste image URLs instead of uploading files');
+                    alert('⚠️ Browser Storage Limit Exceeded\n\n' +
+                          'Your workspace data is too large for browser storage (typically 5-10MB limit).\n\n' +
+                          '💡 SOLUTION: Use Image URLs Instead of Uploads\n\n' +
+                          'Instead of uploading image files:\n' +
+                          '1. Upload images to Imgur, Google Photos, or similar\n' +
+                          '2. Copy the image URL\n' +
+                          '3. Paste URL into the "Or URL" field\n\n' +
+                          'This way, images are NOT stored in browser - unlimited space!\n\n' +
+                          'Alternative: Delete some uploaded images and use URLs instead.');
                 } else {
                     document.getElementById('save-status').innerText = 'SAVE FAILED';
                     document.getElementById('save-status').style.color = '#f44';
