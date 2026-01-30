@@ -560,7 +560,7 @@
         .drag-over { border: 1px solid var(--accent) !important; background: rgba(255,255,255,0.05); }
 
         /* --- TIMELINE HUD --- */
-        #timeline-hud { position: fixed; left: 50%; top: 105px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500; }
+        #timeline-hud { position: fixed; left: 50%; top: 80px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 1500; }
         #timeline-bar { 
             width: 600px; 
             height: 40px; 
@@ -828,6 +828,16 @@
             border-color: #4a4;
         }
 
+        .detail-btn.remove {
+            background: rgba(100, 30, 30, 0.3);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .detail-btn.remove:hover {
+            background: rgba(100, 30, 30, 0.5);
+        }
+
         .detail-btn.delete {
             background: rgba(100, 30, 30, 0.3);
             border-color: var(--danger);
@@ -853,12 +863,12 @@
 
         /* --- CHARACTER PROFILE EDITOR --- */
         .character-editor-panel {
-            width: 600px;
-            max-height: 85vh;
+            width: 700px;
+            max-height: 90vh;
             background: rgba(12, 12, 12, 0.98);
             border: 1px solid #333;
             border-radius: 15px;
-            padding: 30px;
+            padding: 25px 30px;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
@@ -867,13 +877,13 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border-bottom: 1px solid #222;
-            padding-bottom: 15px;
+            padding-bottom: 12px;
         }
 
         .editor-header h2 {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 300;
             letter-spacing: 3px;
             margin: 0;
@@ -888,7 +898,7 @@
         }
 
         .close-editor {
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #666;
             cursor: pointer;
             transition: 0.2s;
@@ -900,9 +910,9 @@
         }
 
         .editor-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 20px;
         }
 
         .editor-section {
@@ -910,12 +920,16 @@
             flex-direction: column;
         }
 
+        .editor-section.full-width {
+            grid-column: 1 / -1;
+        }
+
         .editor-section label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .editor-section input[type="text"],
@@ -924,9 +938,9 @@
             background: #000;
             border: 1px solid #333;
             color: #fff;
-            padding: 12px;
+            padding: 8px 10px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             outline: none;
             border-radius: 4px;
             transition: 0.2s;
@@ -939,7 +953,7 @@
         }
 
         .editor-section textarea {
-            min-height: 120px;
+            min-height: 80px;
             resize: vertical;
         }
 
@@ -949,13 +963,13 @@
 
         .editor-row {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
 
         .char-preview-container {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 10px;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 8px;
         }
 
         .char-preview-circle {
@@ -981,12 +995,12 @@
             align-items: center;
             justify-content: center;
             color: #444;
-            font-size: 0.6rem;
+            font-size: 0.5rem;
         }
 
         .color-picker {
             width: 100%;
-            height: 60px;
+            height: 45px;
             border: 1px solid #333;
             background: #000;
             cursor: pointer;
@@ -994,8 +1008,8 @@
         }
 
         .color-preview {
-            margin-top: 10px;
-            height: 40px;
+            margin-top: 8px;
+            height: 30px;
             border-radius: 4px;
             border: 1px solid #333;
         }
@@ -1658,11 +1672,6 @@
                 </div>
 
                 <div class="editor-section">
-                    <label>Aliases (comma-separated)</label>
-                    <input type="text" id="char-aliases" placeholder="e.g. The Shadow, Johnny" oninput="autoSaveCharacter()">
-                </div>
-
-                <div class="editor-section">
                     <label>Status</label>
                     <select id="char-status" onchange="autoSaveCharacter()">
                         <option value="Unknown">Unknown</option>
@@ -1673,27 +1682,30 @@
                     </select>
                 </div>
 
-                <div class="editor-section">
-                    <label>Biography</label>
-                    <textarea id="char-bio" placeholder="Character background and details..." oninput="autoSaveCharacter()"></textarea>
+                <div class="editor-section full-width">
+                    <label>Aliases (comma-separated)</label>
+                    <input type="text" id="char-aliases" placeholder="e.g. The Shadow, Johnny" oninput="autoSaveCharacter()">
                 </div>
 
-                <div class="editor-row">
-                    <div class="editor-section" style="flex: 1;">
-                        <label>Photo Reference</label>
-                        <div class="char-preview-container">
-                            <div id="char-placeholder" class="char-placeholder-circle">Empty</div>
-                            <img src="" id="char-preview-img" class="char-preview-circle">
-                        </div>
-                        <button class="tm-btn" onclick="document.getElementById('char-img-upload').click()" style="margin-top:10px;">Upload Image</button>
-                        <input type="text" id="char-img-url" placeholder="Or image URL" oninput="autoSaveCharacter()" style="margin-top:8px;">
+                <div class="editor-section">
+                    <label>Photo Reference</label>
+                    <div class="char-preview-container">
+                        <div id="char-placeholder" class="char-placeholder-circle">Empty</div>
+                        <img src="" id="char-preview-img" class="char-preview-circle">
                     </div>
+                    <button class="tm-btn" onclick="document.getElementById('char-img-upload').click()" style="margin-top:8px; font-size:0.65rem; padding:6px 12px;">Upload</button>
+                    <input type="text" id="char-img-url" placeholder="Or URL" oninput="autoSaveCharacter()" style="margin-top:6px;">
+                </div>
 
-                    <div class="editor-section" style="flex: 1;">
-                        <label>Color Code</label>
-                        <input type="color" id="char-color" value="#888888" oninput="autoSaveCharacter()" class="color-picker">
-                        <div class="color-preview" id="color-preview"></div>
-                    </div>
+                <div class="editor-section">
+                    <label>Color Code</label>
+                    <input type="color" id="char-color" value="#888888" oninput="autoSaveCharacter()" class="color-picker">
+                    <div class="color-preview" id="color-preview"></div>
+                </div>
+
+                <div class="editor-section full-width">
+                    <label>Biography</label>
+                    <textarea id="char-bio" placeholder="Character background and details..." oninput="autoSaveCharacter()"></textarea>
                 </div>
             </div>
         </div>
@@ -1786,7 +1798,7 @@
                 <button class="tm-btn" onclick="openSettingsModal()" style="font-size: 1rem; padding: 4px 10px;">🔦</button>
                 <button class="tm-btn" onclick="toggleDistribution()">Toggle Distribution</button>
                 <button class="tm-btn" onclick="openYearModal()">New Episode</button>
-                <button id="center-btn" class="tm-btn" style="display:none;" onclick="centerAndZoomNodes()">Center Grid</button>
+                <button id="center-btn" class="tm-btn" style="display:none;" onclick="resetGraphView()">Reset Graph View</button>
                 <button id="delete-btn" class="tm-btn" style="color:var(--danger); display:none;" onclick="handleDeleteYear()">Delete Episode</button>
             </div>
         </div>
@@ -1956,10 +1968,12 @@
         }
 
         // Center and zoom the node graph
-        function centerAndZoomNodes() {
+        function resetGraphView() {
+            // Focus on Episode/Characters/Synopsis nodes at top
+            // Leave room at bottom for timeline (approximately 200px)
             panX = 0;
-            panY = -50; // Center on Episode node, slight offset to show content above
-            gridZoom = 0.7; // Zoom out to see Episode, Characters, and Synopsis nodes
+            panY = -200; // Offset upward to keep top nodes visible with timeline
+            gridZoom = 0.7; // Zoom level to see all three top nodes
             updateGrid();
         }
 
@@ -2585,16 +2599,43 @@
             document.getElementById('char-aliases').value = char.aliases.join(', ');
             document.getElementById('char-status').value = char.status;
             document.getElementById('char-bio').value = char.bio || "";
-            document.getElementById('char-img-url').value = char.image || "";
-            document.getElementById('char-color').value = char.color || "#888888";
+            
+            // Set image URL
+            const imgUrlInput = document.getElementById('char-img-url');
+            imgUrlInput.value = char.image || "";
+            
+            // Set color picker
+            const colorPicker = document.getElementById('char-color');
+            colorPicker.value = char.color || "#888888";
             
             updateCharacterPreview(char.image);
-            updateColorPreview(char.color);
+            updateColorPreview(char.color || "#888888");
 
             document.getElementById('character-editor-overlay').style.display = 'flex';
         }
 
         function closeCharacterEditor() {
+            if (editingCharacterId) {
+                // Check if character is still default/unmodified
+                const char = characters.find(c => c.id === editingCharacterId);
+                if (char) {
+                    const isUnmodified = 
+                        char.name === "Unnamed Character" &&
+                        char.aliases.length === 0 &&
+                        char.status === "Unknown" &&
+                        (!char.bio || char.bio.trim() === "") &&
+                        (!char.image || char.image === null) &&
+                        char.color === "#888888";
+                    
+                    if (isUnmodified) {
+                        // Auto-delete unmodified character
+                        characters = characters.filter(c => c.id !== editingCharacterId);
+                        saveData();
+                        renderCharacterList();
+                    }
+                }
+            }
+            
             document.getElementById('character-editor-overlay').style.display = 'none';
             
             // If we were viewing a character detail, go back to it
@@ -2616,8 +2657,14 @@
             char.aliases = document.getElementById('char-aliases').value.split(',').map(a => a.trim()).filter(a => a);
             char.status = document.getElementById('char-status').value;
             char.bio = document.getElementById('char-bio').value;
-            char.image = document.getElementById('char-img-url').value;
-            char.color = document.getElementById('char-color').value;
+            
+            // Get image URL from input
+            const imgUrlInput = document.getElementById('char-img-url');
+            char.image = imgUrlInput.value || null;
+            
+            // Get color from picker
+            const colorPicker = document.getElementById('char-color');
+            char.color = colorPicker.value || "#888888";
 
             updateCharacterPreview(char.image);
             updateColorPreview(char.color);
@@ -2644,12 +2691,14 @@
 
         function handleCharacterImageUpload(input) {
             const file = input.files[0];
+            if (!file) return;
+            
             const reader = new FileReader();
             reader.onloadend = () => {
                 document.getElementById('char-img-url').value = reader.result;
                 autoSaveCharacter();
             };
-            if (file) reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
         }
 
         // --- CHARACTER DETAIL VIEW ---
@@ -2693,6 +2742,7 @@
             if (!selectedYear || !plotsByYear[selectedYear]) {
                 btn.disabled = true;
                 btn.innerText = 'No Episode Selected';
+                btn.classList.remove('added', 'remove');
                 return;
             }
 
@@ -2700,12 +2750,13 @@
             const isAdded = scene.sceneCharacters && scene.sceneCharacters.includes(selectedCharacterId);
 
             if (isAdded) {
-                btn.innerText = 'Character Added to Episode';
-                btn.classList.add('added');
-                btn.disabled = true;
+                btn.innerText = 'Remove Character from Episode';
+                btn.classList.remove('added');
+                btn.classList.add('remove');
+                btn.disabled = false;
             } else {
                 btn.innerText = 'Add Character to Episode';
-                btn.classList.remove('added');
+                btn.classList.remove('added', 'remove');
                 btn.disabled = false;
             }
         }
@@ -2713,16 +2764,39 @@
         function addCharacterFromDetail() {
             if (!selectedCharacterId || !selectedYear) return;
             
-            addCharacterToScene(selectedCharacterId);
+            const scene = plotsByYear[selectedYear];
+            const isAdded = scene.sceneCharacters && scene.sceneCharacters.includes(selectedCharacterId);
+            
+            if (isAdded) {
+                // Remove character
+                removeCharacterFromScene(selectedCharacterId);
+            } else {
+                // Add character
+                addCharacterToScene(selectedCharacterId);
+                
+                // Fade out over 1.5 seconds, then close
+                const detailPopup = document.getElementById('character-detail-popup');
+                detailPopup.classList.add('fading');
+                
+                setTimeout(() => {
+                    closeCharacterDetail();
+                }, 1500);
+                return;
+            }
+            
             updateAddToEpisodeButton();
+        }
+
+        function removeCharacterFromScene(charId) {
+            if (!selectedYear || !plotsByYear[selectedYear]) return;
             
-            // Fade out over 1.5 seconds, then close
-            const detailPopup = document.getElementById('character-detail-popup');
-            detailPopup.classList.add('fading');
+            const scene = plotsByYear[selectedYear];
+            if (!scene.sceneCharacters) return;
             
-            setTimeout(() => {
-                closeCharacterDetail();
-            }, 1500);
+            scene.sceneCharacters = scene.sceneCharacters.filter(id => id !== charId);
+            
+            saveData();
+            renderTimeline();
         }
 
         function editCharacterFromDetail() {
