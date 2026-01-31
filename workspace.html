@@ -1938,6 +1938,74 @@
     </div>
 
     <script>
+        // IndexedDB for image storage (supports much larger files)
+        let imageDB = null;
+        const DB_NAME = 'alphaline_images';
+        const DB_VERSION = 1;
+        const IMAGE_STORE = 'images';
+
+        // Initialize IndexedDB
+        function initImageDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    imageDB = request.result;
+                    resolve(imageDB);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+                        db.createObjectStore(IMAGE_STORE);
+                    }
+                };
+            });
+        }
+
+        // Store image in IndexedDB
+        async function storeImage(key, blob) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readwrite');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.put(blob, key);
+                
+                request.onsuccess = () => resolve(key);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Retrieve image from IndexedDB
+        async function getImage(key) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readonly');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.get(key);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Delete image from IndexedDB
+        async function deleteImage(key) {
+            if (!imageDB) await initImageDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = imageDB.transaction([IMAGE_STORE], 'readwrite');
+                const store = transaction.objectStore(IMAGE_STORE);
+                const request = store.delete(key);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         let plotsByYear = {}; 
         let selectedYear = null;
         let isDistributed = false;
@@ -2434,13 +2502,6 @@
             input.onchange = e => {
                 const file = e.target.files[0];
                 if (!file) return;
-                
-                // Warn about very large files (over 25MB)
-                const fileSizeMB = file.size / 1024 / 1024;
-                if (fileSizeMB > 25) {
-                    const proceed = confirm(`⚠️ Very Large Image (${fileSizeMB.toFixed(1)}MB)\n\nThis image is extremely large and may cause issues.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 25MB\n\nContinue anyway?`);
-                    if (!proceed) return;
-                }
                 
                 const reader = new FileReader();
                 reader.onload = r => {
@@ -2980,22 +3041,19 @@
             const file = input.files[0];
             if (!file) return;
             
-            // Warn about very large files (over 25MB)
-            const fileSizeMB = file.size / 1024 / 1024;
-            if (fileSizeMB > 25) {
-                const proceed = confirm(`⚠️ Very Large Image (${fileSizeMB.toFixed(1)}MB)\n\nThis image is extremely large and may cause issues.\n\nRecommendations:\n• Compress images before uploading\n• Use external hosting (Imgur, etc.)\n• Keep images under 25MB\n\nContinue anyway?`);
-                if (!proceed) {
-                    input.value = ''; // Clear the file input
-                    return;
-                }
-            }
+            // Create blob URL (efficient, no base64 conversion)
+            const blobUrl = URL.createObjectURL(file);
             
+            // Read as data URL for persistent storage
             const reader = new FileReader();
             reader.onloadend = () => {
                 document.getElementById('char-img-url').value = reader.result;
                 autoSaveCharacter();
             };
             reader.readAsDataURL(file);
+            
+            // Use blob URL for immediate preview (faster)
+            document.getElementById('char-preview-img').src = blobUrl;
         }
 
         // --- CHARACTER DETAIL VIEW ---
@@ -3308,15 +3366,15 @@
                     document.getElementById('save-status').innerText = 'SAVE FAILED - STORAGE FULL';
                     document.getElementById('save-status').style.color = '#f44';
                     
-                    alert('⚠️ Browser Storage Limit Exceeded\n\n' +
-                          'Your workspace data is too large for browser storage (typically 5-10MB limit).\n\n' +
-                          '💡 SOLUTION: Use Image URLs Instead of Uploads\n\n' +
-                          'Instead of uploading image files:\n' +
-                          '1. Upload images to Imgur, Google Photos, or similar\n' +
-                          '2. Copy the image URL\n' +
-                          '3. Paste URL into the "Or URL" field\n\n' +
-                          'This way, images are NOT stored in browser - unlimited space!\n\n' +
-                          'Alternative: Delete some uploaded images and use URLs instead.');
+                    alert('⚠️ Browser Storage Limit Reached\n\n' +
+                          'Your workspace has exceeded the browser storage limit (5-10MB).\n\n' +
+                          '✅ BEST SOLUTION:\n' +
+                          '1. Use image URLs instead of uploading files\n' +
+                          '2. Upload images to Imgur, Google Photos, etc.\n' +
+                          '3. Copy the image URL\n' +
+                          '4. Paste into the "Or URL" field\n\n' +
+                          'This stores NO data in browser - unlimited capacity!\n\n' +
+                          '📝 NOTE: Your text data is saved. Only new uploads failed.');
                 } else {
                     document.getElementById('save-status').innerText = 'SAVE FAILED';
                     document.getElementById('save-status').style.color = '#f44';
