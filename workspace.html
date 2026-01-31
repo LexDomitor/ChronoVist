@@ -1895,7 +1895,7 @@
                 <button class="tm-btn" onclick="toggleDistribution()">Toggle Distribution</button>
                 <button class="tm-btn" onclick="openYearModal()">New Episode</button>
                 <button id="center-btn" class="tm-btn" style="display:none;" onclick="resetGraphView()">Reset Graph View</button>
-                <button id="delete-btn" class="tm-btn" style="color:var(--danger); display:none;" onclick="handleDeleteYear()">Delete Episode</button>
+                <button id="delete-btn" class="tm-btn" style="color:var(--danger); display:none;" onclick="handleDeleteYear()">Delete <span class="timeline-unit-text">Episode</span></button>
             </div>
         </div>
     </div>
@@ -1911,7 +1911,7 @@
             <div class="settings-content">
                 <div class="setting-row">
                     <label class="setting-label">Timeline Unit</label>
-                    <input type="text" id="timeline-unit-input" class="setting-input" placeholder="Episode" value="Episode">
+                    <input type="text" id="timeline-unit-input" class="setting-input" placeholder="Episode" value="Episode" oninput="updateTimelineUnit(this.value)">
                     <div class="setting-hint">Define the terminology for your timeline units (e.g., "Year", "Project", "Chapter")</div>
                 </div>
 
@@ -1942,6 +1942,7 @@
         let selectedYear = null;
         let isDistributed = false;
         let panX = 0, panY = 0, gridZoom = 1;
+        let timelineUnit = "Episode"; // Default timeline unit terminology
 
         // Characters data
         let characters = [];
@@ -2148,10 +2149,12 @@
             
             let deltaX = e.clientX - resizeState.startX;
             
-            // Reverse delta if event is flipped (image on right side)
+            // Invert delta for correct drag behavior
+            // When image is on left (normal): drag right = expand image
+            // When image is on right (flipped): drag left = expand image
             const isFlipped = resizeState.element.classList.contains('flipped');
-            if (isFlipped) {
-                deltaX = -deltaX;
+            if (!isFlipped) {
+                deltaX = -deltaX;  // Invert for normal layout
             }
             
             const totalWidth = 704; // 420 + 284
@@ -2694,10 +2697,71 @@
             document.getElementById('settings-overlay').style.display = 'flex';
             // Update toggle to reflect current theme
             updateThemeToggleUI();
+            // Update timeline unit input
+            document.getElementById('timeline-unit-input').value = timelineUnit;
         }
 
         function closeSettingsModal() {
             document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function updateTimelineUnit(newUnit) {
+            timelineUnit = newUnit || "Episode";
+            localStorage.setItem('alphaline_timeline_unit', timelineUnit);
+            
+            // Update all UI elements with new terminology
+            updateTimelineUnitUI();
+        }
+
+        function updateTimelineUnitUI() {
+            // Update "New Episode" button
+            const newBtn = document.querySelector('button[onclick="openYearModal()"]');
+            if (newBtn) {
+                newBtn.innerText = `New ${timelineUnit}`;
+            }
+            
+            // Update "Delete Episode" button
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.innerHTML = `Delete ${timelineUnit}`;
+            }
+            
+            // Update Episode node label
+            const episodeLabel = document.querySelector('.grid-node .node-label');
+            if (episodeLabel) {
+                episodeLabel.innerText = timelineUnit;
+            }
+            
+            // Update Episode title placeholder
+            const episodeInput = document.getElementById('episode-title');
+            if (episodeInput) {
+                episodeInput.placeholder = `${timelineUnit} Title`;
+            }
+            
+            // Update modal title
+            const modalTitle = document.querySelector('.modal-title');
+            if (modalTitle) {
+                modalTitle.innerText = `${timelineUnit} Number`;
+            }
+            
+            // Update character detail buttons
+            updateCharacterButtonLabels();
+        }
+
+        function updateCharacterButtonLabels() {
+            const addBtn = document.getElementById('add-to-episode-btn');
+            if (addBtn) {
+                const currentText = addBtn.innerText;
+                if (currentText.includes('Add Character to')) {
+                    addBtn.innerText = `Add Character to ${timelineUnit}`;
+                } else if (currentText.includes('Remove Character from')) {
+                    addBtn.innerText = `Remove Character from ${timelineUnit}`;
+                } else if (currentText.includes('Character Added to')) {
+                    addBtn.innerText = `Character Added to ${timelineUnit}`;
+                } else if (currentText.includes('No') && currentText.includes('Selected')) {
+                    addBtn.innerText = `No ${timelineUnit} Selected`;
+                }
+            }
         }
 
         function setThemeMode(mode) {
@@ -2974,7 +3038,7 @@
             const btn = document.getElementById('add-to-episode-btn');
             if (!selectedYear || !plotsByYear[selectedYear]) {
                 btn.disabled = true;
-                btn.innerText = 'No Episode Selected';
+                btn.innerText = `No ${timelineUnit} Selected`;
                 btn.classList.remove('added', 'remove');
                 return;
             }
@@ -2983,12 +3047,12 @@
             const isAdded = scene.sceneCharacters && scene.sceneCharacters.includes(selectedCharacterId);
 
             if (isAdded) {
-                btn.innerText = 'Remove Character from Episode';
+                btn.innerText = `Remove Character from ${timelineUnit}`;
                 btn.classList.remove('added');
                 btn.classList.add('remove');
                 btn.disabled = false;
             } else {
-                btn.innerText = 'Add Character to Episode';
+                btn.innerText = `Add Character to ${timelineUnit}`;
                 btn.classList.remove('added', 'remove');
                 btn.disabled = false;
             }
@@ -3176,7 +3240,7 @@
 
         
         function handleDeleteYear() {
-            if(!selectedYear || !confirm(`Delete Episode ${selectedYear} and all its data?`)) return;
+            if(!selectedYear || !confirm(`Delete ${timelineUnit} ${selectedYear} and all its data?`)) return;
             
             const idx = currentUniverse.years.indexOf(selectedYear);
             currentUniverse.years.splice(idx, 1);
@@ -3288,7 +3352,15 @@
                     console.error('Failed to load saved data:', e);
                 }
             }
+            
+            // Load timeline unit preference
+            const savedUnit = localStorage.getItem('alphaline_timeline_unit');
+            if (savedUnit) {
+                timelineUnit = savedUnit;
+            }
+            
             renderTimeline();
+            updateTimelineUnitUI();
         }
 
         // Initialize on page load
