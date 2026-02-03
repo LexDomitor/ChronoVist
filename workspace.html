@@ -637,6 +637,17 @@
             background: var(--pipe-color);
             transform: translateY(-50%); 
         }
+        
+        /* Dark-on-Light: Make timeline more visible (lighter) */
+        body.theme-dark-on-light .timeline-axis {
+            background: rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Light-on-Dark: Make timeline more visible (darker) */
+        body.theme-light-on-dark .timeline-axis {
+            background: rgba(100, 100, 100, 0.6);
+        }
+        
         .year-dot, .year-line { cursor: pointer; position: absolute; top: 50%; transform: translate(-50%, -50%); transition: 0.2s; }
         .year-dot { 
             width: 12px; 
@@ -644,7 +655,13 @@
             background: var(--text-dim);
             border: 2px solid var(--hud-bg);
             border-radius: 50%; 
-            z-index: 20; 
+            z-index: 20;
+            cursor: pointer;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+            transition: 0.2s;
+        }
+        .year-dot:hover {
+            transform: scale(1.2);
         }
         .year-line { 
             width: 2px; 
@@ -662,12 +679,95 @@
             font-family: 'JetBrains Mono'; 
             font-size: 0.6rem; 
             color: var(--hud-text);
-            pointer-events: none; 
+            pointer-events: auto;
+            cursor: pointer;
+            transition: opacity 0.3s;
         }
         .box-min { right: 100%; margin-right: 15px; top: 50%; transform: translateY(-50%); }
         .box-max { left: 100%; margin-left: 15px; top: 50%; transform: translateY(-50%); }
-        .box-above { bottom: 100%; margin-bottom: 10px; left: 50%; transform: translateX(-50%); opacity: 0; }
-        .year-line:hover .box-above, .selected-marker .box-above { opacity: 1; }
+        .box-above { 
+            bottom: 100%; 
+            margin-bottom: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            opacity: 0;
+            pointer-events: none;
+        }
+        .box-above.show { 
+            opacity: 1; 
+            pointer-events: auto;
+        }
+
+        /* Cursor-tracking preview tooltips */
+        .preview-tooltip {
+            position: fixed;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 12px 14px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 280px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .preview-tooltip.show {
+            opacity: 1;
+        }
+
+        .preview-tooltip-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .preview-tooltip-subtext {
+            font-size: 0.6rem;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-tooltip-bio {
+            font-size: 0.65rem;
+            color: #aaa;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .preview-tooltip-episodes {
+            font-size: 0.6rem;
+            color: #666;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #222;
+        }
+
+        .preview-tooltip-label {
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Character name highlighting in text */
+        .char-name-highlight {
+            border: 1px solid;
+            padding: 1px 3px;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: 0.2s;
+        }
+
+        .char-name-highlight:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+        }
 
         .tm-btn { 
             background: var(--hud-bg);
@@ -1107,16 +1207,15 @@
             top: 10vh;
             left: 50%;
             transform: translateX(-50%);
-            width: 900px;
+            width: 450px;
             max-height: 30vh;
             background: rgba(12, 12, 12, 0.98);
             border: 1px solid #333;
             border-radius: 15px;
             display: none;
-            flex-direction: row;
-            align-items: center;
-            gap: 30px;
-            padding: 30px 40px;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px 25px;
             pointer-events: all;
             box-shadow: 0 10px 50px rgba(0,0,0,0.8);
             opacity: 1;
@@ -1134,42 +1233,56 @@
         .detail-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             flex-shrink: 0;
         }
 
         .detail-avatar {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: #111;
-            border: 4px solid #333;
+            border: 3px solid #333;
             background-size: cover;
             background-position: center;
             flex-shrink: 0;
         }
 
         .detail-name {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 400;
             letter-spacing: 2px;
             text-align: left;
-            min-width: 150px;
+            flex: 1;
+        }
+
+        .detail-appears {
+            font-size: 0.6rem;
+            color: #666;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #222;
+        }
+
+        .detail-appears-label {
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .detail-buttons {
             display: flex;
-            gap: 12px;
-            flex: 1;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .detail-btn {
-            flex: 1;
-            padding: 14px 16px;
+            width: 100%;
+            padding: 10px 12px;
             background: var(--node-bg);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
@@ -1560,6 +1673,30 @@
             line-height: 1.4;
         }
 
+        .subunit-bracket {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bracket-symbol {
+            font-size: 3rem;
+            color: #444;
+            line-height: 1;
+            font-weight: 100;
+        }
+
+        .subunit-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .subunit-input {
+            margin-bottom: 0 !important;
+        }
+
         .toggle-switch {
             position: relative;
             width: 180px;
@@ -1724,7 +1861,13 @@
             <div id="character-detail-popup" class="character-detail-popup">
                 <div class="detail-left">
                     <div id="detail-avatar" class="detail-avatar"></div>
-                    <div id="detail-name" class="detail-name"></div>
+                    <div style="flex: 1;">
+                        <div id="detail-name" class="detail-name"></div>
+                        <div id="detail-appears" class="detail-appears">
+                            <span class="detail-appears-label">Appears in:</span>
+                            <span id="detail-appears-list">None</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="detail-buttons">
                     <button id="add-to-episode-btn" class="detail-btn" onclick="addCharacterFromDetail()">Add Character to Episode</button>
@@ -1802,6 +1945,13 @@
                 <div class="editor-section full-width">
                     <label>Biography</label>
                     <textarea id="char-bio" placeholder="Character background and details..." oninput="autoSaveCharacter()"></textarea>
+                </div>
+
+                <div class="editor-section full-width" id="char-appearances-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #222;">
+                    <label>Appears in <span id="char-appears-unit">${timelineUnit}</span>:</label>
+                    <div id="char-appears-list" style="font-size: 0.75rem; color: #888; margin-top: 6px;">
+                        None
+                    </div>
                 </div>
             </div>
         </div>
@@ -1911,8 +2061,20 @@
             <div class="settings-content">
                 <div class="setting-row">
                     <label class="setting-label">Timeline Unit</label>
-                    <input type="text" id="timeline-unit-input" class="setting-input" placeholder="Episode" value="Episode" oninput="updateTimelineUnit(this.value)">
+                    <input type="text" id="timeline-unit-input" class="setting-input" placeholder="Episode" value="Episode" maxlength="25" oninput="updateTimelineUnit(this.value)">
                     <div class="setting-hint">Define the terminology for your timeline units (e.g., "Year", "Project", "Chapter")</div>
+                </div>
+
+                <div class="setting-row">
+                    <label class="setting-label">Timeline Subunits</label>
+                    <div class="subunit-bracket">
+                        <div class="bracket-symbol">{</div>
+                        <div class="subunit-inputs">
+                            <input type="text" id="subunit-plot-input" class="setting-input subunit-input" placeholder="Plot" value="Plot" maxlength="20" oninput="updateSubunits()">
+                            <input type="text" id="subunit-event-input" class="setting-input subunit-input" placeholder="Event" value="Event" maxlength="20" oninput="updateSubunits()">
+                        </div>
+                    </div>
+                    <div class="setting-hint">Define terminology for plot structures and individual events</div>
                 </div>
 
                 <div class="setting-row">
@@ -1936,6 +2098,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Cursor-tracking preview tooltips -->
+    <div id="character-preview-tooltip" class="preview-tooltip"></div>
+    <div id="episode-preview-tooltip" class="preview-tooltip"></div>
 
     <script>
         // IndexedDB for image storage (supports much larger files)
@@ -2011,6 +2177,8 @@
         let isDistributed = false;
         let panX = 0, panY = 0, gridZoom = 1;
         let timelineUnit = "Episode"; // Default timeline unit terminology
+        let subunitPlot = "Plot"; // Default plot terminology
+        let subunitEvent = "Event"; // Default event terminology
 
         // Characters data
         let characters = [];
@@ -2100,14 +2268,13 @@
         setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() {
-            // Set localStorage flag for universes page to restore panels
-            localStorage.setItem('alphaline_restore_panels', 'true');
+            // Send message to parent frame to restore panels (matching universes.html pattern)
+            window.parent.postMessage('RETRACT_FRAME', '*');
             
-            // Send postMessage as backup
-            window.parent.postMessage('RESTORE_PANELS', '*');
-            
-            // Navigate back to universes page
-            window.location.href = 'universes.html';
+            // Small delay before navigation to allow frame restoration
+            setTimeout(() => {
+                window.location.href = 'universes.html';
+            }, 50);
         }
 
         // Camera Controls
@@ -2155,9 +2322,9 @@
         // Center and zoom the node graph
         function resetGraphView() {
             // Focus on Episode/Characters/Synopsis nodes at top
-            // Leave room at bottom for timeline (approximately 200px)
+            // Move view down to see top nodes better
             panX = 0;
-            panY = -200; // Offset upward to keep top nodes visible with timeline
+            panY = -100; // Less offset = view moved down more (was -200)
             gridZoom = 0.7; // Zoom level to see all three top nodes
             updateGrid();
         }
@@ -2277,7 +2444,7 @@
         function addNewPlotNode(index, column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
-            plotsByYear[selectedYear][column].splice(index, 0, { title: 'NEW PLOT', events: [] });
+            plotsByYear[selectedYear][column].splice(index, 0, { title: `NEW ${subunitPlot.toUpperCase()}`, events: [] });
             renderPlotStack();
             saveData();
         }
@@ -2285,7 +2452,7 @@
         function appendPlotNode(column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
-            plotsByYear[selectedYear][column].push({ title: 'NEW PLOT', events: [] });
+            plotsByYear[selectedYear][column].push({ title: `NEW ${subunitPlot.toUpperCase()}`, events: [] });
             renderPlotStack();
             saveData();
         }
@@ -2341,7 +2508,7 @@
                 node.innerHTML = `
                     <input class="plot-title-field" value="${plot.title}" oninput="updatePlotTitle(${pIdx}, '${colName}', this.value)">
                     <div id="ev-container-${colName}-${pIdx}" style="display:flex; flex-direction:column; gap:12px;"></div>
-                    <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add Event</button>
+                    <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add ${subunitEvent}</button>
                 `;
 
                 // Events
@@ -2712,9 +2879,18 @@
             const max = Math.max(...currentUniverse.years);
             const range = max - min || 1;
             
-            // Min/Max labels
-            bar.innerHTML += `<div class="year-box box-min">${min}</div>`;
-            bar.innerHTML += `<div class="year-box box-max">${max}</div>`;
+            // Min/Max labels (clickable)
+            const minBox = document.createElement('div');
+            minBox.className = 'year-box box-min';
+            minBox.innerText = min;
+            minBox.onclick = () => selectYear(min);
+            bar.appendChild(minBox);
+            
+            const maxBox = document.createElement('div');
+            maxBox.className = 'year-box box-max';
+            maxBox.innerText = max;
+            maxBox.onclick = () => selectYear(max);
+            bar.appendChild(maxBox);
             
             currentUniverse.years.forEach((year, index) => {
                 let pos;
@@ -2735,12 +2911,63 @@
                 
                 const isSelected = year === selectedYear;
                 
+                // Create marker (line or dot)
                 const marker = document.createElement('div');
                 marker.className = `year-line ${isSelected ? 'selected-marker' : ''}`;
                 marker.style.left = `${pos}%`;
                 marker.onclick = () => selectYear(year);
-                marker.innerHTML = `<div class="year-box box-above">${year}</div>`;
                 
+                // Create year box (hidden by default for middle items)
+                const yearBox = document.createElement('div');
+                yearBox.className = 'year-box box-above';
+                yearBox.innerText = year;
+                yearBox.onclick = (e) => {
+                    e.stopPropagation();
+                    selectYear(year);
+                };
+                
+                // Hover behavior with 1s delay
+                let hoverTimeout;
+                let hideTimeout;
+                
+                marker.addEventListener('mouseenter', (e) => {
+                    clearTimeout(hideTimeout);
+                    hoverTimeout = setTimeout(() => {
+                        yearBox.classList.add('show');
+                    }, 100); // Small delay to show
+                    showEpisodePreview(year, e);
+                });
+                
+                marker.addEventListener('mouseleave', () => {
+                    clearTimeout(hoverTimeout);
+                    hideTimeout = setTimeout(() => {
+                        yearBox.classList.remove('show');
+                    }, 1000); // 1s delay to hide
+                    hideEpisodePreview();
+                });
+                
+                marker.addEventListener('mousemove', (e) => {
+                    updateEpisodePreview(e);
+                });
+                
+                yearBox.addEventListener('mouseenter', (e) => {
+                    clearTimeout(hideTimeout);
+                    yearBox.classList.add('show');
+                    showEpisodePreview(year, e);
+                });
+                
+                yearBox.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        yearBox.classList.remove('show');
+                    }, 1000); // 1s delay to hide
+                    hideEpisodePreview();
+                });
+                
+                yearBox.addEventListener('mousemove', (e) => {
+                    updateEpisodePreview(e);
+                });
+                
+                marker.appendChild(yearBox);
                 bar.appendChild(marker);
             });
             
@@ -2760,10 +2987,36 @@
             updateThemeToggleUI();
             // Update timeline unit input
             document.getElementById('timeline-unit-input').value = timelineUnit;
+            // Update subunit inputs
+            document.getElementById('subunit-plot-input').value = subunitPlot;
+            document.getElementById('subunit-event-input').value = subunitEvent;
         }
 
         function closeSettingsModal() {
             document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function updateSubunits() {
+            subunitPlot = document.getElementById('subunit-plot-input').value || "Plot";
+            subunitEvent = document.getElementById('subunit-event-input').value || "Event";
+            
+            localStorage.setItem('alphaline_subunit_plot', subunitPlot);
+            localStorage.setItem('alphaline_subunit_event', subunitEvent);
+            
+            // Update all UI elements with new terminology
+            updateSubunitUI();
+        }
+
+        function updateSubunitUI() {
+            // Update "Add Plot" buttons in renderColumn
+            document.querySelectorAll('button[onclick*="addEventToNode"]').forEach(btn => {
+                btn.innerText = `+ Add ${subunitEvent}`;
+            });
+            
+            // Re-render to update plot title placeholders
+            if (selectedYear) {
+                renderPlotStack();
+            }
         }
 
         function updateTimelineUnit(newUnit) {
@@ -2955,8 +3208,35 @@
             
             updateCharacterPreview(char.image);
             updateColorPreview(char.color || "#888888");
+            
+            // Update appearances list
+            updateCharacterAppearances(charId);
 
             document.getElementById('character-editor-overlay').style.display = 'flex';
+        }
+
+        function updateCharacterAppearances(charId) {
+            // Find which episodes this character appears in
+            const appearingEpisodes = [];
+            Object.keys(plotsByYear).forEach(year => {
+                const scene = plotsByYear[year];
+                if (scene.sceneCharacters && scene.sceneCharacters.includes(charId)) {
+                    appearingEpisodes.push(year);
+                }
+            });
+            
+            const appearsList = document.getElementById('char-appears-list');
+            const appearsUnit = document.getElementById('char-appears-unit');
+            
+            appearsUnit.innerText = timelineUnit;
+            
+            if (appearingEpisodes.length > 0) {
+                appearsList.innerText = appearingEpisodes.sort((a,b) => a-b).join(', ');
+                appearsList.style.color = '#aaa';
+            } else {
+                appearsList.innerText = 'None';
+                appearsList.style.color = '#666';
+            }
         }
 
         function closeCharacterEditor() {
@@ -3081,6 +3361,22 @@
 
             // Set name
             document.getElementById('detail-name').innerText = char.name;
+
+            // Update appears-in list
+            const appearingEpisodes = [];
+            Object.keys(plotsByYear).forEach(year => {
+                const scene = plotsByYear[year];
+                if (scene.sceneCharacters && scene.sceneCharacters.includes(charId)) {
+                    appearingEpisodes.push(year);
+                }
+            });
+            
+            const appearsList = document.getElementById('detail-appears-list');
+            if (appearingEpisodes.length > 0) {
+                appearsList.innerText = appearingEpisodes.sort((a,b) => a-b).join(', ');
+            } else {
+                appearsList.innerText = 'None';
+            }
 
             // Update button state
             updateAddToEpisodeButton();
@@ -3235,7 +3531,12 @@
                 const imgStyle = char.image ? `background-image: url('${char.image}'); background-size: cover;` : '';
                 const borderColor = char.color || '#333';
                 
-                return `<div class="scene-char-avatar" style="${imgStyle} border-color: ${borderColor};" title="${char.name}" onclick="openCharacterInfo(${id}); event.stopPropagation();"></div>`;
+                return `<div class="scene-char-avatar" 
+                    style="${imgStyle} border-color: ${borderColor};" 
+                    onclick="openCharacterInfo(${id}); event.stopPropagation();"
+                    onmouseenter="showCharacterPreview(${id}, event)"
+                    onmouseleave="hideCharacterPreview()"
+                    onmousemove="updateCharacterPreview(event)"></div>`;
             }).join('');
 
             charNode.innerHTML = `
@@ -3417,14 +3718,155 @@
                 timelineUnit = savedUnit;
             }
             
+            // Load subunit preferences
+            const savedPlot = localStorage.getItem('alphaline_subunit_plot');
+            if (savedPlot) {
+                subunitPlot = savedPlot;
+            }
+            
+            const savedEvent = localStorage.getItem('alphaline_subunit_event');
+            if (savedEvent) {
+                subunitEvent = savedEvent;
+            }
+            
             renderTimeline();
             updateTimelineUnitUI();
+            updateSubunitUI();
         }
 
         // Initialize on page load
         initTrashZone(); // Setup trash zone ONCE
         loadThemePreference(); // Load saved theme
         loadData();
+        
+        // Character preview tooltip
+        let characterPreviewTimeout;
+        
+        function showCharacterPreview(charId, event) {
+            clearTimeout(characterPreviewTimeout);
+            
+            const char = characters.find(c => c.id === charId);
+            if (!char) return;
+            
+            // Find which episodes this character appears in
+            const appearingEpisodes = [];
+            Object.keys(plotsByYear).forEach(year => {
+                const scene = plotsByYear[year];
+                if (scene.sceneCharacters && scene.sceneCharacters.includes(charId)) {
+                    appearingEpisodes.push(year);
+                }
+            });
+            
+            // Truncate bio to 150 characters
+            let bioText = char.bio || 'No biography added.';
+            if (bioText.length > 150) {
+                bioText = bioText.substring(0, 150) + '...';
+            }
+            
+            const tooltip = document.getElementById('character-preview-tooltip');
+            tooltip.innerHTML = `
+                <div class="preview-tooltip-header">${char.name}</div>
+                <div class="preview-tooltip-subtext">${char.status || 'Unknown'}</div>
+                <div class="preview-tooltip-bio">${bioText}</div>
+                <div class="preview-tooltip-episodes">
+                    <span class="preview-tooltip-label">Appears in ${timelineUnit}:</span> 
+                    ${appearingEpisodes.length > 0 ? appearingEpisodes.sort((a,b) => a-b).join(', ') : 'None'}
+                </div>
+            `;
+            
+            characterPreviewTimeout = setTimeout(() => {
+                tooltip.classList.add('show');
+            }, 300);
+            
+            updateTooltipPosition(tooltip, event);
+        }
+        
+        function hideCharacterPreview() {
+            clearTimeout(characterPreviewTimeout);
+            const tooltip = document.getElementById('character-preview-tooltip');
+            tooltip.classList.remove('show');
+        }
+        
+        function updateCharacterPreview(event) {
+            const tooltip = document.getElementById('character-preview-tooltip');
+            if (tooltip.classList.contains('show')) {
+                updateTooltipPosition(tooltip, event);
+            }
+        }
+        
+        // Episode preview tooltip
+        let episodePreviewTimeout;
+        
+        function showEpisodePreview(year, event) {
+            clearTimeout(episodePreviewTimeout);
+            
+            const scene = plotsByYear[year];
+            if (!scene) return;
+            
+            const episodeTitle = scene.episodeTitle || `${timelineUnit} ${year}`;
+            let synopsis = scene.synopsis || 'No synopsis added.';
+            if (synopsis.length > 150) {
+                synopsis = synopsis.substring(0, 150) + '...';
+            }
+            
+            // Get character names
+            const characterNames = (scene.sceneCharacters || [])
+                .map(id => {
+                    const char = characters.find(c => c.id === id);
+                    return char ? char.name : null;
+                })
+                .filter(name => name)
+                .join(', ');
+            
+            const tooltip = document.getElementById('episode-preview-tooltip');
+            tooltip.innerHTML = `
+                <div class="preview-tooltip-header">${timelineUnit} ${year}: ${episodeTitle}</div>
+                <div class="preview-tooltip-bio">${synopsis}</div>
+                <div class="preview-tooltip-episodes">
+                    <span class="preview-tooltip-label">Featuring:</span> 
+                    ${characterNames || 'No characters added'}
+                </div>
+            `;
+            
+            episodePreviewTimeout = setTimeout(() => {
+                tooltip.classList.add('show');
+            }, 300);
+            
+            updateTooltipPosition(tooltip, event);
+        }
+        
+        function hideEpisodePreview() {
+            clearTimeout(episodePreviewTimeout);
+            const tooltip = document.getElementById('episode-preview-tooltip');
+            tooltip.classList.remove('show');
+        }
+        
+        function updateEpisodePreview(event) {
+            const tooltip = document.getElementById('episode-preview-tooltip');
+            if (tooltip.classList.contains('show')) {
+                updateTooltipPosition(tooltip, event);
+            }
+        }
+        
+        function updateTooltipPosition(tooltip, event) {
+            const offsetX = 15;
+            const offsetY = 15;
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            let x = event.clientX + offsetX;
+            let y = event.clientY + offsetY;
+            
+            // Keep tooltip on screen
+            if (x + tooltipRect.width > window.innerWidth) {
+                x = event.clientX - tooltipRect.width - offsetX;
+            }
+            if (y + tooltipRect.height > window.innerHeight) {
+                y = event.clientY - tooltipRect.height - offsetY;
+            }
+            
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
         
         // Allow Enter key to confirm year modal
         document.getElementById('year-input').addEventListener('keypress', (e) => {
