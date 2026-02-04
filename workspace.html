@@ -317,7 +317,17 @@
             resize: none; 
             outline: none; 
             text-align: center; 
-            overflow: hidden; 
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 60px;
+        }
+        
+        /* Contenteditable placeholder */
+        .synopsis-input[contenteditable]:empty:before {
+            content: attr(placeholder);
+            color: #444;
+            cursor: text;
         }
 
         /* Pipes */
@@ -459,7 +469,16 @@
             font-family: 'Inter', sans-serif; min-height: 40px; display: block; overflow: hidden;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            white-space: pre-wrap;
         }
+        
+        /* Contenteditable placeholder for event input */
+        .event-input[contenteditable]:empty:before {
+            content: attr(placeholder);
+            color: #444;
+            cursor: text;
+        }
+        
         .char-count { font-size: 0.5rem; color: #444; text-align: right; margin-top: 5px; font-family: 'JetBrains Mono'; }
 
         .event-image-container {
@@ -737,6 +756,9 @@
             color: #aaa;
             line-height: 1.4;
             margin-bottom: 6px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
 
         .preview-tooltip-episodes {
@@ -1208,7 +1230,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 450px;
-            max-height: 30vh;
+            min-height: fit-content;
             background: rgba(12, 12, 12, 0.98);
             border: 1px solid #333;
             border-radius: 15px;
@@ -1864,7 +1886,7 @@
                     <div style="flex: 1;">
                         <div id="detail-name" class="detail-name"></div>
                         <div id="detail-appears" class="detail-appears">
-                            <span class="detail-appears-label">Appears in:</span>
+                            <span class="detail-appears-label">Appears in Episode(s):</span>
                             <span id="detail-appears-list">None</span>
                         </div>
                     </div>
@@ -1948,7 +1970,7 @@
                 </div>
 
                 <div class="editor-section full-width" id="char-appearances-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #222;">
-                    <label>Appears in <span id="char-appears-unit">${timelineUnit}</span>:</label>
+                    <label>Appears in <span id="char-appears-unit">${timelineUnit}</span>(s):</label>
                     <div id="char-appears-list" style="font-size: 0.75rem; color: #888; margin-top: 6px;">
                         None
                     </div>
@@ -2016,7 +2038,12 @@
 
             <div class="synopsis-node">
                 <div class="node-label" style="margin-bottom:8px;">Synopsis</div>
-                <textarea id="synopsis-text" class="synopsis-input" placeholder="Enter year synopsis..." oninput="handleSynopsis(this)"></textarea>
+                <div id="synopsis-text" 
+                     class="synopsis-input" 
+                     contenteditable="true" 
+                     placeholder="Enter year synopsis..." 
+                     oninput="handleSynopsis(this)"
+                     onblur="processCharacterNamesInSynopsis()"></div>
             </div>
 
             <div id="branch-hub" class="branch-hub">
@@ -2427,10 +2454,26 @@
         }
 
         function handleSynopsis(el) {
-            autoSize(el);
             if(selectedYear) {
-                plotsByYear[selectedYear].synopsis = el.value;
+                // Get text content from contenteditable div
+                const text = el.innerText || el.textContent || "";
+                plotsByYear[selectedYear].synopsis = text;
                 saveData();
+            }
+        }
+        
+        function processCharacterNamesInSynopsis() {
+            if (!selectedYear) return;
+            const el = document.getElementById('synopsis-text');
+            const text = el.innerText || el.textContent || "";
+            
+            // Apply character name highlighting
+            const highlighted = highlightCharacterNames(text);
+            
+            // Only update if there are highlights
+            if (highlighted !== text && highlighted.includes('char-name-highlight')) {
+                el.innerHTML = highlighted;
+                attachCharacterNameHandlers();
             }
         }
 
@@ -2444,7 +2487,7 @@
         function addNewPlotNode(index, column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
-            plotsByYear[selectedYear][column].splice(index, 0, { title: `NEW ${subunitPlot.toUpperCase()}`, events: [] });
+            plotsByYear[selectedYear][column].splice(index, 0, { title: 'Add Text', events: [] });
             renderPlotStack();
             saveData();
         }
@@ -2452,7 +2495,7 @@
         function appendPlotNode(column) {
             if (!selectedYear) return;
             ensureYearData(selectedYear);
-            plotsByYear[selectedYear][column].push({ title: `NEW ${subunitPlot.toUpperCase()}`, events: [] });
+            plotsByYear[selectedYear][column].push({ title: 'Add Text', events: [] });
             renderPlotStack();
             saveData();
         }
@@ -2473,8 +2516,10 @@
 
             // Synopsis
             const synBox = document.getElementById('synopsis-text');
-            synBox.value = data.synopsis || "";
-            autoSize(synBox);
+            const synopsisText = data.synopsis || "";
+            const highlighted = highlightCharacterNames(synopsisText);
+            synBox.innerHTML = highlighted;
+            attachCharacterNameHandlers();
 
             // Hub Trigger
             const hub = document.getElementById('branch-hub');
@@ -2531,7 +2576,12 @@
                                 <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${pIdx}, ${eIdx}, '${colName}')">↔</div>
                                 <div class="tool-btn tool-delete" title="Delete Event" onclick="deleteEvent(${pIdx}, ${eIdx}, '${colName}')">×</div>
                             </div>
-                            <textarea class="event-input" maxlength="500" placeholder="Event description..." oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')">${ev.text}</textarea>
+                            <div class="event-input" 
+                                 contenteditable="true" 
+                                 data-maxlength="500" 
+                                 placeholder="Event description..." 
+                                 oninput="handleEventText(this, ${pIdx}, ${eIdx}, '${colName}')"
+                                 onblur="processCharacterNamesInEvent(${pIdx}, ${eIdx}, '${colName}')">${highlightCharacterNames(ev.text)}</div>
                             <div class="char-count">${ev.text.length}/500</div>
                         </div>
                         <div class="event-resize-handle" onmousedown="startEventResize(event, ${pIdx}, ${eIdx}, '${colName}')">
@@ -2777,14 +2827,46 @@
 
         // --- HELPERS ---
         function handleEventText(el, pIdx, eIdx, col) {
-            autoSize(el);
-            plotsByYear[selectedYear][col][pIdx].events[eIdx].text = el.value;
-            el.nextElementSibling.innerText = `${el.value.length}/500`;
+            const text = el.innerText || el.textContent || "";
+            
+            // Enforce 500 char limit for contenteditable
+            if (text.length > 500) {
+                el.innerText = text.substring(0, 500);
+                // Move cursor to end
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(el);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            
+            plotsByYear[selectedYear][col][pIdx].events[eIdx].text = text;
+            el.nextElementSibling.innerText = `${text.length}/500`;
             
             // Update column widths (event widths are now fixed)
             updateColumnWidths();
             
             saveData();
+        }
+        
+        function processCharacterNamesInEvent(pIdx, eIdx, col) {
+            if (!selectedYear) return;
+            
+            const event = plotsByYear[selectedYear][col][pIdx].events[eIdx];
+            if (!event) return;
+            
+            // Find the event input element
+            const eventNode = document.querySelector(`[data-p-idx="${pIdx}"][data-e-idx="${eIdx}"][data-col="${col}"] .event-input`);
+            if (!eventNode) return;
+            
+            const text = eventNode.innerText || eventNode.textContent || "";
+            const highlighted = highlightCharacterNames(text);
+            
+            if (highlighted !== text && highlighted.includes('char-name-highlight')) {
+                eventNode.innerHTML = highlighted;
+                attachCharacterNameHandlers();
+            }
         }
 
         function updateColumnWidths() {
@@ -2879,17 +2961,23 @@
             const max = Math.max(...currentUniverse.years);
             const range = max - min || 1;
             
-            // Min/Max labels (clickable)
+            // Min/Max labels (clickable with preview)
             const minBox = document.createElement('div');
             minBox.className = 'year-box box-min';
             minBox.innerText = min;
             minBox.onclick = () => selectYear(min);
+            minBox.onmouseenter = (e) => showEpisodePreview(min, e);
+            minBox.onmouseleave = () => hideEpisodePreview();
+            minBox.onmousemove = (e) => updateEpisodePreview(e);
             bar.appendChild(minBox);
             
             const maxBox = document.createElement('div');
             maxBox.className = 'year-box box-max';
             maxBox.innerText = max;
             maxBox.onclick = () => selectYear(max);
+            maxBox.onmouseenter = (e) => showEpisodePreview(max, e);
+            maxBox.onmouseleave = () => hideEpisodePreview();
+            maxBox.onmousemove = (e) => updateEpisodePreview(e);
             bar.appendChild(maxBox);
             
             currentUniverse.years.forEach((year, index) => {
@@ -3000,8 +3088,8 @@
             subunitPlot = document.getElementById('subunit-plot-input').value || "Plot";
             subunitEvent = document.getElementById('subunit-event-input').value || "Event";
             
-            localStorage.setItem('alphaline_subunit_plot', subunitPlot);
-            localStorage.setItem('alphaline_subunit_event', subunitEvent);
+            // Save to universe data
+            saveData();
             
             // Update all UI elements with new terminology
             updateSubunitUI();
@@ -3021,7 +3109,9 @@
 
         function updateTimelineUnit(newUnit) {
             timelineUnit = newUnit || "Episode";
-            localStorage.setItem('alphaline_timeline_unit', timelineUnit);
+            
+            // Save to universe data
+            saveData();
             
             // Update all UI elements with new terminology
             updateTimelineUnitUI();
@@ -3281,6 +3371,7 @@
             const char = characters.find(c => c.id === editingCharacterId);
             if (!char) return;
 
+            const oldName = char.name;
             char.name = document.getElementById('char-name').value || "Unnamed Character";
             char.aliases = document.getElementById('char-aliases').value.split(',').map(a => a.trim()).filter(a => a);
             char.status = document.getElementById('char-status').value;
@@ -3298,6 +3389,12 @@
             updateColorPreview(char.color);
 
             saveData();
+            
+            // Re-process character names if name or color changed
+            if (oldName !== char.name || char.color) {
+                processCharacterNamesInSynopsis();
+                renderPlotStack(); // This will re-highlight all events
+            }
         }
 
         function updateCharacterPreview(imgUrl) {
@@ -3424,18 +3521,11 @@
             } else {
                 // Add character
                 addCharacterToScene(selectedCharacterId);
-                
-                // Fade out over 1.5 seconds, then close
-                const detailPopup = document.getElementById('character-detail-popup');
-                detailPopup.classList.add('fading');
-                
-                setTimeout(() => {
-                    closeCharacterDetail();
-                }, 1500);
-                return;
             }
             
+            // Update button state and detail box (no fade/close)
             updateAddToEpisodeButton();
+            showCharacterDetail(selectedCharacterId); // Refresh the appears-in list
         }
 
         function removeCharacterFromScene(charId) {
@@ -3628,7 +3718,12 @@
                 const dataToSave = JSON.stringify({
                     years: currentUniverse.years,
                     plots: plotsByYear,
-                    characters: characters
+                    characters: characters,
+                    terminology: {
+                        timelineUnit: timelineUnit,
+                        subunitPlot: subunitPlot,
+                        subunitEvent: subunitEvent
+                    }
                 });
                 
                 // Calculate approximate size
@@ -3704,29 +3799,19 @@
                     plotsByYear = data.plots || {};
                     characters = data.characters || [];
                     
+                    // Load terminology from universe data (per-universe, not shared)
+                    if (data.terminology) {
+                        timelineUnit = data.terminology.timelineUnit || "Episode";
+                        subunitPlot = data.terminology.subunitPlot || "Plot";
+                        subunitEvent = data.terminology.subunitEvent || "Event";
+                    }
+                    
                     if(currentUniverse.years.length > 0) {
                         selectYear(currentUniverse.years[0]);
                     }
                 } catch(e) {
                     console.error('Failed to load saved data:', e);
                 }
-            }
-            
-            // Load timeline unit preference
-            const savedUnit = localStorage.getItem('alphaline_timeline_unit');
-            if (savedUnit) {
-                timelineUnit = savedUnit;
-            }
-            
-            // Load subunit preferences
-            const savedPlot = localStorage.getItem('alphaline_subunit_plot');
-            if (savedPlot) {
-                subunitPlot = savedPlot;
-            }
-            
-            const savedEvent = localStorage.getItem('alphaline_subunit_event');
-            if (savedEvent) {
-                subunitEvent = savedEvent;
             }
             
             renderTimeline();
@@ -3769,7 +3854,7 @@
                 <div class="preview-tooltip-subtext">${char.status || 'Unknown'}</div>
                 <div class="preview-tooltip-bio">${bioText}</div>
                 <div class="preview-tooltip-episodes">
-                    <span class="preview-tooltip-label">Appears in ${timelineUnit}:</span> 
+                    <span class="preview-tooltip-label">Appears in ${timelineUnit}(s):</span> 
                     ${appearingEpisodes.length > 0 ? appearingEpisodes.sort((a,b) => a-b).join(', ') : 'None'}
                 </div>
             `;
@@ -3866,6 +3951,44 @@
             
             tooltip.style.left = x + 'px';
             tooltip.style.top = y + 'px';
+        }
+        
+        // Character name highlighting in text
+        function highlightCharacterNames(text) {
+            if (!text || characters.length === 0) return text;
+            
+            // Sort characters by name length (longest first) to avoid partial matches
+            const sortedChars = [...characters].sort((a, b) => b.name.length - a.name.length);
+            
+            let result = text;
+            const replacements = [];
+            
+            sortedChars.forEach(char => {
+                if (!char.name || char.name === "Unnamed Character") return;
+                
+                // Case-insensitive regex with word boundaries
+                const regex = new RegExp(`\\b(${char.name})\\b`, 'gi');
+                
+                result = result.replace(regex, (match, p1, offset) => {
+                    const id = `char_${char.id}_${offset}`;
+                    replacements.push({ id, charId: char.id, color: char.color || '#888' });
+                    return `<span class="char-name-highlight" id="${id}" style="color: ${char.color}; border-color: ${char.color};" data-char-id="${char.id}">${match}</span>`;
+                });
+            });
+            
+            return result;
+        }
+        
+        function attachCharacterNameHandlers() {
+            // Attach hover handlers to all highlighted character names
+            document.querySelectorAll('.char-name-highlight').forEach(span => {
+                const charId = parseInt(span.dataset.charId);
+                if (!charId) return;
+                
+                span.addEventListener('mouseenter', (e) => showCharacterPreview(charId, e));
+                span.addEventListener('mouseleave', () => hideCharacterPreview());
+                span.addEventListener('mousemove', (e) => updateCharacterPreview(e));
+            });
         }
         
         // Allow Enter key to confirm year modal
