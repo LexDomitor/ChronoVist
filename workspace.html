@@ -657,9 +657,9 @@
             transform: translateY(-50%); 
         }
         
-        /* Dark-on-Light: Make timeline more visible (lighter) */
+        /* Dark-on-Light: Make timeline more visible (light gray) */
         body.theme-dark-on-light .timeline-axis {
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(180, 180, 180, 0.4);
         }
         
         /* Light-on-Dark: Make timeline more visible (darker) */
@@ -682,11 +682,19 @@
         .year-dot:hover {
             transform: scale(1.2);
         }
+        
+        /* Selected timeline marker - black in Light modes */
+        body.theme-light .selected-marker,
+        body.theme-light-on-dark .selected-marker {
+            background: #000 !important;
+        }
+        
         .year-line { 
             width: 2px; 
             height: 15px; 
             background: var(--text-dim);
-            z-index: 10; 
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
         }
         .selected-marker { background: var(--accent) !important; box-shadow: 0 0 15px var(--accent); height: 20px !important; width: 2px !important; }
         
@@ -2533,8 +2541,41 @@
             // Render scene characters
             renderSceneCharacters();
             
+            // Load all IndexedDB images asynchronously
+            loadAllEventImages();
+            
             // Recalculate widths after rendering
             setTimeout(() => updateColumnWidths(), 50);
+        }
+        
+        async function loadAllEventImages() {
+            const imageContainers = document.querySelectorAll('.event-image-container[data-image-ref]');
+            for (const container of imageContainers) {
+                const imageRef = container.dataset.imageRef;
+                if (!imageRef) continue;
+                
+                if (imageRef.startsWith('indexeddb:')) {
+                    const imageKey = imageRef.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            const img = document.createElement('img');
+                            img.src = blobUrl;
+                            container.innerHTML = '';
+                            container.appendChild(img);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load event image:', error);
+                    }
+                } else {
+                    // Regular URL
+                    const img = document.createElement('img');
+                    img.src = imageRef;
+                    container.innerHTML = '';
+                    container.appendChild(img);
+                }
+            }
         }
 
         function renderColumn(containerId, plots, colName) {
@@ -2587,8 +2628,8 @@
                         <div class="event-resize-handle" onmousedown="startEventResize(event, ${pIdx}, ${eIdx}, '${colName}')">
                             <div class="resize-triangle"></div>
                         </div>
-                        <div class="event-image-container" onclick="openLightbox(${pIdx}, ${eIdx}, '${colName}')">
-                            ${ev.img ? `<img src="${ev.img}">` : '<span class="img-placeholder">ADD MEDIA</span>'}
+                        <div class="event-image-container" data-image-ref="${ev.img || ''}" onclick="openLightbox(${pIdx}, ${eIdx}, '${colName}')">
+                            ${ev.img ? '' : '<span class="img-placeholder">ADD MEDIA</span>'}
                         </div>
                     `;
                     setupDnD(evNode, 'event');
@@ -2716,17 +2757,21 @@
         function triggerImgUpload(pIdx, eIdx, col) {
             const input = document.createElement('input');
             input.type = 'file'; input.accept = 'image/*';
-            input.onchange = e => {
+            input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 
-                const reader = new FileReader();
-                reader.onload = r => {
-                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = r.target.result;
+                // Store in IndexedDB
+                const imageKey = `event_${selectedYear}_${col}_${pIdx}_${eIdx}_${Date.now()}`;
+                try {
+                    await storeImage(imageKey, file);
+                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = `indexeddb:${imageKey}`;
                     renderPlotStack();
                     saveData();
-                };
-                reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Failed to store event image:', error);
+                    alert('Failed to store image. Please try a smaller file or use an image URL instead.');
+                }
             };
             input.click();
         }
@@ -3397,46 +3442,93 @@
             }
         }
 
-        function updateCharacterPreview(imgUrl) {
+        async function updateCharacterPreview(imgUrl) {
             const img = document.getElementById('char-preview-img');
             const placeholder = document.getElementById('char-placeholder');
+            
             if (imgUrl && imgUrl.trim() !== "") {
-                img.src = imgUrl;
-                img.classList.add('visible');
-                placeholder.style.display = 'none';
+                // Check if it's an IndexedDB reference
+                if (imgUrl.startsWith('indexeddb:')) {
+                    const imageKey = imgUrl.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            img.src = blobUrl;
+                            img.classList.add('visible');
+                            placeholder.style.display = 'none';
+                            
+                            // Update detail popup avatar if it's showing
+                            const detailAvatar = document.getElementById('detail-avatar');
+                            if (detailAvatar && selectedCharacterId === editingCharacterId) {
+                                detailAvatar.style.backgroundImage = `url('${blobUrl}')`;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to load image from IndexedDB:', error);
+                        img.classList.remove('visible');
+                        placeholder.style.display = 'flex';
+                    }
+                } else {
+                    // Regular URL
+                    img.src = imgUrl;
+                    img.classList.add('visible');
+                    placeholder.style.display = 'none';
+                    
+                    // Update detail popup avatar if it's showing
+                    const detailAvatar = document.getElementById('detail-avatar');
+                    if (detailAvatar && selectedCharacterId === editingCharacterId) {
+                        detailAvatar.style.backgroundImage = `url('${imgUrl}')`;
+                    }
+                }
             } else {
                 img.classList.remove('visible');
                 placeholder.style.display = 'flex';
+                
+                // Clear detail popup avatar if it's showing
+                const detailAvatar = document.getElementById('detail-avatar');
+                if (detailAvatar && selectedCharacterId === editingCharacterId) {
+                    detailAvatar.style.backgroundImage = 'none';
+                }
             }
         }
 
         function updateColorPreview(color) {
             document.getElementById('color-preview').style.backgroundColor = color;
+            
+            // Update detail popup avatar border if it's showing
+            const detailAvatar = document.getElementById('detail-avatar');
+            if (detailAvatar && selectedCharacterId === editingCharacterId) {
+                detailAvatar.style.borderColor = color;
+            }
         }
 
-        function handleCharacterImageUpload(input) {
+        async function handleCharacterImageUpload(input) {
             const file = input.files[0];
             if (!file) return;
             
-            // Create blob URL (efficient, no base64 conversion)
-            const blobUrl = URL.createObjectURL(file);
-            
-            // Read as data URL for persistent storage
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                document.getElementById('char-img-url').value = reader.result;
+            // Store in IndexedDB
+            const imageKey = `char_${editingCharacterId}_${Date.now()}`;
+            try {
+                await storeImage(imageKey, file);
+                
+                // Store reference in character data
+                document.getElementById('char-img-url').value = `indexeddb:${imageKey}`;
                 autoSaveCharacter();
-            };
-            reader.readAsDataURL(file);
-            
-            // Use blob URL for immediate preview (faster)
-            document.getElementById('char-preview-img').src = blobUrl;
+                
+                // Create blob URL for immediate preview
+                const blobUrl = URL.createObjectURL(file);
+                document.getElementById('char-preview-img').src = blobUrl;
+            } catch (error) {
+                console.error('Failed to store image:', error);
+                alert('Failed to store image. Please try a smaller file or use an image URL instead.');
+            }
         }
 
         // --- CHARACTER DETAIL VIEW ---
         let selectedCharacterId = null;
 
-        function showCharacterDetail(charId) {
+        async function showCharacterDetail(charId) {
             selectedCharacterId = charId;
             const char = characters.find(c => c.id === charId);
             if (!char) return;
@@ -3450,7 +3542,22 @@
             // Set avatar
             const avatar = document.getElementById('detail-avatar');
             if (char.image) {
-                avatar.style.backgroundImage = `url('${char.image}')`;
+                // Check if it's an IndexedDB reference
+                if (char.image.startsWith('indexeddb:')) {
+                    const imageKey = char.image.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            avatar.style.backgroundImage = `url('${blobUrl}')`;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load image from IndexedDB:', error);
+                        avatar.style.backgroundImage = 'none';
+                    }
+                } else {
+                    avatar.style.backgroundImage = `url('${char.image}')`;
+                }
             } else {
                 avatar.style.backgroundImage = 'none';
             }
@@ -3599,7 +3706,7 @@
             renderSceneCharacters();
         }
 
-        function renderSceneCharacters() {
+        async function renderSceneCharacters() {
             // This will update the Characters node to show linked characters
             const charNode = document.querySelector('.sub-node');
             if (!charNode) return;
@@ -3618,11 +3725,12 @@
                 const char = characters.find(c => c.id === id);
                 if (!char) return '';
                 
-                const imgStyle = char.image ? `background-image: url('${char.image}'); background-size: cover;` : '';
                 const borderColor = char.color || '#333';
                 
                 return `<div class="scene-char-avatar" 
-                    style="${imgStyle} border-color: ${borderColor};" 
+                    data-char-id="${id}"
+                    data-char-image="${char.image || ''}"
+                    style="border-color: ${borderColor};" 
                     onclick="openCharacterInfo(${id}); event.stopPropagation();"
                     onmouseenter="showCharacterPreview(${id}, event)"
                     onmouseleave="hideCharacterPreview()"
@@ -3633,6 +3741,34 @@
                 <div class="node-label">Characters</div>
                 <div class="scene-characters-row">${charAvatars}</div>
             `;
+            
+            // Load images asynchronously
+            await loadSceneCharacterImages();
+        }
+        
+        async function loadSceneCharacterImages() {
+            const avatars = document.querySelectorAll('.scene-char-avatar[data-char-image]');
+            for (const avatar of avatars) {
+                const imageRef = avatar.dataset.charImage;
+                if (!imageRef) continue;
+                
+                if (imageRef.startsWith('indexeddb:')) {
+                    const imageKey = imageRef.replace('indexeddb:', '');
+                    try {
+                        const blob = await getImage(imageKey);
+                        if (blob) {
+                            const blobUrl = URL.createObjectURL(blob);
+                            avatar.style.backgroundImage = `url('${blobUrl}')`;
+                            avatar.style.backgroundSize = 'cover';
+                        }
+                    } catch (error) {
+                        console.error('Failed to load avatar image:', error);
+                    }
+                } else {
+                    avatar.style.backgroundImage = `url('${imageRef}')`;
+                    avatar.style.backgroundSize = 'cover';
+                }
+            }
         }
 
         // --- CHARACTER INFO PANEL (View Only) ---
