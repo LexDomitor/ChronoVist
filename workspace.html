@@ -2303,8 +2303,8 @@
         setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() {
-            // Send message to parent frame to restore panels (matching universes.html pattern)
-            window.parent.postMessage('RETRACT_FRAME', '*');
+            // Send message to parent to restore header/footer
+            window.parent.postMessage('RESTORE_FRAME', '*');
             
             // Small delay before navigation to allow frame restoration
             setTimeout(() => {
@@ -3959,6 +3959,9 @@
         initTrashZone(); // Setup trash zone ONCE
         loadThemePreference(); // Load saved theme
         loadData();
+        
+        // Send message to parent to hide header/footer (workspace mode)
+        window.parent.postMessage('RETRACT_FRAME', '*');
         
         // Character preview tooltip
         let characterPreviewTimeout;
