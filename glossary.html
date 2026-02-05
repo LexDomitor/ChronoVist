@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glossary</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Inter', -apple-system, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Main Layout */
+        .glossary-container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        /* Left Panel - Entry List */
+        .entry-list-panel {
+            width: 350px;
+            background: #111;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+        
+        .close-btn {
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .close-btn:hover {
+            color: #fff;
+        }
+        
+        .add-entry-btn {
+            margin: 15px;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        
+        .add-entry-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+        
+        .entry-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px 15px;
+        }
+        
+        .entry-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-left: 3px solid;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .entry-item:hover {
+            background: #161616;
+            border-color: #444;
+        }
+        
+        .entry-item.selected {
+            background: #1a1a1a;
+            border-color: #555;
+        }
+        
+        .entry-icon {
+            width: 35px;
+            height: 35px;
+            background: #000;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .entry-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .entry-name {
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .entry-type {
+            font-size: 0.6rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Right Panel - Entry Detail */
+        .entry-detail-panel {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        
+        .detail-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #444;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .detail-content {
+            display: none;
+        }
+        
+        .detail-content.visible {
+            display: block;
+        }
+        
+        .detail-image-container {
+            width: 200px;
+            height: 200px;
+            background: #000;
+            border: 1px solid #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .detail-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .detail-placeholder {
+            color: #333;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+        
+        .detail-name {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 5px;
+        }
+        
+        .detail-type {
+            font-size: 0.6rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding: 4px 10px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            display: inline-block;
+        }
+        
+        .detail-aliases {
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+        }
+        
+        .detail-aliases-label {
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.6rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .detail-description {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #aaa;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+        }
+        
+        .detail-appearances {
+            margin-bottom: 20px;
+        }
+        
+        .detail-appearances-label {
+            font-size: 0.6rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .detail-episodes {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        
+        .edit-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        
+        .edit-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+        
+        /* Form Overlay */
+        .form-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .form-overlay.active {
+            display: flex;
+        }
+        
+        .form-panel {
+            background: #111;
+            border: 1px solid #333;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .form-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+        
+        .form-close {
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .form-close:hover {
+            color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.6rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            border-color: #555;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        
+        .form-color-preview {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #333;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        
+        .form-image-preview {
+            width: 120px;
+            height: 120px;
+            background: #000;
+            border: 1px solid #333;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .form-image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .form-image-placeholder {
+            color: #333;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+        
+        .conflict-warning {
+            background: #331111;
+            border: 1px solid #662222;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 0.7rem;
+            color: #ff6666;
+            display: none;
+        }
+        
+        .conflict-warning.visible {
+            display: block;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="glossary-container">
+        <!-- Left Panel: Entry List -->
+        <div class="entry-list-panel">
+            <div class="panel-header">
+                <div class="panel-title">Glossary</div>
+                <div class="close-btn" onclick="closeGlossary()">×</div>
+            </div>
+            
+            <button class="add-entry-btn" onclick="openForm()">+ New Entry</button>
+            
+            <div class="entry-list" id="entry-list">
+                <!-- Entries will be rendered here -->
+            </div>
+        </div>
+        
+        <!-- Right Panel: Entry Detail -->
+        <div class="entry-detail-panel">
+            <div class="detail-empty" id="detail-empty">
+                Select an entry to view details
+            </div>
+            
+            <div class="detail-content" id="detail-content">
+                <div class="detail-image-container">
+                    <img id="detail-img" class="detail-image" style="display: none;">
+                    <div id="detail-img-placeholder" class="detail-placeholder">No Image</div>
+                </div>
+                
+                <div class="detail-name" id="detail-name"></div>
+                <div class="detail-type" id="detail-type"></div>
+                
+                <div class="detail-aliases">
+                    <div class="detail-aliases-label">Also Known As</div>
+                    <div id="detail-aliases-list">None</div>
+                </div>
+                
+                <div class="detail-description" id="detail-description"></div>
+                
+                <div class="detail-appearances">
+                    <div class="detail-appearances-label">Appears in Episodes</div>
+                    <div class="detail-episodes" id="detail-episodes">None</div>
+                </div>
+                
+                <button class="edit-btn" onclick="editSelectedEntry()">Edit Entry</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Form Overlay -->
+    <div class="form-overlay" id="form-overlay">
+        <div class="form-panel">
+            <div class="form-header">
+                <div class="form-title" id="form-title">New Entry</div>
+                <div class="form-close" onclick="closeForm()">×</div>
+            </div>
+            
+            <div class="conflict-warning" id="conflict-warning">
+                Name conflict detected! This name or alias is already in use.
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" id="form-name" class="form-input" placeholder="Enter name" oninput="autoSaveEntry()">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Aliases (comma-separated)</label>
+                <input type="text" id="form-aliases" class="form-input" placeholder="e.g., The Sword of Kings, Excalibur" oninput="autoSaveEntry()">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select id="form-type" class="form-select" onchange="autoSaveEntry()">
+                    <option value="Item">Item</option>
+                    <option value="Nature">Nature</option>
+                    <option value="Land">Land</option>
+                    <option value="Culture">Culture</option>
+                    <option value="Technology">Technology</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <input type="color" id="form-color" class="form-input" value="#888888" oninput="updateColorPreview(); autoSaveEntry()">
+                <div id="form-color-preview" class="form-color-preview"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" id="form-image" class="form-input" placeholder="https://..." oninput="updateImagePreview(); autoSaveEntry()">
+                <div class="form-image-preview">
+                    <img id="form-img-preview" style="display: none;">
+                    <div id="form-img-placeholder" class="form-image-placeholder">No Image</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="form-description" class="form-textarea" placeholder="Enter description..." oninput="autoSaveEntry()"></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let universeId = null;
+        let glossaryEntries = [];
+        let selectedEntryId = null;
+        let editingEntryId = null;
+        
+        // Get universe ID from URL
+        const params = new URLSearchParams(window.location.search);
+        universeId = params.get('id');
+        
+        // Type icons
+        const typeIcons = {
+            'Item': '⚔️',
+            'Nature': '🌿',
+            'Land': '🏔️',
+            'Culture': '📜',
+            'Technology': '⚙️'
+        };
+        
+        // Load glossary data
+        function loadGlossary() {
+            if (!universeId) return;
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    glossaryEntries = data.glossary || [];
+                } catch (e) {
+                    console.error('Failed to load glossary:', e);
+                }
+            }
+            
+            renderEntryList();
+        }
+        
+        // Save glossary data
+        function saveGlossary() {
+            if (!universeId) return;
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    data.glossary = glossaryEntries;
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    
+                    // Notify parent workspace of changes
+                    window.parent.postMessage({
+                        type: 'GLOSSARY_UPDATED',
+                        data: glossaryEntries
+                    }, '*');
+                } catch (e) {
+                    console.error('Failed to save glossary:', e);
+                }
+            }
+        }
+        
+        // Render entry list
+        function renderEntryList() {
+            const list = document.getElementById('entry-list');
+            
+            if (glossaryEntries.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #444; font-size: 0.7rem;">No entries yet</div>';
+                return;
+            }
+            
+            list.innerHTML = glossaryEntries.map(entry => `
+                <div class="entry-item ${selectedEntryId === entry.id ? 'selected' : ''}" 
+                     style="border-left-color: ${entry.color || '#888'}"
+                     onclick="selectEntry(${entry.id})">
+                    <div class="entry-icon">${typeIcons[entry.type] || '📄'}</div>
+                    <div class="entry-info">
+                        <div class="entry-name">${entry.name || 'Untitled'}</div>
+                        <div class="entry-type">${entry.type || 'Item'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Select entry
+        function selectEntry(id) {
+            selectedEntryId = id;
+            renderEntryList();
+            showEntryDetail(id);
+        }
+        
+        // Show entry detail
+        function showEntryDetail(id) {
+            const entry = glossaryEntries.find(e => e.id === id);
+            if (!entry) return;
+            
+            document.getElementById('detail-empty').style.display = 'none';
+            document.getElementById('detail-content').classList.add('visible');
+            
+            // Image
+            const img = document.getElementById('detail-img');
+            const imgPlaceholder = document.getElementById('detail-img-placeholder');
+            if (entry.image) {
+                img.src = entry.image;
+                img.style.display = 'block';
+                imgPlaceholder.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                imgPlaceholder.style.display = 'block';
+            }
+            
+            // Name and type
+            document.getElementById('detail-name').innerText = entry.name || 'Untitled';
+            document.getElementById('detail-name').style.color = entry.color || '#fff';
+            document.getElementById('detail-type').innerText = entry.type || 'Item';
+            
+            // Aliases
+            const aliasesList = document.getElementById('detail-aliases-list');
+            if (entry.aliases && entry.aliases.length > 0) {
+                aliasesList.innerText = entry.aliases.join(', ');
+            } else {
+                aliasesList.innerText = 'None';
+            }
+            
+            // Description
+            document.getElementById('detail-description').innerText = entry.description || 'No description provided.';
+            
+            // Episodes (placeholder for now)
+            document.getElementById('detail-episodes').innerText = 'None';
+        }
+        
+        // Open form for new entry
+        function openForm(entryId = null) {
+            editingEntryId = entryId;
+            const overlay = document.getElementById('form-overlay');
+            const title = document.getElementById('form-title');
+            
+            if (entryId) {
+                // Edit existing
+                title.innerText = 'Edit Entry';
+                const entry = glossaryEntries.find(e => e.id === entryId);
+                if (entry) {
+                    document.getElementById('form-name').value = entry.name || '';
+                    document.getElementById('form-aliases').value = entry.aliases ? entry.aliases.join(', ') : '';
+                    document.getElementById('form-type').value = entry.type || 'Item';
+                    document.getElementById('form-color').value = entry.color || '#888888';
+                    document.getElementById('form-image').value = entry.image || '';
+                    document.getElementById('form-description').value = entry.description || '';
+                    updateColorPreview();
+                    updateImagePreview();
+                }
+            } else {
+                // New entry
+                title.innerText = 'New Entry';
+                document.getElementById('form-name').value = '';
+                document.getElementById('form-aliases').value = '';
+                document.getElementById('form-type').value = 'Item';
+                document.getElementById('form-color').value = '#888888';
+                document.getElementById('form-image').value = '';
+                document.getElementById('form-description').value = '';
+                updateColorPreview();
+                updateImagePreview();
+            }
+            
+            overlay.classList.add('active');
+        }
+        
+        // Close form
+        function closeForm() {
+            const overlay = document.getElementById('form-overlay');
+            overlay.classList.remove('active');
+            editingEntryId = null;
+            
+            // Hide conflict warning
+            document.getElementById('conflict-warning').classList.remove('visible');
+        }
+        
+        // Check for name conflicts
+        function checkNameConflict(name, aliases, currentId = null) {
+            const normalizedName = name.toLowerCase().trim();
+            const normalizedAliases = aliases.map(a => a.toLowerCase().trim());
+            
+            for (const entry of glossaryEntries) {
+                if (entry.id === currentId) continue; // Skip self
+                
+                // Check against entry name
+                if (entry.name && entry.name.toLowerCase().trim() === normalizedName) {
+                    return true;
+                }
+                
+                // Check against entry aliases
+                if (entry.aliases) {
+                    for (const alias of entry.aliases) {
+                        if (alias.toLowerCase().trim() === normalizedName) {
+                            return true;
+                        }
+                        
+                        // Check if any of our aliases match this alias
+                        for (const ourAlias of normalizedAliases) {
+                            if (ourAlias === alias.toLowerCase().trim()) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                
+                // Check our aliases against their name
+                if (entry.name) {
+                    for (const ourAlias of normalizedAliases) {
+                        if (ourAlias === entry.name.toLowerCase().trim()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // Auto-save entry
+        function autoSaveEntry() {
+            const name = document.getElementById('form-name').value.trim();
+            const aliasesRaw = document.getElementById('form-aliases').value;
+            const aliases = aliasesRaw.split(',').map(a => a.trim()).filter(a => a);
+            const type = document.getElementById('form-type').value;
+            const color = document.getElementById('form-color').value;
+            const image = document.getElementById('form-image').value.trim();
+            const description = document.getElementById('form-description').value.trim();
+            
+            // Check for conflicts
+            const hasConflict = checkNameConflict(name, aliases, editingEntryId);
+            const warningEl = document.getElementById('conflict-warning');
+            
+            if (hasConflict && name) {
+                warningEl.classList.add('visible');
+                // Reset conflicting name
+                document.getElementById('form-name').value = '';
+                document.getElementById('form-aliases').value = '';
+                return;
+            } else {
+                warningEl.classList.remove('visible');
+            }
+            
+            if (editingEntryId) {
+                // Update existing entry
+                const entry = glossaryEntries.find(e => e.id === editingEntryId);
+                if (entry) {
+                    entry.name = name || 'Untitled';
+                    entry.aliases = aliases;
+                    entry.type = type;
+                    entry.color = color;
+                    entry.image = image;
+                    entry.description = description;
+                }
+            } else {
+                // Create new entry only if name is provided
+                if (name) {
+                    const newEntry = {
+                        id: Date.now(),
+                        name: name,
+                        aliases: aliases,
+                        type: type,
+                        color: color,
+                        image: image,
+                        description: description
+                    };
+                    glossaryEntries.push(newEntry);
+                    editingEntryId = newEntry.id;
+                    selectedEntryId = newEntry.id;
+                }
+            }
+            
+            saveGlossary();
+            renderEntryList();
+            
+            if (selectedEntryId) {
+                showEntryDetail(selectedEntryId);
+            }
+        }
+        
+        // Edit selected entry
+        function editSelectedEntry() {
+            if (selectedEntryId) {
+                openForm(selectedEntryId);
+            }
+        }
+        
+        // Update color preview
+        function updateColorPreview() {
+            const color = document.getElementById('form-color').value;
+            document.getElementById('form-color-preview').style.backgroundColor = color;
+        }
+        
+        // Update image preview
+        function updateImagePreview() {
+            const url = document.getElementById('form-image').value.trim();
+            const img = document.getElementById('form-img-preview');
+            const placeholder = document.getElementById('form-img-placeholder');
+            
+            if (url) {
+                img.src = url;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+        
+        // Close glossary
+        function closeGlossary() {
+            window.parent.postMessage({ type: 'CLOSE_GLOSSARY' }, '*');
+        }
+        
+        // Initialize
+        window.onload = () => {
+            loadGlossary();
+            updateColorPreview();
+        };
+    </script>
+</body>
+</html>
