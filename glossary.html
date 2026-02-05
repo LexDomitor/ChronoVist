@@ -511,6 +511,7 @@
                 </div>
                 
                 <button class="edit-btn" onclick="editSelectedEntry()">Edit Entry</button>
+                <button class="edit-btn" style="color: #ff4444; border-color: #442222; margin-top: 10px;" onclick="deleteSelectedEntry()">Delete Entry</button>
             </div>
         </div>
     </div>
@@ -563,12 +564,16 @@
             
             <div class="form-group">
                 <label class="form-label">Image</label>
-                <button class="upload-btn" onclick="document.getElementById('image-upload').click()">Upload Local Image</button>
-                <input type="file" id="image-upload" hidden accept="image/*" onchange="handleImageUpload(this)">
-                <input type="text" id="form-image" class="form-input" placeholder="Or paste image URL" oninput="updateImagePreview(); autoSaveEntry()" style="margin-top: 8px;">
-                <div class="form-image-preview">
-                    <img id="form-img-preview" style="display: none;">
-                    <div id="form-img-placeholder" class="form-image-placeholder">No Image</div>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div class="form-image-preview">
+                        <img id="form-img-preview" style="display: none;">
+                        <div id="form-img-placeholder" class="form-image-placeholder">No Image</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <button class="upload-btn" onclick="handleImageUploadClick()">Upload Local Image</button>
+                        <input type="file" id="image-upload" hidden accept="image/*" onchange="handleImageUpload(this)">
+                        <input type="text" id="form-image" class="form-input" placeholder="Or paste image URL" oninput="handleImageURLInput()" style="margin-top: 8px;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -794,6 +799,7 @@
                     document.getElementById('form-color').value = entry.color || '#888888';
                     document.getElementById('form-image').value = entry.image || '';
                     document.getElementById('form-description').value = entry.description || '';
+                    currentImageReference = entry.image || null;
                     updateColorPreview();
                     updateImagePreview();
                 }
@@ -806,6 +812,7 @@
                 document.getElementById('form-color').value = '#888888';
                 document.getElementById('form-image').value = '';
                 document.getElementById('form-description').value = '';
+                currentImageReference = null;
                 updateColorPreview();
                 updateImagePreview();
             }
@@ -825,8 +832,10 @@
         
         // Check for name conflicts
         function checkNameConflict(name, aliases, currentId = null) {
+            if (!name) return false;  // Empty name is not a conflict
+            
             const normalizedName = name.toLowerCase().trim();
-            const normalizedAliases = aliases.map(a => a.toLowerCase().trim());
+            const normalizedAliases = aliases.map(a => a.toLowerCase().trim()).filter(a => a);
             
             for (const entry of glossaryEntries) {
                 if (entry.id === currentId) continue; // Skip self
@@ -865,6 +874,40 @@
             return false;
         }
         
+        let currentImageReference = null;  // Track current image
+        
+        function handleImageUploadClick() {
+            const currentImage = document.getElementById('form-image').value.trim();
+            
+            if (currentImage) {
+                if (confirm('An image is already set. Do you want to replace it?')) {
+                    // Delete old image if it's from IndexedDB
+                    if (currentImage.startsWith('indexeddb:')) {
+                        // Note: IndexedDB doesn't have a built-in delete in our simple setup
+                        // But we can clear the reference
+                    }
+                    document.getElementById('image-upload').click();
+                }
+            } else {
+                document.getElementById('image-upload').click();
+            }
+        }
+        
+        function handleImageURLInput() {
+            const currentImage = document.getElementById('form-image').value.trim();
+            const previousImage = currentImageReference;
+            
+            if (previousImage && previousImage.startsWith('indexeddb:') && currentImage && !currentImage.startsWith('indexeddb:')) {
+                // User is pasting URL over uploaded image - already confirmed by typing
+                currentImageReference = currentImage;
+            } else {
+                currentImageReference = currentImage;
+            }
+            
+            updateImagePreview();
+            autoSaveEntry();
+        }
+        
         // Auto-save entry
         function autoSaveEntry() {
             const name = document.getElementById('form-name').value.trim();
@@ -887,6 +930,11 @@
                 return;
             } else {
                 warningEl.classList.remove('visible');
+            }
+            
+            // Don't save if no name yet
+            if (!name && !editingEntryId) {
+                return;
             }
             
             if (editingEntryId) {
@@ -930,6 +978,30 @@
         function editSelectedEntry() {
             if (selectedEntryId) {
                 openForm(selectedEntryId);
+            }
+        }
+        
+        // Delete selected entry
+        function deleteSelectedEntry() {
+            if (!selectedEntryId) return;
+            
+            const entry = glossaryEntries.find(e => e.id === selectedEntryId);
+            if (!entry) return;
+            
+            if (confirm(`Delete "${entry.name}"? This cannot be undone.`)) {
+                // Remove from array
+                glossaryEntries = glossaryEntries.filter(e => e.id !== selectedEntryId);
+                
+                // Clear selection
+                selectedEntryId = null;
+                
+                // Save and re-render
+                saveGlossary();
+                renderEntryList();
+                
+                // Hide detail panel
+                document.getElementById('detail-empty').style.display = 'flex';
+                document.getElementById('detail-content').classList.remove('visible');
             }
         }
         
