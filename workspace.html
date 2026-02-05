@@ -783,6 +783,105 @@
             letter-spacing: 0.5px;
         }
 
+        /* Lore Node */
+        .lore-node {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 140px;
+            padding: 20px;
+            background: var(--node-bg);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .lore-node-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .lore-icon-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .lore-icon {
+            width: 100%;
+            height: 70px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            gap: 5px;
+        }
+
+        .lore-icon:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: #555;
+        }
+
+        .lore-icon-symbol {
+            font-size: 1.8rem;
+        }
+
+        .lore-icon-label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+        }
+
+        /* Glossary Overlay */
+        .glossary-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: none;
+        }
+
+        .glossary-overlay.active {
+            display: block;
+        }
+
+        .glossary-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Glossary term highlighting in text */
+        .glossary-term-highlight {
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-decoration-thickness: 2px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+        }
+
+        .glossary-term-highlight:hover {
+            filter: brightness(1.2);
+        }
+
         /* Character name highlighting in text */
         .char-name-highlight {
             border: 1px solid;
@@ -2137,6 +2236,26 @@
     <!-- Cursor-tracking preview tooltips -->
     <div id="character-preview-tooltip" class="preview-tooltip"></div>
     <div id="episode-preview-tooltip" class="preview-tooltip"></div>
+
+    <!-- Lore Node -->
+    <div class="lore-node">
+        <div class="lore-node-label">Lore</div>
+        <div class="lore-icon-container">
+            <div class="lore-icon" onclick="openGlossary()">
+                <div class="lore-icon-symbol">📖</div>
+                <div class="lore-icon-label">Glossary</div>
+            </div>
+            <div class="lore-icon" onclick="alert('Atlas coming soon!')">
+                <div class="lore-icon-symbol">🗺️</div>
+                <div class="lore-icon-label">Atlas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glossary Overlay -->
+    <div id="glossary-overlay" class="glossary-overlay">
+        <iframe id="glossary-iframe" class="glossary-iframe"></iframe>
+    </div>
 
     <script>
         // IndexedDB for image storage (supports much larger files)
@@ -3934,6 +4053,7 @@
                     currentUniverse.years = data.years || [];
                     plotsByYear = data.plots || {};
                     characters = data.characters || [];
+                    glossaryEntries = data.glossary || [];
                     
                     // Load terminology from universe data (per-universe, not shared)
                     if (data.terminology) {
@@ -4094,26 +4214,30 @@
         
         // Character name highlighting in text
         function highlightCharacterNames(text) {
-            if (!text || characters.length === 0) return text;
-            
-            // Sort characters by name length (longest first) to avoid partial matches
-            const sortedChars = [...characters].sort((a, b) => b.name.length - a.name.length);
+            if (!text) return text;
             
             let result = text;
-            const replacements = [];
             
-            sortedChars.forEach(char => {
-                if (!char.name || char.name === "Unnamed Character") return;
+            // First apply glossary highlighting
+            result = highlightGlossaryTerms(result);
+            
+            // Then apply character highlighting
+            if (characters.length > 0) {
+                // Sort characters by name length (longest first) to avoid partial matches
+                const sortedChars = [...characters].sort((a, b) => b.name.length - a.name.length);
                 
-                // Case-insensitive regex with word boundaries
-                const regex = new RegExp(`\\b(${char.name})\\b`, 'gi');
-                
-                result = result.replace(regex, (match, p1, offset) => {
-                    const id = `char_${char.id}_${offset}`;
-                    replacements.push({ id, charId: char.id, color: char.color || '#888' });
-                    return `<span class="char-name-highlight" id="${id}" style="color: ${char.color}; border-color: ${char.color};" data-char-id="${char.id}">${match}</span>`;
+                sortedChars.forEach(char => {
+                    if (!char.name || char.name === "Unnamed Character") return;
+                    
+                    // Case-insensitive regex with word boundaries
+                    const regex = new RegExp(`\\b(${char.name})\\b`, 'gi');
+                    
+                    result = result.replace(regex, (match, p1, offset) => {
+                        const id = `char_${char.id}_${offset}`;
+                        return `<span class="char-name-highlight" id="${id}" style="color: ${char.color}; border-color: ${char.color};" data-char-id="${char.id}">${match}</span>`;
+                    });
                 });
-            });
+            }
             
             return result;
         }
@@ -4128,6 +4252,77 @@
                 span.addEventListener('mouseleave', () => hideCharacterPreview());
                 span.addEventListener('mousemove', (e) => updateCharacterPreview(e));
             });
+        }
+        
+        // --- GLOSSARY SYSTEM ---
+        let glossaryEntries = [];
+        
+        function openGlossary() {
+            const overlay = document.getElementById('glossary-overlay');
+            const iframe = document.getElementById('glossary-iframe');
+            
+            // Load glossary in iframe with universe ID
+            iframe.src = `glossary.html?id=${universeId}`;
+            overlay.classList.add('active');
+        }
+        
+        function closeGlossaryOverlay() {
+            const overlay = document.getElementById('glossary-overlay');
+            overlay.classList.remove('active');
+            
+            // Reload data to get latest glossary entries
+            loadData();
+        }
+        
+        // Listen for messages from glossary iframe
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'CLOSE_GLOSSARY') {
+                closeGlossaryOverlay();
+            } else if (event.data.type === 'GLOSSARY_UPDATED') {
+                // Update local glossary entries
+                glossaryEntries = event.data.data || [];
+                // Re-render to update highlighting
+                if (selectedYear) {
+                    renderPlotStack();
+                }
+            }
+        });
+        
+        // Highlight glossary terms in text
+        function highlightGlossaryTerms(text) {
+            if (!text || glossaryEntries.length === 0) return text;
+            
+            // Sort by length (longest first) to avoid partial matches
+            const sortedEntries = [...glossaryEntries].sort((a, b) => {
+                const aLen = Math.max(a.name?.length || 0, ...(a.aliases || []).map(al => al.length));
+                const bLen = Math.max(b.name?.length || 0, ...(b.aliases || []).map(al => al.length));
+                return bLen - aLen;
+            });
+            
+            let result = text;
+            
+            sortedEntries.forEach(entry => {
+                if (!entry.name) return;
+                
+                // Build list of terms to match (name + aliases)
+                const terms = [entry.name];
+                if (entry.aliases) {
+                    terms.push(...entry.aliases);
+                }
+                
+                terms.forEach(term => {
+                    if (!term) return;
+                    
+                    // Case-insensitive regex with word boundaries
+                    const regex = new RegExp(`\\b(${term})\\b`, 'gi');
+                    
+                    result = result.replace(regex, (match) => {
+                        return `<span class="glossary-term-highlight" style="text-decoration-color: ${entry.color || '#888'}; color: ${entry.color || '#888'};" title="${entry.name}">${match}</span>`;
+                    });
+                });
+            });
+            
+            return result;
         }
         
         // Allow Enter key to confirm year modal
