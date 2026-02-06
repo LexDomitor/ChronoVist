@@ -442,6 +442,11 @@
             padding-bottom: 8px; outline: none; width: 100%; font-family: 'JetBrains Mono'; text-align: center;
         }
         
+        .plot-title-field::placeholder {
+            color: #444;
+            opacity: 1;
+        }
+        
         .event-node {
             display: flex; 
             flex-direction: row; 
@@ -2769,6 +2774,9 @@
             renderColumn('col-main', data.main, 'main');
             renderColumn('col-right', data.right, 'right');
             
+            // Attach handlers to all highlighted character names and glossary terms in events
+            attachCharacterNameHandlers();
+            
             // Render scene characters
             renderSceneCharacters();
             
@@ -2822,8 +2830,16 @@
                 
                 const node = document.createElement('div');
                 node.className = 'plot-node';
+                
+                // Use placeholder for "Add Text" instead of value
+                const titleValue = plot.title === 'Add Text' ? '' : plot.title;
+                const titlePlaceholder = 'Add Text...';
+                
                 node.innerHTML = `
-                    <input class="plot-title-field" value="${plot.title}" oninput="updatePlotTitle(${pIdx}, '${colName}', this.value)">
+                    <input class="plot-title-field" 
+                           value="${titleValue}" 
+                           placeholder="${titlePlaceholder}"
+                           oninput="updatePlotTitle(${pIdx}, '${colName}', this.value)">
                     <div id="ev-container-${colName}-${pIdx}" style="display:flex; flex-direction:column; gap:12px;"></div>
                     <button class="tm-btn" style="border-radius:8px; border:1px dashed #333;" onclick="addEventToNode(${pIdx}, '${colName}')">+ Add ${subunitEvent}</button>
                 `;
@@ -4443,13 +4459,19 @@
         
         function attachCharacterNameHandlers() {
             // Attach hover handlers to all highlighted character names
+            // Use cloning to remove old listeners
             document.querySelectorAll('.char-name-highlight').forEach(span => {
                 const charId = parseInt(span.dataset.charId);
                 if (!charId) return;
                 
-                span.addEventListener('mouseenter', (e) => showCharacterPreview(charId, e));
-                span.addEventListener('mouseleave', () => hideCharacterPreview());
-                span.addEventListener('mousemove', (e) => updateCharacterPreview(e));
+                // Remove old listeners by cloning node
+                const newSpan = span.cloneNode(true);
+                span.parentNode.replaceChild(newSpan, span);
+                
+                // Add fresh listeners
+                newSpan.addEventListener('mouseenter', (e) => showCharacterPreview(charId, e));
+                newSpan.addEventListener('mouseleave', () => hideCharacterPreview());
+                newSpan.addEventListener('mousemove', (e) => updateCharacterPreview(e));
             });
             
             // Also attach glossary handlers
@@ -4551,13 +4573,19 @@
         
         function attachGlossaryHandlers() {
             // Attach hover handlers to all highlighted glossary terms
+            // Use event delegation or remove old listeners by cloning
             document.querySelectorAll('.glossary-term-highlight').forEach(span => {
                 const glossaryId = parseInt(span.dataset.glossaryId);
                 if (!glossaryId) return;
                 
-                span.addEventListener('mouseenter', (e) => showGlossaryPreview(glossaryId, e));
-                span.addEventListener('mouseleave', () => hideGlossaryPreview());
-                span.addEventListener('mousemove', (e) => updateGlossaryPreview(e));
+                // Remove old listeners by cloning node (clean slate)
+                const newSpan = span.cloneNode(true);
+                span.parentNode.replaceChild(newSpan, span);
+                
+                // Add fresh listeners
+                newSpan.addEventListener('mouseenter', (e) => showGlossaryPreview(glossaryId, e));
+                newSpan.addEventListener('mouseleave', () => hideGlossaryPreview());
+                newSpan.addEventListener('mousemove', (e) => updateGlossaryPreview(e));
             });
         }
         
