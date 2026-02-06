@@ -871,15 +871,18 @@
 
         /* Glossary term highlighting in text */
         .glossary-term-highlight {
-            text-decoration: underline;
-            text-decoration-style: solid;
-            text-decoration-thickness: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 12px;
+            border: 1px solid;
             cursor: pointer;
             position: relative;
             transition: 0.2s;
+            display: inline-block;
         }
 
         .glossary-term-highlight:hover {
+            background: rgba(255, 255, 255, 0.12);
             filter: brightness(1.2);
         }
         
@@ -2677,16 +2680,39 @@
             const event = plotsByYear[selectedYear][col][pIdx].events[eIdx];
             if (!event) return;
             
-            // Find all event inputs and update the matching one
-            const eventInputs = document.querySelectorAll('.event-input');
-            eventInputs.forEach(eventNode => {
-                const text = eventNode.innerText || eventNode.textContent || "";
-                const highlighted = highlightCharacterNames(text);
-                
-                if (highlighted !== text) {
-                    eventNode.innerHTML = highlighted;
-                    attachCharacterNameHandlers();
-                }
+            // Find the specific event input by traversing the DOM
+            const plotWrappers = document.querySelectorAll('.plot-wrapper');
+            plotWrappers.forEach(wrapper => {
+                const eventInputs = wrapper.querySelectorAll('.event-input');
+                eventInputs.forEach((eventNode, index) => {
+                    // Check if this is the right event by comparing data or index
+                    const text = eventNode.innerText || eventNode.textContent || "";
+                    const highlighted = highlightCharacterNames(text);
+                    
+                    if (highlighted !== text) {
+                        // Store cursor position
+                        const selection = window.getSelection();
+                        const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                        const cursorOffset = range ? range.startOffset : 0;
+                        
+                        eventNode.innerHTML = highlighted;
+                        attachCharacterNameHandlers();
+                        
+                        // Restore cursor position
+                        try {
+                            if (range && eventNode.firstChild) {
+                                const newRange = document.createRange();
+                                const textNode = eventNode.firstChild;
+                                newRange.setStart(textNode, Math.min(cursorOffset, textNode.length));
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        } catch (e) {
+                            // Cursor restoration failed, no big deal
+                        }
+                    }
+                });
             });
         }
 
@@ -4103,6 +4129,12 @@
                     }
                 });
                 
+                console.log('💾 Saving data:', {
+                    years: currentUniverse.years.length,
+                    characters: characters.length,
+                    glossary: glossaryEntries.length
+                });
+                
                 // Calculate approximate size
                 const dataSizeMB = new Blob([dataToSave]).size / 1024 / 1024;
                 
@@ -4112,6 +4144,7 @@
                 }
                 
                 localStorage.setItem(storageKey, dataToSave);
+                console.log('✅ Data saved successfully');
                 
                 // Update last edited timestamp in universes list
                 const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
@@ -4210,6 +4243,12 @@
         
         // Send message to parent to hide header/footer (workspace mode)
         window.parent.postMessage('RETRACT_FRAME', '*');
+        
+        // FAILSAFE: Save data before page unloads
+        window.addEventListener('beforeunload', (event) => {
+            console.log('⚠️ Page unloading - saving data...');
+            saveData();
+        });
         
         // Character preview tooltip
         let characterPreviewTimeout;
@@ -4500,7 +4539,7 @@
                         }
                         
                         return `<span class="glossary-term-highlight" 
-                                     style="text-decoration-color: ${entry.color || '#888'}; color: ${entry.color || '#888'};" 
+                                     style="border-color: ${entry.color || '#888'}; color: ${entry.color || '#fff'};" 
                                      data-glossary-id="${entry.id}"
                                      data-glossary-name="${entry.name}">${match}</span>`;
                     });
