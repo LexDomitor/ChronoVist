@@ -659,13 +659,18 @@
             const storageKey = `alphaline_universe_${universeId}`;
             const saved = localStorage.getItem(storageKey);
             
+            console.log('Loading glossary for universe:', universeId);
+            
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
                     glossaryEntries = data.glossary || [];
+                    console.log('Loaded', glossaryEntries.length, 'glossary entries');
                 } catch (e) {
                     console.error('Failed to load glossary:', e);
                 }
+            } else {
+                console.warn('No saved data found for universe:', universeId);
             }
             
             renderEntryList();
@@ -673,25 +678,45 @@
         
         // Save glossary data
         function saveGlossary() {
-            if (!universeId) return;
+            if (!universeId) {
+                console.error('No universe ID - cannot save glossary');
+                return;
+            }
             
             const storageKey = `alphaline_universe_${universeId}`;
-            const saved = localStorage.getItem(storageKey);
+            let saved = localStorage.getItem(storageKey);
             
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    data.glossary = glossaryEntries;
-                    localStorage.setItem(storageKey, JSON.stringify(data));
-                    
-                    // Notify parent workspace of changes
-                    window.parent.postMessage({
-                        type: 'GLOSSARY_UPDATED',
-                        data: glossaryEntries
-                    }, '*');
-                } catch (e) {
-                    console.error('Failed to save glossary:', e);
-                }
+            // Create storage if it doesn't exist
+            if (!saved) {
+                console.warn('Creating new storage for universe:', universeId);
+                saved = JSON.stringify({
+                    years: [],
+                    plots: {},
+                    characters: [],
+                    glossary: [],
+                    terminology: {
+                        timelineUnit: "Episode",
+                        subunitPlot: "Plot",
+                        subunitEvent: "Event"
+                    }
+                });
+            }
+            
+            try {
+                const data = JSON.parse(saved);
+                data.glossary = glossaryEntries;
+                const stringified = JSON.stringify(data);
+                localStorage.setItem(storageKey, stringified);
+                
+                console.log('Glossary saved:', glossaryEntries.length, 'entries');
+                
+                // Notify parent workspace of changes
+                window.parent.postMessage({
+                    type: 'GLOSSARY_UPDATED',
+                    data: glossaryEntries
+                }, '*');
+            } catch (e) {
+                console.error('Failed to save glossary:', e);
             }
         }
         
@@ -1071,8 +1096,19 @@
         
         // Close glossary
         function closeGlossary() {
-            window.parent.postMessage({ type: 'CLOSE_GLOSSARY' }, '*');
+            // Save one final time before closing
+            saveGlossary();
+            
+            // Small delay to ensure save completes
+            setTimeout(() => {
+                window.parent.postMessage({ type: 'CLOSE_GLOSSARY' }, '*');
+            }, 100);
         }
+        
+        // Also save when page is about to unload
+        window.addEventListener('beforeunload', () => {
+            saveGlossary();
+        });
         
         // Initialize
         window.onload = async () => {
