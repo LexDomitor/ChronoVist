@@ -4056,6 +4056,7 @@
                     years: currentUniverse.years,
                     plots: plotsByYear,
                     characters: characters,
+                    glossary: glossaryEntries,
                     terminology: {
                         timelineUnit: timelineUnit,
                         subunitPlot: subunitPlot,
@@ -4129,6 +4130,8 @@
             const storageKey = `alphaline_universe_${universeId}`;
             const saved = localStorage.getItem(storageKey);
             
+            console.log('Loading data for universe:', universeId);
+            
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -4136,6 +4139,8 @@
                     plotsByYear = data.plots || {};
                     characters = data.characters || [];
                     glossaryEntries = data.glossary || [];
+                    
+                    console.log('Loaded glossary entries:', glossaryEntries.length);
                     
                     // Load terminology from universe data (per-universe, not shared)
                     if (data.terminology) {
@@ -4150,6 +4155,8 @@
                 } catch(e) {
                     console.error('Failed to load saved data:', e);
                 }
+            } else {
+                console.warn('No saved data found for universe:', universeId);
             }
             
             renderTimeline();
@@ -4387,8 +4394,11 @@
             const overlay = document.getElementById('glossary-overlay');
             overlay.classList.remove('active');
             
-            // Reload data to get latest glossary entries
+            // Reload data to get latest glossary entries from localStorage
             loadData();
+            
+            // Save to ensure everything is persisted
+            saveData();
         }
         
         // Listen for messages from glossary iframe
@@ -4398,6 +4408,8 @@
             } else if (event.data.type === 'GLOSSARY_UPDATED') {
                 // Update local glossary entries
                 glossaryEntries = event.data.data || [];
+                // Save immediately when glossary is updated
+                saveData();
                 // Re-render to update highlighting
                 if (selectedYear) {
                     renderPlotStack();
