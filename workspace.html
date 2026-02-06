@@ -2485,13 +2485,17 @@
         setInterval(updateClock, 1000); updateClock();
 
         function exitWorkspace() {
+            // Save all data before exiting
+            saveData();
+            console.log('Data saved before exit');
+            
             // Send message to parent to restore header/footer
             window.parent.postMessage('RESTORE_FRAME', '*');
             
-            // Small delay before navigation to allow frame restoration
+            // Small delay before navigation to allow save and frame restoration
             setTimeout(() => {
                 window.location.href = 'universes.html';
-            }, 50);
+            }, 150);
         }
 
         // Camera Controls
@@ -3472,17 +3476,35 @@
             closeCharacterDetail(); // Also close detail section
         }
 
-        function renderCharacterList() {
+        async function renderCharacterList() {
             const list = document.getElementById('character-list');
             list.innerHTML = '';
 
             // Render existing characters
-            characters.forEach((char, index) => {
+            for (const char of characters) {
                 const profile = document.createElement('div');
                 profile.className = 'character-profile';
                 profile.dataset.charId = char.id;
                 
-                const avatarStyle = char.image ? `background-image: url('${char.image}');` : '';
+                // Load image (handle IndexedDB)
+                let imageUrl = '';
+                if (char.image) {
+                    if (char.image.startsWith('indexeddb:')) {
+                        const imageKey = char.image.replace('indexeddb:', '');
+                        try {
+                            const blob = await getImage(imageKey);
+                            if (blob) {
+                                imageUrl = URL.createObjectURL(blob);
+                            }
+                        } catch (error) {
+                            console.error('Failed to load character avatar:', error);
+                        }
+                    } else {
+                        imageUrl = char.image;
+                    }
+                }
+                
+                const avatarStyle = imageUrl ? `background-image: url('${imageUrl}');` : '';
                 const avatarBorder = char.color ? `border-color: ${char.color};` : '';
                 
                 profile.innerHTML = `
@@ -3496,7 +3518,7 @@
                 });
 
                 list.appendChild(profile);
-            });
+            }
 
             // Add "+" button
             const addBtn = document.createElement('div');
@@ -3523,7 +3545,7 @@
         }
 
         // --- CHARACTER EDITOR ---
-        function openCharacterEditor(charId) {
+        async function openCharacterEditor(charId) {
             editingCharacterId = charId;
             const char = characters.find(c => c.id === charId);
             if (!char) return;
@@ -3534,15 +3556,21 @@
             document.getElementById('char-status').value = char.status;
             document.getElementById('char-bio').value = char.bio || "";
             
-            // Set image URL
+            // Set image URL - show user-friendly text for IndexedDB
             const imgUrlInput = document.getElementById('char-img-url');
-            imgUrlInput.value = char.image || "";
+            if (char.image && char.image.startsWith('indexeddb:')) {
+                imgUrlInput.value = char.image; // Keep the reference for saving
+                imgUrlInput.placeholder = "Local image uploaded";
+            } else {
+                imgUrlInput.value = char.image || "";
+                imgUrlInput.placeholder = "Or URL";
+            }
             
             // Set color picker
             const colorPicker = document.getElementById('char-color');
             colorPicker.value = char.color || "#888888";
             
-            updateCharacterPreview(char.image);
+            await updateCharacterPreview(char.image);
             updateColorPreview(char.color || "#888888");
             
             // Update appearances list
@@ -3714,12 +3742,23 @@
                 await storeImage(imageKey, file);
                 
                 // Store reference in character data
-                document.getElementById('char-img-url').value = `indexeddb:${imageKey}`;
+                const urlInput = document.getElementById('char-img-url');
+                urlInput.value = `indexeddb:${imageKey}`;
+                urlInput.placeholder = "Local image uploaded";
+                
                 autoSaveCharacter();
                 
                 // Create blob URL for immediate preview
                 const blobUrl = URL.createObjectURL(file);
-                document.getElementById('char-preview-img').src = blobUrl;
+                const previewImg = document.getElementById('char-preview-img');
+                const placeholder = document.getElementById('char-placeholder');
+                
+                previewImg.src = blobUrl;
+                previewImg.classList.add('visible');
+                placeholder.style.display = 'none';
+                
+                // Also update character list avatar if journal is open
+                renderCharacterList();
             } catch (error) {
                 console.error('Failed to store image:', error);
                 alert('Failed to store image. Please try a smaller file or use an image URL instead.');
@@ -4442,10 +4481,24 @@
                 terms.forEach(term => {
                     if (!term) return;
                     
+                    // Escape special regex characters
+                    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
                     // Case-insensitive regex with word boundaries
-                    const regex = new RegExp(`\\b(${term})\\b`, 'gi');
+                    // Negative lookahead to avoid matching inside already-highlighted spans
+                    const regex = new RegExp(`\\b(${escapedTerm})\\b(?![^<]*<\\/span>)`, 'gi');
                     
                     result = result.replace(regex, (match) => {
+                        // Check if this match is already inside a span
+                        const beforeMatch = result.substring(0, result.indexOf(match));
+                        const openSpans = (beforeMatch.match(/<span/g) || []).length;
+                        const closeSpans = (beforeMatch.match(/<\/span>/g) || []).length;
+                        
+                        // If we're inside a span, don't replace
+                        if (openSpans > closeSpans) {
+                            return match;
+                        }
+                        
                         return `<span class="glossary-term-highlight" 
                                      style="text-decoration-color: ${entry.color || '#888'}; color: ${entry.color || '#888'};" 
                                      data-glossary-id="${entry.id}"
