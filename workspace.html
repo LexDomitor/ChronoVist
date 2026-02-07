@@ -875,6 +875,28 @@
             height: 100%;
             border: none;
         }
+        
+        /* Statistics Overlay */
+        .statistics-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10001;
+            display: none;
+        }
+
+        .statistics-overlay.active {
+            display: block;
+        }
+
+        .statistics-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
         /* Glossary term highlighting in text */
         .glossary-term-highlight {
@@ -2578,12 +2600,21 @@
                 <div class="lore-icon-symbol">🗺️</div>
                 <div class="lore-icon-label">Atlas</div>
             </div>
+            <div class="lore-icon" onclick="openStatistics()">
+                <div class="lore-icon-symbol">📊</div>
+                <div class="lore-icon-label">Statistics</div>
+            </div>
         </div>
     </div>
 
     <!-- Glossary Overlay -->
     <div id="glossary-overlay" class="glossary-overlay">
         <iframe id="glossary-iframe" class="glossary-iframe"></iframe>
+    </div>
+    
+    <!-- Statistics Overlay -->
+    <div id="statistics-overlay" class="statistics-overlay">
+        <iframe id="statistics-iframe" class="statistics-iframe"></iframe>
     </div>
     
     <!-- Atlas Overlay -->
@@ -4832,10 +4863,27 @@
             saveData();
         }
         
-        // Listen for messages from glossary iframe
+        // --- STATISTICS SYSTEM ---
+        function openStatistics() {
+            const overlay = document.getElementById('statistics-overlay');
+            const iframe = document.getElementById('statistics-iframe');
+            
+            // Load statistics in iframe with universe ID and episode
+            iframe.src = `statistics.html?id=${universeId}&episode=${selectedYear}`;
+            overlay.classList.add('active');
+        }
+        
+        function closeStatisticsOverlay() {
+            const overlay = document.getElementById('statistics-overlay');
+            overlay.classList.remove('active');
+        }
+        
+        // Listen for messages from statistics iframe
         window.addEventListener('message', (event) => {
             if (event.data.type === 'CLOSE_GLOSSARY') {
                 closeGlossaryOverlay();
+            } else if (event.data.type === 'CLOSE_STATISTICS') {
+                closeStatisticsOverlay();
             } else if (event.data.type === 'GLOSSARY_UPDATED') {
                 // Update local glossary entries
                 glossaryEntries = event.data.data || [];
