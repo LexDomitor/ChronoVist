@@ -82,16 +82,17 @@
 
         /* --- Side Panel --- */
         #edit-panel {
-            position: fixed; top: 0; right: -450px;
-            width: 380px; height: 100%;
+            position: fixed; top: 0; right: -520px;
+            width: 480px; height: 100%;
             background: var(--panel-bg); border-left: 1px solid var(--accent);
             padding: 2rem; transition: var(--transition);
             z-index: 100; box-shadow: -20px 0 50px rgba(0,0,0,0.7);
-            overflow-y: auto; box-sizing: border-box;
+            overflow-y: hidden; box-sizing: border-box;
+            display: flex; flex-direction: column;
         }
         #edit-panel.active { right: 0; }
 
-        .panel-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .panel-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-shrink: 0; }
         .back-arrow { font-size: 1.5rem; cursor: pointer; color: var(--text-dim); transition: 0.2s; }
         .back-arrow:hover { color: white; }
 
@@ -100,33 +101,118 @@
             border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; margin-left: auto;
         }
 
+        .panel-content { flex: 1; display: flex; flex-direction: column; }
+
         label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 0.4rem; }
         
         input, textarea {
             width: 100%; background: #000; border: 1px solid var(--accent);
-            padding: 0.8rem; color: white; font-family: inherit; font-size: 0.85rem;
-            box-sizing: border-box; margin-bottom: 1rem; outline: none; transition: 0.2s;
+            padding: 0.7rem; color: white; font-family: inherit; font-size: 0.85rem;
+            box-sizing: border-box; margin-bottom: 0.9rem; outline: none; transition: 0.2s;
         }
-        textarea { height: 90px; resize: none; }
+        textarea { height: 70px; resize: none; }
         input:focus, textarea:focus { border-color: #666; }
 
-        .char-count { font-size: 0.5rem; text-align: right; color: var(--text-dim); margin-top: -0.8rem; margin-bottom: 1rem; }
+        .char-count { font-size: 0.5rem; text-align: right; color: var(--text-dim); margin-top: -0.7rem; margin-bottom: 0.9rem; }
         
-        .preview-container { width: 90px; height: 90px; margin-bottom: 1rem; }
-        .preview-circle { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); display: none; }
-        .preview-circle.visible { display: block; }
-        .placeholder-circle { width: 100%; height: 100%; border-radius: 50%; background: #111; border: 1px dashed var(--accent); display: flex; align-items: center; justify-content: center; color: #444; font-size: 0.55rem; }
-
-        .btn-utility { 
-            width: 100%; padding: 0.8rem; background: transparent; color: var(--text-dim); border: 1px solid var(--accent);
-            margin-top: 0.5rem; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; font-family: inherit; 
+        /* Compact Image Section */
+        .image-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
         }
+        
+        .preview-container { 
+            width: 100px; 
+            height: 100px; 
+            flex-shrink: 0;
+        }
+        
+        .preview-circle { 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1px solid var(--accent); 
+            display: none; 
+        }
+        
+        .preview-circle.visible { display: block; }
+        
+        .placeholder-circle { 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 50%; 
+            background: #111; 
+            border: 1px dashed var(--accent); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #444; 
+            font-size: 0.55rem; 
+        }
+        
+        .image-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        
+        .btn-utility { 
+            width: 100%; padding: 0.7rem; background: transparent; color: var(--text-dim); border: 1px solid var(--accent);
+            cursor: pointer; text-transform: uppercase; font-size: 0.65rem; font-family: inherit; 
+            transition: 0.2s;
+        }
+        
+        .btn-utility:hover {
+            background: #222;
+            color: white;
+        }
+        
         .btn-main { background: white; color: black; border: none; padding: 0.8rem 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
         .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent); padding: 0.8rem 1.5rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
-        .btn-danger { color: var(--danger); border-color: #442222; margin-top: 1rem; }
+        .btn-danger { color: var(--danger); border-color: #442222; }
 
-        .scroll-hint { text-align: center; color: var(--text-dim); margin: 1rem 0; font-size: 1.1rem; display: none; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+        /* More Options Section */
+        .more-options-trigger {
+            text-align: center;
+            padding: 1rem;
+            border-top: 1px solid var(--accent);
+            color: #555;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: auto;
+            user-select: none;
+        }
+        
+        .more-options-trigger:hover {
+            color: var(--text-dim);
+            background: #111;
+        }
+        
+        .more-options-content {
+            display: none;
+            padding-top: 1rem;
+            gap: 0.6rem;
+            flex-direction: column;
+        }
+        
+        .more-options-content.active {
+            display: flex;
+        }
+        
+        .date-info {
+            font-size: 0.55rem;
+            color: #444;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+        }
         
         .edit-trigger { 
             position: absolute; top: 10px; right: 10px; 
@@ -159,29 +245,37 @@
             <div id="save-status" class="status-pill">Synced</div>
         </div>
 
-        <label>Series (Optional)</label>
-        <input type="text" id="inp-series" placeholder="e.g. The Elder Scrolls" oninput="autoSave()">
+        <div class="panel-content">
+            <label>Series (Optional)</label>
+            <input type="text" id="inp-series" placeholder="e.g. The Elder Scrolls" oninput="autoSave()">
 
-        <label>Universe Title</label>
-        <input type="text" id="inp-name" placeholder="e.g. Skyrim" oninput="autoSave()">
+            <label>Universe Title</label>
+            <input type="text" id="inp-name" placeholder="e.g. Skyrim" oninput="autoSave()">
 
-        <label>Synopsis</label>
-        <textarea id="inp-synopsis" maxlength="150" placeholder="Brief elevator pitch..." oninput="autoSave()"></textarea>
-        <div id="char-count" class="char-count">0 / 150</div>
-        
-        <label>Thumbnail</label>
-        <div class="preview-container">
-            <div id="placeholder-box" class="placeholder-circle">Empty</div>
-            <img src="" id="prev-img" class="preview-circle">
+            <label>Synopsis</label>
+            <textarea id="inp-synopsis" maxlength="150" placeholder="Brief elevator pitch..." oninput="autoSave()"></textarea>
+            <div id="char-count" class="char-count">0 / 150</div>
+            
+            <label>Thumbnail</label>
+            <div class="image-section">
+                <div class="preview-container">
+                    <div id="placeholder-box" class="placeholder-circle">Empty</div>
+                    <img src="" id="prev-img" class="preview-circle">
+                </div>
+                
+                <div class="image-controls">
+                    <button class="btn-utility" onclick="document.getElementById('file-upload').click()">Upload Local Image</button>
+                    <input type="text" id="inp-img" placeholder="Or Image URL" oninput="autoSave()" style="margin: 0;">
+                </div>
+            </div>
+        </div>
+
+        <div class="more-options-trigger" id="more-options-trigger" onclick="toggleMoreOptions()">
+            <span id="more-options-text">More Options ▼</span>
         </div>
         
-        <button class="btn-utility" onclick="document.getElementById('file-upload').click()">Upload Local Image</button>
-        <input type="text" id="inp-img" placeholder="Or Image URL" oninput="autoSave()" style="margin-top:0.5rem">
-
-        <div id="scroll-hint" class="scroll-hint">↓</div>
-
-        <div id="mgmt-section" style="margin-top: 2rem; border-top: 1px solid var(--accent); padding-top: 1rem; display:none;">
-            <div id="date-info" style="font-size: 0.6rem; color: #444; text-transform: uppercase; margin-bottom: 1rem; line-height: 1.4;"></div>
+        <div class="more-options-content" id="more-options-content">
+            <div id="date-info" class="date-info"></div>
             <button class="btn-utility" onclick="exportSingle()">Export to JSON</button>
             <button class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
         </div>
@@ -347,8 +441,12 @@
         async function openPanel(id = null) {
             activeId = id;
             const panel = document.getElementById('edit-panel');
-            const hint = document.getElementById('scroll-hint');
-            const mgmt = document.getElementById('mgmt-section');
+            const moreOptions = document.getElementById('more-options-content');
+            const moreOptionsTrigger = document.getElementById('more-options-trigger');
+            
+            // Reset more options
+            moreOptions.classList.remove('active');
+            document.getElementById('more-options-text').textContent = 'More Options ▼';
             
             if (id) {
                 isCreatingNew = false;
@@ -359,8 +457,7 @@
                 document.getElementById('inp-img').value = u.image || "";
                 document.getElementById('panel-title').innerText = "Edit Canon";
                 document.getElementById('date-info').innerHTML = `Created: ${u.created}<br>Last Sync: ${u.lastEdited}`;
-                mgmt.style.display = "block";
-                hint.style.display = "block";
+                moreOptionsTrigger.style.display = 'block';
                 
                 // Load preview image
                 await updatePreview(u.image);
@@ -370,13 +467,25 @@
                 document.getElementById('inp-synopsis').value = "";
                 document.getElementById('inp-img').value = "";
                 document.getElementById('panel-title').innerText = "New Canon";
-                mgmt.style.display = "none";
-                hint.style.display = "none";
+                moreOptionsTrigger.style.display = 'none';
                 updatePreview("");
             }
             
             document.getElementById('char-count').innerText = `${document.getElementById('inp-synopsis').value.length} / 150`;
             panel.classList.add('active');
+        }
+
+        function toggleMoreOptions() {
+            const content = document.getElementById('more-options-content');
+            const text = document.getElementById('more-options-text');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                text.textContent = 'More Options ▼';
+            } else {
+                content.classList.add('active');
+                text.textContent = 'Less Options ▲';
+            }
         }
 
         async function autoSave() {
@@ -398,8 +507,10 @@
                 universes.push({ id: newId, series, name, synopsis: syn, image: img, created: date, lastEdited: date });
                 activeId = newId;
                 isCreatingNew = false;
-                document.getElementById('mgmt-section').style.display = "block";
-                document.getElementById('scroll-hint').style.display = "block";
+                
+                // Show more options trigger now that universe exists
+                document.getElementById('more-options-trigger').style.display = 'block';
+                document.getElementById('date-info').innerHTML = `Created: ${date}<br>Last Sync: ${date}`;
             }
 
             localStorage.setItem('alphaline_universes', JSON.stringify(universes));
@@ -440,7 +551,15 @@
             }
         }
 
-        function closePanel() { document.getElementById('edit-panel').classList.remove('active'); isCreatingNew = false; }
+        function closePanel() { 
+            document.getElementById('edit-panel').classList.remove('active'); 
+            isCreatingNew = false; 
+            
+            // Close more options
+            const moreOptions = document.getElementById('more-options-content');
+            moreOptions.classList.remove('active');
+            document.getElementById('more-options-text').textContent = 'More Options ▼';
+        }
         
         async function handleUpload(input) {
             const file = input.files[0];
