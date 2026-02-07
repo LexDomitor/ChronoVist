@@ -543,6 +543,8 @@
             width: auto;
             height: auto;
             object-fit: contain; 
+            display: block;
+            margin: auto;
             transition: 0.3s; 
         }
         .event-image-container:hover img { opacity: 0.8; }
@@ -2013,6 +2015,148 @@
         .theme-toggle-4way[data-active="light"] .theme-slider {
             left: calc(75% - 5px);
         }
+        
+        /* Atlas Overlay */
+        .atlas-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        
+        .atlas-overlay.active {
+            display: flex;
+        }
+        
+        .atlas-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--border);
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+        }
+        
+        .atlas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .atlas-close-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        
+        .atlas-close-btn:hover {
+            background: #222;
+            color: white;
+        }
+        
+        .atlas-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .atlas-map-container {
+            width: 600px;
+            height: 600px;
+            background: #000;
+            border: 2px solid var(--border);
+            position: relative;
+        }
+        
+        .atlas-map-inner-border {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid var(--border);
+            pointer-events: none;
+        }
+        
+        .atlas-map-display {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .atlas-placeholder {
+            color: #444;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .atlas-map-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .atlas-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        
+        .atlas-btn {
+            width: 250px;
+            padding: 0.8rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        
+        .atlas-btn:hover {
+            background: #222;
+            color: white;
+        }
+        
+        /* Flash animation for empty state */
+        @keyframes flash {
+            0%, 100% { 
+                box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            }
+        }
     </style>
 </head>
 <body>
@@ -2197,6 +2341,16 @@
     </div>
 
     <div id="trash-zone" title="Drop Plot here to delete">🗑</div>
+    
+    <!-- Empty State Message -->
+    <div id="empty-state-message" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 50; pointer-events: none;">
+        <div style="color: white; font-size: 1.2rem; text-shadow: 0 2px 8px rgba(0,0,0,0.8); font-weight: 300; letter-spacing: 1px;">
+            Create your first episode to begin
+        </div>
+        <div style="color: #888; font-size: 0.8rem; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin-top: 0.5rem;">
+            Click the [+] button on the grid below
+        </div>
+    </div>
 
     <div id="plane-container">
         <div id="node-group">
@@ -2316,7 +2470,7 @@
                 <div class="lore-icon-symbol">📖</div>
                 <div class="lore-icon-label">Glossary</div>
             </div>
-            <div class="lore-icon" onclick="alert('Atlas coming soon!')">
+            <div class="lore-icon" onclick="openAtlas()">
                 <div class="lore-icon-symbol">🗺️</div>
                 <div class="lore-icon-label">Atlas</div>
             </div>
@@ -2326,6 +2480,38 @@
     <!-- Glossary Overlay -->
     <div id="glossary-overlay" class="glossary-overlay">
         <iframe id="glossary-iframe" class="glossary-iframe"></iframe>
+    </div>
+    
+    <!-- Atlas Overlay -->
+    <div id="atlas-overlay" class="atlas-overlay">
+        <div class="atlas-panel">
+            <div class="atlas-header">
+                <h2 style="font-weight: 300; text-transform: uppercase; font-size: 0.9rem; margin: 0; color: var(--text-primary);">World Atlas</h2>
+                <button class="atlas-close-btn" onclick="closeAtlas()">Close Atlas</button>
+            </div>
+            
+            <div class="atlas-content">
+                <div class="atlas-map-container" id="atlas-map-container">
+                    <div class="atlas-map-inner-border">
+                        <div id="atlas-map-display" class="atlas-map-display">
+                            <div id="atlas-placeholder" class="atlas-placeholder">
+                                No map uploaded
+                            </div>
+                            <img id="atlas-map-image" class="atlas-map-image" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="atlas-controls">
+                    <input type="file" id="atlas-upload" hidden accept="image/*" onchange="handleAtlasUpload(this)">
+                    <button class="atlas-btn" onclick="document.getElementById('atlas-upload').click()">Upload New Image</button>
+                    <button class="atlas-btn" onclick="resetAtlasView()">Reset Atlas View</button>
+                    <div style="font-size: 0.6rem; color: #666; margin-top: 0.5rem; text-align: center;">
+                        Recommended: Square images (512×512, 1024×1024, 2048×2048)
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -3216,8 +3402,9 @@
                 ensureYearData(y);
                 selectYear(y);
                 
-                // Auto-center on first year creation
+                // Hide empty state message when first episode is created
                 if(isFirstYear) {
+                    hideEmptyStateMessage();
                     setTimeout(() => resetGraphView(), 100);
                 }
             }
@@ -4119,6 +4306,8 @@
                 selectedYear = null;
                 document.getElementById('node-group').style.display = 'none';
                 renderTimeline();
+                // Show empty state when last episode is deleted
+                showEmptyStateMessage();
             }
             saveData();
         }
@@ -4238,18 +4427,44 @@
                     }
                     
                     if(currentUniverse.years.length > 0) {
-                        selectYear(currentUniverse.years[0]);
+                        // Select earliest (first) episode
+                        const earliestYear = Math.min(...currentUniverse.years);
+                        selectYear(earliestYear);
+                    } else {
+                        // Show empty state message
+                        showEmptyStateMessage();
                     }
                 } catch(e) {
                     console.error('Failed to load saved data:', e);
                 }
             } else {
                 console.warn('No saved data found for universe:', universeId);
+                // Show empty state for new universe
+                showEmptyStateMessage();
             }
             
             renderTimeline();
             updateTimelineUnitUI();
             updateSubunitUI();
+        }
+        
+        function showEmptyStateMessage() {
+            const message = document.getElementById('empty-state-message');
+            message.style.display = 'flex';
+            
+            // Flash the create episode button
+            const createBtn = document.querySelector('.timeline-node[onclick="createNewEpisode()"]');
+            if (createBtn) {
+                createBtn.style.animation = 'flash 1s ease-in-out';
+                setTimeout(() => {
+                    createBtn.style.animation = '';
+                }, 1000);
+            }
+        }
+        
+        function hideEmptyStateMessage() {
+            const message = document.getElementById('empty-state-message');
+            message.style.display = 'none';
         }
 
         // Initialize on page load
@@ -4516,6 +4731,108 @@
                 }
             }
         });
+        
+        // --- ATLAS SYSTEM ---
+        let atlasImage = null;
+        
+        function openAtlas() {
+            const overlay = document.getElementById('atlas-overlay');
+            overlay.classList.add('active');
+            
+            // Load atlas image if exists
+            loadAtlasImage();
+        }
+        
+        function closeAtlas() {
+            const overlay = document.getElementById('atlas-overlay');
+            overlay.classList.remove('active');
+        }
+        
+        async function loadAtlasImage() {
+            if (!universeId) return;
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    atlasImage = data.atlasImage || null;
+                    
+                    const imgElement = document.getElementById('atlas-map-image');
+                    const placeholder = document.getElementById('atlas-placeholder');
+                    
+                    if (atlasImage) {
+                        // Check if it's an IndexedDB reference
+                        if (atlasImage.startsWith('indexeddb:')) {
+                            const imageKey = atlasImage.replace('indexeddb:', '');
+                            try {
+                                const blob = await getImage(imageKey);
+                                if (blob) {
+                                    const blobUrl = URL.createObjectURL(blob);
+                                    imgElement.src = blobUrl;
+                                    imgElement.style.display = 'block';
+                                    placeholder.style.display = 'none';
+                                }
+                            } catch (error) {
+                                console.error('Failed to load atlas image:', error);
+                                imgElement.style.display = 'none';
+                                placeholder.style.display = 'block';
+                            }
+                        } else {
+                            // Regular URL
+                            imgElement.src = atlasImage;
+                            imgElement.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        }
+                    } else {
+                        imgElement.style.display = 'none';
+                        placeholder.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Failed to load atlas data:', error);
+                }
+            }
+        }
+        
+        async function handleAtlasUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Store in IndexedDB
+            const imageKey = `atlas_${universeId}_${Date.now()}`;
+            try {
+                await storeImage(imageKey, file);
+                atlasImage = `indexeddb:${imageKey}`;
+                
+                // Save to universe data
+                const storageKey = `alphaline_universe_${universeId}`;
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    data.atlasImage = atlasImage;
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                }
+                
+                // Update preview with blob URL
+                const blobUrl = URL.createObjectURL(file);
+                const imgElement = document.getElementById('atlas-map-image');
+                const placeholder = document.getElementById('atlas-placeholder');
+                
+                imgElement.src = blobUrl;
+                imgElement.style.display = 'block';
+                placeholder.style.display = 'none';
+            } catch (error) {
+                console.error('Failed to store atlas image:', error);
+                alert('Failed to store image. Please try a smaller file.');
+            }
+        }
+        
+        function resetAtlasView() {
+            // For now, just reload the image
+            // In future could add pan/zoom reset
+            loadAtlasImage();
+        }
         
         // Highlight glossary terms in text
         function highlightGlossaryTerms(text) {
