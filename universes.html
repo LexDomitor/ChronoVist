@@ -175,7 +175,7 @@
         .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent); padding: 0.8rem 1.5rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
         .btn-danger { color: var(--danger); border-color: #442222; }
 
-        /* More Options Section - Slide Animation */
+        /* More Options Section - Overlay Approach */
         .more-options-trigger {
             text-align: center;
             padding: 0.8rem;
@@ -196,30 +196,48 @@
             background: #111;
         }
         
-        .more-options-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            padding: 0 0;
+        .more-options-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
         }
         
-        .more-options-content.active {
-            max-height: 200px;
-            padding-top: 1rem;
-        }
-        
-        .more-options-inner {
+        .more-options-overlay.active {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+        }
+        
+        .more-options-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent);
+            padding: 2rem;
+            border-radius: 8px;
+            min-width: 350px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+        
+        .more-options-header {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--accent);
         }
         
         .date-info {
             font-size: 0.55rem;
             color: #444;
             text-transform: uppercase;
-            margin-bottom: 0.6rem;
-            line-height: 1.4;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
         
         .edit-trigger { 
@@ -281,13 +299,15 @@
         <div class="more-options-trigger" id="more-options-trigger" onclick="toggleMoreOptions()">
             <span id="more-options-text">More Options ▼</span>
         </div>
-        
-        <div class="more-options-content" id="more-options-content">
-            <div class="more-options-inner">
-                <div id="date-info" class="date-info"></div>
-                <button class="btn-utility" onclick="exportSingle()">Export to JSON</button>
-                <button class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
-            </div>
+    </div>
+    
+    <!-- More Options Overlay -->
+    <div class="more-options-overlay" id="more-options-overlay" onclick="closeMoreOptions(event)">
+        <div class="more-options-panel" onclick="event.stopPropagation()">
+            <div class="more-options-header">Universe Options</div>
+            <div id="date-info" class="date-info"></div>
+            <button class="btn-utility" onclick="exportSingle()" style="margin-bottom: 0.6rem;">Export to JSON</button>
+            <button class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
         </div>
     </div>
 
@@ -451,7 +471,7 @@
         async function openPanel(id = null) {
             activeId = id;
             const panel = document.getElementById('edit-panel');
-            const moreOptions = document.getElementById('more-options-content');
+            const moreOptions = document.getElementById('more-options-overlay');
             const moreOptionsTrigger = document.getElementById('more-options-trigger');
             
             // Reset more options
@@ -486,15 +506,23 @@
         }
 
         function toggleMoreOptions() {
-            const content = document.getElementById('more-options-content');
+            const overlay = document.getElementById('more-options-overlay');
             const text = document.getElementById('more-options-text');
             
-            if (content.classList.contains('active')) {
-                content.classList.remove('active');
+            if (overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
                 text.textContent = 'More Options ▼';
             } else {
-                content.classList.add('active');
+                overlay.classList.add('active');
                 text.textContent = 'Less Options ▲';
+            }
+        }
+        
+        function closeMoreOptions(event) {
+            if (event.target === event.currentTarget) {
+                const overlay = document.getElementById('more-options-overlay');
+                overlay.classList.remove('active');
+                document.getElementById('more-options-text').textContent = 'More Options ▼';
             }
         }
 
@@ -565,8 +593,8 @@
             document.getElementById('edit-panel').classList.remove('active'); 
             isCreatingNew = false; 
             
-            // Close more options
-            const moreOptions = document.getElementById('more-options-content');
+            // Close more options overlay
+            const moreOptions = document.getElementById('more-options-overlay');
             moreOptions.classList.remove('active');
             document.getElementById('more-options-text').textContent = 'More Options ▼';
         }
