@@ -106,31 +106,51 @@
         /* --- Footer --- */
         footer {
             width: 100%;
-            padding: 2rem 5%;
+            padding: 1.2rem 5%;
             border-top: 1px solid var(--accent-gray);
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
             background: var(--bg-color);
             transition: transform var(--transition);
         }
 
-        .footer-nav { display: flex; justify-content: center; gap: 2.5rem; }
-        .footer-link { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1rem; cursor: pointer; transition: 0.3s ease; }
+        .footer-nav { 
+            display: flex; 
+            justify-content: center; 
+            gap: 2rem; 
+            align-items: center; 
+        }
+        
+        .footer-link { 
+            color: var(--text-dim); 
+            text-decoration: none; 
+            font-size: 0.72rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.09rem; 
+            cursor: pointer; 
+            transition: 0.3s ease; 
+        }
+        
         .footer-link:hover { color: var(--text-main); }
 
         .footer-data-grid {
             width: 100%;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
-            align-items: end;
-            font-size: 0.65rem;
+            align-items: center;
+            font-size: 0.62rem;
             color: var(--text-dim);
             font-variant-numeric: tabular-nums;
         }
 
         .last-updated { text-align: left; }
-        .copyright { text-align: center; text-transform: uppercase; letter-spacing: 0.15rem; }
+        .copyright { 
+            text-align: center; 
+            text-transform: uppercase; 
+            letter-spacing: 0.13rem; 
+            font-size: 0.66rem; 
+        }
         .user-info { text-align: right; }
 
         /* --- RETRACTION LOGIC --- */
@@ -138,7 +158,7 @@
         body.workspace-mode footer { transform: translateY(100%); }
         body.workspace-mode main { 
             margin-top: -80px; /* Fully slides main up to hide top void */
-            margin-bottom: -150px; 
+            margin-bottom: -110px; 
             height: 100vh;
         }
 
