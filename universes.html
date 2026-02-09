@@ -35,15 +35,50 @@
         h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; margin: 0; }
 
         .universe-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 1.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        /* Compact mode when edit panel is open */
+        .universe-grid.compact {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.2rem;
+        }
+        
+        /* Overlay to block interaction */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 50;
+            display: none;
+            pointer-events: none;
+        }
+        
+        .grid-overlay.active {
+            display: block;
+            pointer-events: all;
         }
 
         /* --- Card Layout --- */
         .universe-card {
             background: var(--card-bg); border: 1px solid var(--accent);
-            padding: 1.8rem; display: flex; align-items: center; gap: 1.5rem;
+            padding: 1.5rem; display: flex; align-items: center; gap: 1.2rem;
             position: relative; cursor: pointer; transition: var(--transition);
-            overflow: hidden; z-index: 1; height: 130px;
+            overflow: hidden; z-index: 1; height: 110px;
+        }
+        
+        /* Smaller cards in compact mode */
+        .universe-grid.compact .universe-card {
+            padding: 1.2rem;
+            gap: 1rem;
+            height: 100px;
         }
 
         .card-bg-overlay {
@@ -60,15 +95,28 @@
         .universe-card:hover .card-synopsis-preview { opacity: 1; transform: translateY(0); }
 
         .universe-thumb { 
-            width: 85px; height: 85px; border-radius: 50%; 
+            width: 70px; height: 70px; border-radius: 50%; 
             object-fit: cover; border: 1px solid var(--accent); 
             background: #000; flex-shrink: 0; transition: var(--transition);
+        }
+        
+        .universe-grid.compact .universe-thumb {
+            width: 60px;
+            height: 60px;
         }
 
         .card-content { position: relative; flex-grow: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; }
         
-        .card-series { font-size: 0.55rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
-        .card-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 6px; line-height: 1.2; }
+        .card-series { font-size: 0.5rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.3px; margin-bottom: 2px; }
+        .card-title { font-size: 1rem; font-weight: 500; margin-bottom: 6px; line-height: 1.2; }
+        
+        .universe-grid.compact .card-title {
+            font-size: 0.9rem;
+        }
+        
+        .universe-grid.compact .card-series {
+            font-size: 0.45rem;
+        }
 
         .card-metadata-box { transition: var(--transition); }
         .card-dates { font-size: 0.55rem; color: #555; text-transform: uppercase; line-height: 1.5; }
@@ -175,7 +223,43 @@
         .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--accent); padding: 0.8rem 1.5rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
         .btn-danger { color: var(--danger); border-color: #442222; }
 
-        /* More Options Section - Overlay Approach */
+        /* More Options Section - Rolling Panel */
+        .panel-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s ease;
+        }
+        
+        .panel-page.page-main {
+            transform: translateY(0);
+        }
+        
+        .panel-page.page-main.rolled-up {
+            transform: translateY(-100%);
+        }
+        
+        .panel-page.page-options {
+            transform: translateY(100%);
+        }
+        
+        .panel-page.page-options.active {
+            transform: translateY(0);
+        }
+        
         .more-options-trigger {
             text-align: center;
             padding: 0.8rem;
@@ -196,39 +280,21 @@
             background: #111;
         }
         
-        .more-options-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-        
-        .more-options-overlay.active {
+        .options-page-content {
+            flex: 1;
             display: flex;
+            flex-direction: column;
+            padding: 1.5rem 0;
+            gap: 1rem;
         }
         
-        .more-options-panel {
-            background: var(--panel-bg);
-            border: 2px solid var(--accent);
-            padding: 2rem;
-            border-radius: 8px;
-            min-width: 350px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-        }
-        
-        .more-options-header {
-            font-size: 0.8rem;
+        .options-header {
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-dim);
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.8rem;
             border-bottom: 1px solid var(--accent);
         }
         
@@ -236,7 +302,7 @@
             font-size: 0.55rem;
             color: #444;
             text-transform: uppercase;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             line-height: 1.6;
         }
         
@@ -262,6 +328,7 @@
     <input type="file" id="import-upload" hidden accept=".json" onchange="importCanon(this)">
     <input type="file" id="file-upload" hidden accept="image/*" onchange="handleUpload(this)">
 
+    <div class="grid-overlay" id="grid-overlay"></div>
     <div id="universe-grid" class="universe-grid"></div>
 
     <div id="edit-panel" onclick="event.stopPropagation()">
@@ -272,42 +339,51 @@
         </div>
 
         <div class="panel-content">
-            <label>Series (Optional)</label>
-            <input type="text" id="inp-series" placeholder="e.g. The Elder Scrolls" oninput="autoSave()">
+            <!-- Main Edit Page -->
+            <div class="panel-page page-main" id="panel-page-main">
+                <div style="flex: 1; overflow-y: auto;">
+                    <label>Series (Optional)</label>
+                    <input type="text" id="inp-series" placeholder="e.g. The Elder Scrolls" oninput="autoSave()">
 
-            <label>Universe Title</label>
-            <input type="text" id="inp-name" placeholder="e.g. Skyrim" oninput="autoSave()">
+                    <label>Universe Title</label>
+                    <input type="text" id="inp-name" placeholder="e.g. Skyrim" oninput="autoSave()">
 
-            <label>Synopsis</label>
-            <textarea id="inp-synopsis" maxlength="150" placeholder="Brief elevator pitch..." oninput="autoSave()"></textarea>
-            <div id="char-count" class="char-count">0 / 150</div>
-            
-            <label>Thumbnail</label>
-            <div class="image-section">
-                <div class="preview-container">
-                    <div id="placeholder-box" class="placeholder-circle">Empty</div>
-                    <img src="" id="prev-img" class="preview-circle">
+                    <label>Synopsis</label>
+                    <textarea id="inp-synopsis" maxlength="150" placeholder="Brief elevator pitch..." oninput="autoSave()"></textarea>
+                    <div id="char-count" class="char-count">0 / 150</div>
+                    
+                    <label>Thumbnail</label>
+                    <div class="image-section">
+                        <div class="preview-container">
+                            <div id="placeholder-box" class="placeholder-circle">Empty</div>
+                            <img src="" id="prev-img" class="preview-circle">
+                        </div>
+                        
+                        <div class="image-controls">
+                            <button class="btn-utility" onclick="document.getElementById('file-upload').click()">Upload Local Image</button>
+                            <input type="text" id="inp-img" placeholder="Or Image URL" oninput="autoSave()" style="margin: 0;">
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="image-controls">
-                    <button class="btn-utility" onclick="document.getElementById('file-upload').click()">Upload Local Image</button>
-                    <input type="text" id="inp-img" placeholder="Or Image URL" oninput="autoSave()" style="margin: 0;">
+
+                <div class="more-options-trigger" id="more-options-trigger" onclick="toggleMoreOptions()">
+                    <span id="more-options-text">More Options ▼</span>
                 </div>
             </div>
-        </div>
-
-        <div class="more-options-trigger" id="more-options-trigger" onclick="toggleMoreOptions()">
-            <span id="more-options-text">More Options ▼</span>
-        </div>
-    </div>
-    
-    <!-- More Options Overlay -->
-    <div class="more-options-overlay" id="more-options-overlay" onclick="closeMoreOptions(event)">
-        <div class="more-options-panel" onclick="event.stopPropagation()">
-            <div class="more-options-header">Universe Options</div>
-            <div id="date-info" class="date-info"></div>
-            <button class="btn-utility" onclick="exportSingle()" style="margin-bottom: 0.6rem;">Export to JSON</button>
-            <button class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
+            
+            <!-- Options Page -->
+            <div class="panel-page page-options" id="panel-page-options">
+                <div class="options-page-content">
+                    <div class="options-header">Universe Options</div>
+                    <div id="date-info" class="date-info"></div>
+                    <button class="btn-utility" onclick="exportSingle()" style="margin-bottom: 0.5rem;">Export to JSON</button>
+                    <button class="btn-utility btn-danger" onclick="deleteUniverse()">Delete Universe</button>
+                </div>
+                
+                <div class="more-options-trigger" onclick="toggleMoreOptions()">
+                    <span>Hide Options ▲</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -471,12 +547,19 @@
         async function openPanel(id = null) {
             activeId = id;
             const panel = document.getElementById('edit-panel');
-            const moreOptions = document.getElementById('more-options-overlay');
             const moreOptionsTrigger = document.getElementById('more-options-trigger');
+            const grid = document.getElementById('universe-grid');
+            const gridOverlay = document.getElementById('grid-overlay');
             
-            // Reset more options
-            moreOptions.classList.remove('active');
-            document.getElementById('more-options-text').textContent = 'More Options ▼';
+            // Reset rolling pages
+            const mainPage = document.getElementById('panel-page-main');
+            const optionsPage = document.getElementById('panel-page-options');
+            mainPage.classList.remove('rolled-up');
+            optionsPage.classList.remove('active');
+            
+            // Activate compact mode
+            grid.classList.add('compact');
+            gridOverlay.classList.add('active');
             
             if (id) {
                 isCreatingNew = false;
@@ -506,23 +589,17 @@
         }
 
         function toggleMoreOptions() {
-            const overlay = document.getElementById('more-options-overlay');
-            const text = document.getElementById('more-options-text');
+            const mainPage = document.getElementById('panel-page-main');
+            const optionsPage = document.getElementById('panel-page-options');
             
-            if (overlay.classList.contains('active')) {
-                overlay.classList.remove('active');
-                text.textContent = 'More Options ▼';
+            if (mainPage.classList.contains('rolled-up')) {
+                // Roll back down to main page
+                mainPage.classList.remove('rolled-up');
+                optionsPage.classList.remove('active');
             } else {
-                overlay.classList.add('active');
-                text.textContent = 'Less Options ▲';
-            }
-        }
-        
-        function closeMoreOptions(event) {
-            if (event.target === event.currentTarget) {
-                const overlay = document.getElementById('more-options-overlay');
-                overlay.classList.remove('active');
-                document.getElementById('more-options-text').textContent = 'More Options ▼';
+                // Roll up to show options page
+                mainPage.classList.add('rolled-up');
+                optionsPage.classList.add('active');
             }
         }
 
@@ -593,10 +670,17 @@
             document.getElementById('edit-panel').classList.remove('active'); 
             isCreatingNew = false; 
             
-            // Close more options overlay
-            const moreOptions = document.getElementById('more-options-overlay');
-            moreOptions.classList.remove('active');
-            document.getElementById('more-options-text').textContent = 'More Options ▼';
+            // Deactivate compact mode
+            const grid = document.getElementById('universe-grid');
+            const gridOverlay = document.getElementById('grid-overlay');
+            grid.classList.remove('compact');
+            gridOverlay.classList.remove('active');
+            
+            // Reset rolling pages
+            const mainPage = document.getElementById('panel-page-main');
+            const optionsPage = document.getElementById('panel-page-options');
+            mainPage.classList.remove('rolled-up');
+            optionsPage.classList.remove('active');
         }
         
         async function handleUpload(input) {
