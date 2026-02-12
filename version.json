@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-01-21T12:42:15",
-  "version": "2026.01.21.15",
+  "lastUpdated": "2026-02-11T15:30:00",
+  "version": "2026.02.11.01",
   "author": "Lex Domitor",
-  "description": "Implemented automated State Hydration on page load and forced sync on creation. Added consent-gate for the 'New Canon' action."
+  "description": "Overhaul to the nodes graph."
 }

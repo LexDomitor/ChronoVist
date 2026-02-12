@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Episode Statistics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        .stats-title {
+            font-size: 1.5rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .stats-episode {
+            font-size: 0.9rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: #222;
+            color: white;
+        }
+        
+        .stats-section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #aaa;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .toggle-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #666;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        
+        .toggle-btn.active {
+            background: #333;
+            color: #fff;
+            border-color: #555;
+        }
+        
+        .toggle-btn:hover:not(.active) {
+            color: #aaa;
+        }
+        
+        .chart-container {
+            background: #111;
+            border: 1px solid #222;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .bar-label {
+            min-width: 150px;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+        
+        .bar-visual {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .bar-fill-container {
+            flex: 1;
+            height: 24px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .bar-stats {
+            min-width: 80px;
+            font-size: 0.75rem;
+            color: #888;
+            text-align: right;
+        }
+        
+        .pie-chart {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .pie-chart.active {
+            display: flex;
+        }
+        
+        .bar-chart.active {
+            display: flex;
+        }
+        
+        .bar-chart:not(.active) {
+            display: none;
+        }
+        
+        canvas {
+            max-width: 500px;
+            max-height: 500px;
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #555;
+            padding: 3rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="stats-container">
+        <div class="stats-header">
+            <div>
+                <div class="stats-title">Episode Statistics</div>
+                <div class="stats-episode" id="episode-label">Episode 0</div>
+            </div>
+            <button class="close-btn" onclick="closeStats()">Close</button>
+        </div>
+        
+        <!-- Characters Section -->
+        <div class="stats-section">
+            <div class="section-header">
+                <div class="section-title">👥 Characters</div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" onclick="setView('characters', 'bar')">Bar Chart</button>
+                    <button class="toggle-btn" onclick="setView('characters', 'pie')">Pie Chart</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div id="characters-bar" class="bar-chart active"></div>
+                <div id="characters-pie" class="pie-chart">
+                    <canvas id="characters-pie-canvas" width="500" height="500"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items Section -->
+        <div class="stats-section">
+            <div class="section-header">
+                <div class="section-title">⚔️ Items</div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" onclick="setView('items', 'bar')">Bar Chart</button>
+                    <button class="toggle-btn" onclick="setView('items', 'pie')">Pie Chart</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div id="items-bar" class="bar-chart active"></div>
+                <div id="items-pie" class="pie-chart">
+                    <canvas id="items-pie-canvas" width="500" height="500"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Places Section -->
+        <div class="stats-section">
+            <div class="section-header">
+                <div class="section-title">📍 Places</div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" onclick="setView('places', 'bar')">Bar Chart</button>
+                    <button class="toggle-btn" onclick="setView('places', 'pie')">Pie Chart</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div id="places-bar" class="bar-chart active"></div>
+                <div id="places-pie" class="pie-chart">
+                    <canvas id="places-pie-canvas" width="500" height="500"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const universeId = urlParams.get('id');
+        const selectedEpisode = parseInt(urlParams.get('episode'));
+        
+        let characters = [];
+        let glossaryEntries = [];
+        let episodeData = null;
+        
+        function closeStats() {
+            window.parent.postMessage({ type: 'CLOSE_STATISTICS' }, '*');
+        }
+        
+        function setView(category, view) {
+            const barChart = document.getElementById(`${category}-bar`);
+            const pieChart = document.getElementById(`${category}-pie`);
+            const buttons = document.querySelectorAll(`#${category}-bar, #${category}-pie`)
+                .forEach(el => el.parentElement.parentElement.querySelectorAll('.toggle-btn'))
+                .forEach(btn => btn.classList.remove('active'));
+            
+            // Update button states
+            const section = document.querySelector(`#${category}-bar`).parentElement.parentElement;
+            const toggleButtons = section.querySelectorAll('.toggle-btn');
+            toggleButtons.forEach(btn => btn.classList.remove('active'));
+            
+            if (view === 'bar') {
+                barChart.classList.add('active');
+                pieChart.classList.remove('active');
+                toggleButtons[0].classList.add('active');
+            } else {
+                barChart.classList.remove('active');
+                pieChart.classList.add('active');
+                toggleButtons[1].classList.add('active');
+                renderPieChart(category);
+            }
+        }
+        
+        function loadData() {
+            if (!universeId) {
+                console.error('No universe ID provided');
+                return;
+            }
+            
+            const storageKey = `alphaline_universe_${universeId}`;
+            const saved = localStorage.getItem(storageKey);
+            
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    characters = data.characters || [];
+                    glossaryEntries = data.glossary || [];
+                    episodeData = data.plots?.[selectedEpisode];
+                    
+                    document.getElementById('episode-label').textContent = `Episode ${selectedEpisode}`;
+                    
+                    analyzeEpisode();
+                } catch (e) {
+                    console.error('Failed to load data:', e);
+                }
+            }
+        }
+        
+        function analyzeEpisode() {
+            if (!episodeData) {
+                showEmpty();
+                return;
+            }
+            
+            // Combine all text from episode
+            let allText = '';
+            
+            // Get synopsis
+            allText += (episodeData.synopsis || '') + ' ';
+            
+            // Get all event text from all columns
+            ['left', 'main', 'right'].forEach(col => {
+                if (episodeData[col]) {
+                    episodeData[col].forEach(plot => {
+                        if (plot.events) {
+                            plot.events.forEach(event => {
+                                allText += (event.text || '') + ' ';
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Analyze character mentions
+            const characterMentions = analyzeCharacters(allText);
+            renderBarChart('characters', characterMentions);
+            
+            // Analyze item mentions
+            const itemMentions = analyzeGlossaryType(allText, 'Item');
+            renderBarChart('items', itemMentions);
+            
+            // Analyze place mentions
+            const placeMentions = analyzeGlossaryType(allText, 'Place');
+            renderBarChart('places', placeMentions);
+        }
+        
+        function analyzeCharacters(text) {
+            const mentions = [];
+            const lowerText = text.toLowerCase();
+            
+            characters.forEach(char => {
+                let count = 0;
+                
+                // Count main name
+                if (char.name) {
+                    const regex = new RegExp(`\\b${char.name.toLowerCase()}\\b`, 'g');
+                    const matches = lowerText.match(regex);
+                    count += matches ? matches.length : 0;
+                }
+                
+                // Count aliases
+                if (char.aliases) {
+                    char.aliases.forEach(alias => {
+                        const regex = new RegExp(`\\b${alias.toLowerCase()}\\b`, 'g');
+                        const matches = lowerText.match(regex);
+                        count += matches ? matches.length : 0;
+                    });
+                }
+                
+                if (count > 0) {
+                    mentions.push({
+                        name: char.name || 'Unnamed',
+                        count: count,
+                        color: char.color || '#888888'
+                    });
+                }
+            });
+            
+            // Sort by count
+            mentions.sort((a, b) => b.count - a.count);
+            
+            return mentions;
+        }
+        
+        function analyzeGlossaryType(text, type) {
+            const mentions = [];
+            const lowerText = text.toLowerCase();
+            
+            const entriesOfType = glossaryEntries.filter(e => e.type === type);
+            
+            entriesOfType.forEach(entry => {
+                let count = 0;
+                
+                // Count main name
+                if (entry.name) {
+                    const regex = new RegExp(`\\b${entry.name.toLowerCase()}\\b`, 'g');
+                    const matches = lowerText.match(regex);
+                    count += matches ? matches.length : 0;
+                }
+                
+                // Count aliases
+                if (entry.aliases) {
+                    entry.aliases.forEach(alias => {
+                        const regex = new RegExp(`\\b${alias.toLowerCase()}\\b`, 'g');
+                        const matches = lowerText.match(regex);
+                        count += matches ? matches.length : 0;
+                    });
+                }
+                
+                if (count > 0) {
+                    mentions.push({
+                        name: entry.name || 'Unnamed',
+                        count: count,
+                        color: entry.color || '#888888'
+                    });
+                }
+            });
+            
+            // Sort by count
+            mentions.sort((a, b) => b.count - a.count);
+            
+            return mentions;
+        }
+        
+        function renderBarChart(category, data) {
+            const container = document.getElementById(`${category}-bar`);
+            container.innerHTML = '';
+            
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-message">No mentions found</div>';
+                return;
+            }
+            
+            const total = data.reduce((sum, item) => sum + item.count, 0);
+            const maxCount = Math.max(...data.map(d => d.count));
+            
+            data.forEach(item => {
+                const percentage = ((item.count / total) * 100).toFixed(1);
+                const barWidth = (item.count / maxCount) * 100;
+                
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+                barItem.innerHTML = `
+                    <div class="bar-label">${item.name}</div>
+                    <div class="bar-visual">
+                        <div class="bar-fill-container">
+                            <div class="bar-fill" style="width: ${barWidth}%; background: ${item.color};"></div>
+                        </div>
+                        <div class="bar-stats">${item.count} (${percentage}%)</div>
+                    </div>
+                `;
+                container.appendChild(barItem);
+            });
+        }
+        
+        function renderPieChart(category) {
+            const canvas = document.getElementById(`${category}-pie-canvas`);
+            const ctx = canvas.getContext('2d');
+            
+            // Get data based on category
+            let data = [];
+            const allText = getAllText();
+            
+            if (category === 'characters') {
+                data = analyzeCharacters(allText);
+            } else if (category === 'items') {
+                data = analyzeGlossaryType(allText, 'Item');
+            } else if (category === 'places') {
+                data = analyzeGlossaryType(allText, 'Place');
+            }
+            
+            if (data.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#555';
+                ctx.font = '16px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data to display', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const total = data.reduce((sum, item) => sum + item.count, 0);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 80;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let currentAngle = -Math.PI / 2;
+            
+            data.forEach((item, index) => {
+                const sliceAngle = (item.count / total) * 2 * Math.PI;
+                
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+                ctx.strokeStyle = '#0a0a0a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw label
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelX = centerX + Math.cos(labelAngle) * (radius + 40);
+                const labelY = centerY + Math.sin(labelAngle) * (radius + 40);
+                
+                ctx.fillStyle = '#ccc';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.name, labelX, labelY);
+                
+                const percentage = ((item.count / total) * 100).toFixed(1);
+                ctx.fillStyle = '#888';
+                ctx.font = '10px Inter';
+                ctx.fillText(`${percentage}%`, labelX, labelY + 14);
+                
+                currentAngle += sliceAngle;
+            });
+        }
+        
+        function getAllText() {
+            let allText = '';
+            
+            if (episodeData) {
+                allText += (episodeData.synopsis || '') + ' ';
+                
+                ['left', 'main', 'right'].forEach(col => {
+                    if (episodeData[col]) {
+                        episodeData[col].forEach(plot => {
+                            if (plot.events) {
+                                plot.events.forEach(event => {
+                                    allText += (event.text || '') + ' ';
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            
+            return allText;
+        }
+        
+        function showEmpty() {
+            ['characters', 'items', 'places'].forEach(category => {
+                const container = document.getElementById(`${category}-bar`);
+                container.innerHTML = '<div class="empty-message">No data available for this episode</div>';
+            });
+        }
+        
+        // Load data on page load
+        window.onload = loadData;
+    </script>
+</body>
+</html>
