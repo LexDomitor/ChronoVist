@@ -542,7 +542,7 @@
         /* Plot Grid System */
         .plot-grid {
             display: grid;
-            grid-template-columns: repeat(3, 550px);
+            grid-template-columns: repeat(3, 1100px);
             gap: 30px;
             row-gap: 60px;
             margin-top: 30px;
@@ -803,6 +803,7 @@
         
         .plot-node {
             width: 100%; 
+            min-width: 754px;
             background: var(--panel-bg);
             border: 2px solid var(--border);
             border-radius: 15px; 
@@ -857,18 +858,25 @@
             border: 2px solid var(--border);
             border-radius: 12px; 
             overflow: hidden; 
-            transition: width 0.3s ease;
             position: relative; 
-            width: 100%;
+            width: 704px;
+            max-width: 704px;
+            margin: 0 auto;
+            align-self: center;
+            pointer-events: auto;
+            z-index: 10;
         }
         .event-node.flipped { flex-direction: row-reverse; }
         
         .event-text-container { 
-            flex: 0 0 420px;
-            padding: 15px 20px; 
+            flex: 0 0 562px;
+            max-width: 562px;
+            padding: 12px 16px; 
             position: relative; 
             display: flex; 
             flex-direction: column;
+            min-height: 150px;
+            overflow: hidden;
         }
         .event-input {
             background: transparent; border: none; color: var(--text-primary); resize: none; width: 100%; font-size: 0.85rem; line-height: 1.6; outline: none;
@@ -876,6 +884,8 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: pre-wrap;
+            max-width: 100%;
+            word-break: break-word;
         }
         
         /* Contenteditable placeholder for event input */
@@ -897,55 +907,50 @@
             justify-content: center; 
             align-items: center;
             position: relative;
-            width: 284px;
-            height: 213px;
+            pointer-events: auto;
+            z-index: 11;
         }
 
-        .event-resize-handle {
-            width: 20px;
-            height: 100%;
-            cursor: ew-resize;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: transparent;
-            z-index: 10;
-            transition: 0.2s;
-        }
-
-        .event-resize-handle:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .resize-triangle {
-            width: 0;
-            height: 0;
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
-            border-left: 8px solid var(--text-dim);
-            opacity: 0.5;
-            transition: 0.2s;
-        }
-
-        .event-resize-handle:hover .resize-triangle {
-            opacity: 1;
-            border-left-color: var(--text-primary);
+        .event-image-container img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            object-position: center;
         }
 
         .event-node.flipped .event-image-container { border-left: none; border-right: 2px solid var(--border); }
-        .event-image-container img { 
-            display: block;
-            margin: auto;
-            max-width: 100%; 
-            max-height: 100%; 
-            width: auto;
-            height: auto;
-            object-fit: contain; 
-            transition: 0.3s;
-        }
         .event-image-container:hover img { opacity: 0.8; }
         .img-placeholder { padding: 10px; font-size: 0.5rem; color: #444; letter-spacing: 1px; text-align: center; position: absolute; }
+        
+        .event-image-upload-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--node-bg);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            z-index: 10;
+        }
+        
+        .event-image-upload-btn.flipped {
+            left: auto;
+            right: 8px;
+        }
+        
+        .event-image-upload-btn:hover {
+            color: var(--text-primary);
+            background: var(--border);
+        }
 
         .event-tools {
             position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: 0.2s;
@@ -2673,6 +2678,24 @@
             </div>
         </div>
     </div>
+    
+    <!-- Event Image Upload Modal -->
+    <div id="event-image-modal" class="modal-overlay" style="display: none; z-index: 4000;" onclick="closeEventImageModal()">
+        <div class="modal-content" style="width: 400px;" onclick="event.stopPropagation();">
+            <div class="modal-title">Add Event Image</div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Image URL</label>
+                <input type="text" id="event-image-url" class="modal-input" placeholder="Paste image URL here..." style="text-align: left; font-size: 0.85rem;">
+            </div>
+            <div style="margin: 20px 0; text-align: center; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">OR</div>
+            <input type="file" id="event-image-file" accept="image/*" style="display: none;" onchange="handleEventImageUpload(this)">
+            <button class="tm-btn" onclick="document.getElementById('event-image-file').click()" style="width: 100%; margin-bottom: 20px; padding: 12px; font-size: 0.75rem;">Upload from Device</button>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button class="tm-btn" onclick="closeEventImageModal()" style="flex: 1;">Cancel</button>
+                <button class="tm-btn" style="color:#4a4; border-color:#4a4; flex: 1;" onclick="confirmEventImage()">Confirm</button>
+            </div>
+        </div>
+    </div>
 
     <div id="lightbox" class="modal-overlay" onclick="closeLightbox(event)">
         <div id="lightbox-img-container" onclick="event.stopPropagation()">
@@ -2912,15 +2935,13 @@
         </div>
         
         <!-- Event Deletion Confirmation Modal -->
-        <div id="event-delete-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-panel" style="width: 400px;">
-                <div class="modal-header">Delete Event?</div>
-                <div class="modal-body" style="padding: 20px; text-align: center;">
-                    <p style="margin-bottom: 20px;">Are you sure you want to delete this event?</p>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button class="setting-btn danger-btn" onclick="confirmDeleteEvent()" style="flex: 1;">Delete</button>
-                        <button class="setting-btn" onclick="cancelDeleteEvent()" style="flex: 1;">Cancel</button>
-                    </div>
+        <div id="event-delete-modal" class="modal-overlay" style="display: none; z-index: 4000;" onclick="cancelDeleteEvent()">
+            <div class="modal-content" style="width: 400px;" onclick="event.stopPropagation();">
+                <div class="modal-title">Delete Event?</div>
+                <p style="margin: 20px 0; text-align: center; color: var(--text-dim);">Are you sure you want to delete this event? This action cannot be undone.</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="tm-btn" onclick="cancelDeleteEvent()" style="flex: 1;">Cancel</button>
+                    <button class="tm-btn" style="color:#d44; border-color:#d44; flex: 1;" onclick="confirmDeleteEvent()">Delete</button>
                 </div>
             </div>
         </div>
@@ -3202,6 +3223,18 @@
         
         // Plot drag handlers
         function handlePlotDragStart(event, plotIndex) {
+            // Don't drag if clicking on event nodes or interactive elements
+            if (event.target.closest('.event-node') || 
+                event.target.closest('.event-input') ||
+                event.target.closest('.event-image-container') ||
+                event.target.closest('.event-tools') ||
+                event.target.closest('.event-reorder') ||
+                event.target.closest('.plot-title-field') ||
+                event.target.closest('.tm-btn')) {
+                event.preventDefault();
+                return;
+            }
+            
             const wrapper = event.target.closest('.plot-node-wrapper');
             
             // Check if plot is locked
@@ -3380,8 +3413,8 @@
                 text: '', 
                 img: null, 
                 flipped: false,
-                textWidth: 420,
-                imageWidth: 284
+                textWidth: 562,
+                imageWidth: 460
             });
             renderPlotGrid();
             saveData();
@@ -3576,7 +3609,8 @@
             }
             plotsByYear[selectedYear].plots[plotIndex].events[eventIndex].text = text;
             
-            const charCount = el.closest('.event-node').querySelector('.char-count');
+            const eventNode = el.closest('.event-node');
+            const charCount = eventNode ? eventNode.querySelector('.char-count') : null;
             if (charCount) charCount.textContent = `${text.length}/500`;
             
             saveData();
@@ -3597,11 +3631,17 @@
         }
         
         async function openLightbox(plotIndex, eventIndex) {
+            console.log('🖼️ openLightbox called:', {plotIndex, eventIndex});
+            
             const ev = plotsByYear[selectedYear].plots[plotIndex].events[eventIndex];
+            console.log('🖼️ Event data:', ev);
+            
             if(!ev.img) {
+                console.log('🖼️ No image, calling triggerImgUpload');
                 triggerImgUpload(plotIndex, eventIndex);
                 return;
             }
+            
             lbContext = { pIdx: plotIndex, eIdx: eventIndex };
             
             if (ev.img.startsWith('indexeddb:')) {
@@ -3638,24 +3678,69 @@
         }
         
         function triggerImgUpload(plotIndex, eventIndex) {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const imageKey = `event_${universeId}_${Date.now()}`;
-                    try {
-                        await storeImage(imageKey, file);
-                        plotsByYear[selectedYear].plots[plotIndex].events[eventIndex].img = `indexeddb:${imageKey}`;
-                        renderPlotGrid();
-                        saveData();
-                    } catch (error) {
-                        console.error('Failed to store image:', error);
-                        alert('Failed to store image. Please try a smaller file.');
-                    }
-                }
-            };
-            input.click();
+            console.log('🖼️ triggerImgUpload called:', {plotIndex, eventIndex});
+            
+            // Store context for modal
+            window.eventImageContext = { plotIndex, eventIndex };
+            
+            // Show event image modal
+            const modal = document.getElementById('event-image-modal');
+            console.log('🖼️ Modal element:', modal);
+            modal.style.display = 'flex';
+            
+            const urlInput = document.getElementById('event-image-url');
+            urlInput.value = '';
+            urlInput.focus();
+            
+            console.log('🖼️ Modal should now be visible');
+        }
+        
+        async function confirmEventImage() {
+            const url = document.getElementById('event-image-url').value.trim();
+            
+            if (!window.eventImageContext) {
+                console.error('No event image context');
+                return;
+            }
+            
+            const { plotIndex, eventIndex } = window.eventImageContext;
+            
+            if (!url) {
+                alert('Please enter an image URL or upload a file');
+                return;
+            }
+            
+            // Use URL
+            plotsByYear[selectedYear].plots[plotIndex].events[eventIndex].img = url;
+            saveData();
+            renderPlotGrid();
+            closeEventImageModal();
+        }
+        
+        async function handleEventImageUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            
+            const file = input.files[0];
+            const { plotIndex, eventIndex } = window.eventImageContext;
+            
+            const imageKey = `event_${universeId}_${Date.now()}`;
+            try {
+                await storeImage(imageKey, file);
+                plotsByYear[selectedYear].plots[plotIndex].events[eventIndex].img = `indexeddb:${imageKey}`;
+                saveData();
+                renderPlotGrid();
+                closeEventImageModal();
+                input.value = ''; // Clear file input
+            } catch (error) {
+                console.error('Failed to store image:', error);
+                alert('Failed to store image. Please try a smaller file.');
+            }
+        }
+        
+        function closeEventImageModal() {
+            document.getElementById('event-image-modal').style.display = 'none';
+            document.getElementById('event-image-url').value = '';
+            document.getElementById('event-image-file').value = '';
         }
         
         // Event resize handlers (updated for grid)
@@ -3843,11 +3928,11 @@
 
         // Center and zoom the node graph
         function resetGraphView() {
-            // Focus on Episode/Characters/Synopsis nodes at top
-            // Move view down to see top nodes better
+            // Focus on Episode node (with banner if exists) through Synopsis
+            // This view remains fixed regardless of grid size below
             panX = 0;
-            panY = -100; // Less offset = view moved down more (was -200)
-            gridZoom = 0.7; // Zoom level to see all three top nodes
+            panY = -250; // Fixed offset to show Episode/Characters/Synopsis at top
+            gridZoom = 0.65; // Zoom out to see full top section including banner
             updateGrid();
         }
 
@@ -3895,90 +3980,68 @@
             col: null
         };
 
-        function startEventResize(e, pIdx, eIdx, col) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const eventNode = e.target.closest('.event-node');
-            if (!eventNode) return;
-            
-            resizeState.active = true;
-            resizeState.element = eventNode;
-            resizeState.startX = e.clientX;
-            resizeState.textContainer = eventNode.querySelector('.event-text-container');
-            resizeState.imageContainer = eventNode.querySelector('.event-image-container');
-            resizeState.startWidth = resizeState.imageContainer.offsetWidth;
-            resizeState.pIdx = pIdx;
-            resizeState.eIdx = eIdx;
-            resizeState.col = col;
-            
-            document.addEventListener('mousemove', handleEventResize);
-            document.addEventListener('mouseup', stopEventResize);
-            
-            // Prevent text selection during drag
-            document.body.style.userSelect = 'none';
-        }
 
+        function adjustEventFontSize(eventNode) {
+            const textContainer = eventNode.querySelector('.event-text-container');
+            const eventInput = eventNode.querySelector('.event-input');
+            if (!textContainer || !eventInput) return;
+            
+            const containerWidth = textContainer.offsetWidth;
+            
+            // Scale font size based on container width
+            // 562px (max text width at 55%) = 0.85rem (base)
+            // 357px (min text width at 35%) = 0.65rem (smaller)
+            const maxWidth = 562;
+            const minWidth = 357;
+            const maxFontSize = 0.85;
+            const minFontSize = 0.65;
+            
+            let fontSize = maxFontSize;
+            if (containerWidth < maxWidth) {
+                const ratio = (containerWidth - minWidth) / (maxWidth - minWidth);
+                fontSize = minFontSize + (ratio * (maxFontSize - minFontSize));
+                fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
+            }
+            
+            eventInput.style.fontSize = `${fontSize}rem`;
+        }
+        
         function handleEventResize(e) {
             if (!resizeState.active) return;
             
             let deltaX = e.clientX - resizeState.startX;
             
-            // Invert delta for correct drag behavior
-            // When image is on left (normal): drag right = expand image
-            // When image is on right (flipped): drag left = expand image
+            // When image is on right (NOT flipped): drag right = expand image (shrink text)
+            // When image is on left (flipped): drag left = expand image (shrink text)
             const isFlipped = resizeState.element.classList.contains('flipped');
             if (!isFlipped) {
-                deltaX = -deltaX;  // Invert for normal layout
+                deltaX = -deltaX;  // Invert for normal layout (image on right)
             }
             
-            const totalWidth = 704; // 420 + 284
+            // Total available space: 704px (text + image, handle is separate)
+            const totalAvailableWidth = 704;
             
-            // Calculate new image width (clamped between 40% and 60% of total)
+            // Calculate new image width from drag
             let newImageWidth = resizeState.startWidth + deltaX;
-            const minWidth = totalWidth * 0.4;  // 40% minimum
-            const maxWidth = totalWidth * 0.6;  // 60% maximum
-            newImageWidth = Math.max(minWidth, Math.min(maxWidth, newImageWidth));
             
-            // Calculate text width
-            const newTextWidth = totalWidth - newImageWidth;
+            // Calculate corresponding text width
+            let newTextWidth = totalAvailableWidth - newImageWidth;
+            
+            // ENFORCE LIMITS on BOTH sections to prevent overflow
+            const minTextWidth = 154;   // Text must stay at least 154px
+            const maxTextWidth = 550;   // Text cannot exceed 550px (THIS WAS THE MISSING LIMIT)
+            const minImageWidth = 154;  // Image must stay at least 154px  
+            const maxImageWidth = 550;  // Image cannot exceed 550px
+            
+            // Clamp TEXT width first (this prevents the overflow issue)
+            newTextWidth = Math.max(minTextWidth, Math.min(maxTextWidth, newTextWidth));
+            
+            // Recalculate image width to match
+            newImageWidth = totalAvailableWidth - newTextWidth;
             
             // Apply new widths
             resizeState.textContainer.style.flex = `0 0 ${newTextWidth}px`;
-            resizeState.textContainer.style.minWidth = `${newTextWidth}px`;
-            resizeState.textContainer.style.maxWidth = `${newTextWidth}px`;
-            
             resizeState.imageContainer.style.width = `${newImageWidth}px`;
-            resizeState.imageContainer.style.minWidth = `${newImageWidth}px`;
-            resizeState.imageContainer.style.maxWidth = `${newImageWidth}px`;
-        }
-
-        function stopEventResize() {
-            if (!resizeState.active) return;
-            
-            // Save the final widths to the event data
-            if (resizeState.pIdx !== null && resizeState.eIdx !== null && resizeState.col) {
-                const event = plotsByYear[selectedYear][resizeState.col][resizeState.pIdx].events[resizeState.eIdx];
-                const textWidth = resizeState.textContainer.offsetWidth;
-                const imageWidth = resizeState.imageContainer.offsetWidth;
-                
-                event.textWidth = textWidth;
-                event.imageWidth = imageWidth;
-                
-                saveData();
-            }
-            
-            resizeState.active = false;
-            resizeState.element = null;
-            resizeState.pIdx = null;
-            resizeState.eIdx = null;
-            resizeState.col = null;
-            
-            document.removeEventListener('mousemove', handleEventResize);
-            document.removeEventListener('mouseup', stopEventResize);
-            
-            // Re-enable text selection
-            document.body.style.userSelect = '';
         }
 
         function handleSynopsis(el) {
@@ -4174,7 +4237,7 @@
             
             // Update grid template
             const numCols = maxCol - minCol + 1;
-            grid.style.gridTemplateColumns = `repeat(${numCols}, 550px)`;
+            grid.style.gridTemplateColumns = `repeat(${numCols}, 800px)`;
             
             // Create grid cells
             for (let row = 0; row <= maxRow; row++) {
@@ -4215,6 +4278,12 @@
             }
             
             loadAllEventImages();
+            
+            // Adjust font sizes for all event nodes based on their widths
+            document.querySelectorAll('.event-node').forEach(eventNode => {
+                adjustEventFontSize(eventNode);
+            });
+            
             renderArrows();
             
             // Update connector visual indicators
@@ -4484,7 +4553,7 @@
         }
         
         function renderPlotNode(plot, plotIndex, row, col) {
-            const titleValue = plot.title === 'Add Text' ? '' : plot.title;
+            const titleValue = plot.title || '';
             const titlePlaceholder = 'Add Text...';
             const isLocked = plot.locked || false;
             const lockIcon = isLocked ? '🔒' : '🔓';
@@ -4495,29 +4564,34 @@
             let eventsHTML = '';
             if (plot.events && plot.events.length > 0) {
                 plot.events.forEach((ev, eIdx) => {
-                    if (!ev.textWidth) ev.textWidth = 420;
-                    if (!ev.imageWidth) ev.imageWidth = 284;
-                    
                     const flippedClass = ev.flipped ? 'flipped' : '';
+                    const textLength = (ev.text || '').length;
+                    
+                    // Calculate font size based on text length to fit ~40 chars per line
+                    // Start at 0.85rem, scale down as text gets longer
+                    let fontSize = 0.85;
+                    if (textLength > 200) fontSize = 0.75;
+                    if (textLength > 300) fontSize = 0.7;
+                    if (textLength > 400) fontSize = 0.65;
+                    
                     eventsHTML += `
                         <div class="event-node ${flippedClass}" data-plot-idx="${plotIndex}" data-event-idx="${eIdx}">
                             <div class="event-reorder">
                                 <div class="reorder-arrow up" onclick="reorderEventUp(${plotIndex}, ${eIdx}); event.stopPropagation();"></div>
                                 <div class="reorder-arrow down" onclick="reorderEventDown(${plotIndex}, ${eIdx}); event.stopPropagation();"></div>
                             </div>
-                            <div class="event-text-container" style="flex: 0 0 ${ev.textWidth}px; min-width: ${ev.textWidth}px; max-width: ${ev.textWidth}px;">
+                            <div class="event-text-container" style="flex: 0 0 492px;">
                                 <div class="event-tools">
                                     <div class="tool-btn" title="Flip Side" onclick="toggleEventSide(${plotIndex}, ${eIdx})">↔</div>
                                     <div class="tool-btn tool-delete" title="Delete Event" onclick="deleteEvent(${plotIndex}, ${eIdx})">×</div>
                                 </div>
-                                <div class="event-input" contenteditable="true" data-maxlength="500" placeholder="Event description..." oninput="handleEventText(this, ${plotIndex}, ${eIdx})" onblur="processCharacterNamesInEvent(${plotIndex}, ${eIdx})">${highlightCharacterNames(ev.text)}</div>
-                                <div class="char-count">${ev.text.length}/500</div>
+                                <div class="event-input" contenteditable="true" data-maxlength="500" placeholder="Event description..." style="font-size: ${fontSize}rem;" oninput="handleEventText(this, ${plotIndex}, ${eIdx})" onblur="processCharacterNamesInEvent(${plotIndex}, ${eIdx})">${highlightCharacterNames(ev.text)}</div>
+                                <div class="char-count">${textLength}/500</div>
                             </div>
-                            <div class="event-resize-handle" onmousedown="startEventResize(event, ${plotIndex}, ${eIdx})">
-                                <div class="resize-triangle"></div>
-                            </div>
-                            <div class="event-image-container" data-image-ref="${ev.img || ''}" onclick="openLightbox(${plotIndex}, ${eIdx})" style="width: ${ev.imageWidth}px; min-width: ${ev.imageWidth}px; max-width: ${ev.imageWidth}px;">
-                                ${ev.img ? '' : '<span class="img-placeholder">ADD MEDIA</span>'}
+                            <div class="event-image-container" data-image-ref="${ev.img || ''}" style="width: 212px; display: flex; align-items: center; justify-content: center;">
+                                ${!ev.img ? `
+                                    <div class="event-image-upload-btn" onclick="event.stopPropagation(); triggerImgUpload(${plotIndex}, ${eIdx})">UPLOAD IMG</div>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -4583,6 +4657,13 @@
                 const imageRef = container.dataset.imageRef;
                 if (!imageRef) continue;
                 
+                // Get plot and event indices from parent event node
+                const eventNode = container.closest('.event-node');
+                if (!eventNode) continue;
+                
+                const plotIndex = parseInt(eventNode.dataset.plotIdx);
+                const eventIndex = parseInt(eventNode.dataset.eventIdx);
+                
                 if (imageRef.startsWith('indexeddb:')) {
                     const imageKey = imageRef.replace('indexeddb:', '');
                     try {
@@ -4591,6 +4672,10 @@
                             const blobUrl = URL.createObjectURL(blob);
                             const img = document.createElement('img');
                             img.src = blobUrl;
+                            img.onclick = (e) => {
+                                e.stopPropagation();
+                                openLightbox(plotIndex, eventIndex);
+                            };
                             container.innerHTML = '';
                             container.appendChild(img);
                         }
@@ -4601,6 +4686,10 @@
                     // Regular URL
                     const img = document.createElement('img');
                     img.src = imageRef;
+                    img.onclick = (e) => {
+                        e.stopPropagation();
+                        openLightbox(plotIndex, eventIndex);
+                    };
                     container.innerHTML = '';
                     container.appendChild(img);
                 }
@@ -4622,7 +4711,7 @@
                 node.className = 'plot-node';
                 
                 // Use placeholder for "Add Text" instead of value
-                const titleValue = plot.title === 'Add Text' ? '' : plot.title;
+                const titleValue = plot.title || '';
                 const titlePlaceholder = 'Add Text...';
                 
                 node.innerHTML = `
@@ -4638,8 +4727,8 @@
                 const evCont = node.querySelector(`#ev-container-${colName}-${pIdx}`);
                 plot.events.forEach((ev, eIdx) => {
                     // Initialize default widths if not present (backwards compatibility)
-                    if (!ev.textWidth) ev.textWidth = 420;
-                    if (!ev.imageWidth) ev.imageWidth = 284;
+                    if (!ev.textWidth) ev.textWidth = 562;
+                    if (!ev.imageWidth) ev.imageWidth = 460;
                     
                     const evNode = document.createElement('div');
                     evNode.className = `event-node draggable ${ev.flipped ? 'flipped' : ''}`;
@@ -4719,135 +4808,12 @@
             stack.appendChild(trailingAdd);
         }
 
-        function updatePlotTitle(pIdx, col, value) {
-            plotsByYear[selectedYear][col][pIdx].title = value;
-            saveData();
-        }
 
         // --- ACTIONS ---
-        function toggleEventSide(pIdx, eIdx, col) {
-            const ev = plotsByYear[selectedYear][col][pIdx].events[eIdx];
-            ev.flipped = !ev.flipped;
-            renderPlotStack();
-            saveData();
-        }
 
-        function deleteEvent(pIdx, eIdx, col) {
-            if(confirm("Delete this event?")) {
-                plotsByYear[selectedYear][col][pIdx].events.splice(eIdx, 1);
-                renderPlotStack();
-                saveData();
-            }
-        }
-
-        function reorderEventUp(pIdx, eIdx, col) {
-            const events = plotsByYear[selectedYear][col][pIdx].events;
-            const event = events[eIdx];
-            
-            // Remove from current position
-            events.splice(eIdx, 1);
-            
-            // If at top, move to bottom
-            if (eIdx === 0) {
-                events.push(event);
-            } else {
-                // Move up one position
-                events.splice(eIdx - 1, 0, event);
-            }
-            
-            renderPlotStack();
-            saveData();
-        }
-
-        function reorderEventDown(pIdx, eIdx, col) {
-            const events = plotsByYear[selectedYear][col][pIdx].events;
-            const event = events[eIdx];
-            
-            // Remove from current position
-            events.splice(eIdx, 1);
-            
-            // If at bottom, move to top
-            if (eIdx === events.length) {
-                events.unshift(event);
-            } else {
-                // Move down one position
-                events.splice(eIdx + 1, 0, event);
-            }
-            
-            renderPlotStack();
-            saveData();
-        }
 
         // --- LIGHTBOX ---
-        async function openLightbox(pIdx, eIdx, col) {
-            const ev = plotsByYear[selectedYear][col][pIdx].events[eIdx];
-            if(!ev.img) {
-                // Trigger upload if no image
-                triggerImgUpload(pIdx, eIdx, col);
-                return;
-            }
-            lbContext = { pIdx, eIdx, col };
-            
-            // Handle IndexedDB references
-            if (ev.img.startsWith('indexeddb:')) {
-                const imageKey = ev.img.replace('indexeddb:', '');
-                try {
-                    const blob = await getImage(imageKey);
-                    if (blob) {
-                        const blobUrl = URL.createObjectURL(blob);
-                        document.getElementById('lightbox-img').src = blobUrl;
-                        document.getElementById('lightbox').style.display = 'flex';
-                    }
-                } catch (error) {
-                    console.error('Failed to load lightbox image:', error);
-                    alert('Failed to load image');
-                }
-            } else {
-                // Regular URL
-                document.getElementById('lightbox-img').src = ev.img;
-                document.getElementById('lightbox').style.display = 'flex';
-            }
-        }
 
-        function closeLightbox(e) {
-            if(e.target.id === 'lightbox') document.getElementById('lightbox').style.display = 'none';
-        }
-
-        function deleteLightboxImage() {
-            if(confirm("Remove image?")) {
-                plotsByYear[selectedYear][lbContext.col][lbContext.pIdx].events[lbContext.eIdx].img = null;
-                document.getElementById('lightbox').style.display = 'none';
-                renderPlotStack();
-                saveData();
-            }
-        }
-
-        function replaceLightboxImage() {
-            triggerImgUpload(lbContext.pIdx, lbContext.eIdx, lbContext.col);
-            document.getElementById('lightbox').style.display = 'none';
-        }
-
-        function triggerImgUpload(pIdx, eIdx, col) {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = 'image/*';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                // Store in IndexedDB
-                const imageKey = `event_${selectedYear}_${col}_${pIdx}_${eIdx}_${Date.now()}`;
-                try {
-                    await storeImage(imageKey, file);
-                    plotsByYear[selectedYear][col][pIdx].events[eIdx].img = `indexeddb:${imageKey}`;
-                    renderPlotStack();
-                    saveData();
-                } catch (error) {
-                    console.error('Failed to store event image:', error);
-                    alert('Failed to store image. Please try a smaller file or use an image URL instead.');
-                }
-            };
-            input.click();
-        }
 
         // --- DRAG & DROP ---
         // Setup trash zone listeners ONCE on page load
@@ -5128,47 +5094,21 @@
         }
 
         // --- HELPERS ---
-        function handleEventText(el, pIdx, eIdx, col) {
-            const text = el.innerText || el.textContent || "";
-            
-            // Enforce 500 char limit for contenteditable
-            if (text.length > 500) {
-                el.innerText = text.substring(0, 500);
-                // Move cursor to end
-                const range = document.createRange();
-                const sel = window.getSelection();
-                range.selectNodeContents(el);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-            
-            plotsByYear[selectedYear][col][pIdx].events[eIdx].text = text;
-            el.nextElementSibling.innerText = `${text.length}/500`;
-            
-            // Update column widths (event widths are now fixed)
-            updateColumnWidths();
-            
-            saveData();
-        }
         
-        function processCharacterNamesInEvent(pIdx, eIdx, col) {
+        function processCharacterNamesInEvent(plotIndex, eventIndex) {
             if (!selectedYear) return;
             
-            const event = plotsByYear[selectedYear][col][pIdx].events[eIdx];
-            if (!event) return;
-            
-            // Find the event input element
-            const eventNode = document.querySelector(`[data-p-idx="${pIdx}"][data-e-idx="${eIdx}"][data-col="${col}"] .event-input`);
+            const eventNode = document.querySelector(`.event-node[data-plot-idx="${plotIndex}"][data-event-idx="${eventIndex}"]`);
             if (!eventNode) return;
             
-            const text = eventNode.innerText || eventNode.textContent || "";
-            const highlighted = highlightCharacterNames(text);
+            const input = eventNode.querySelector('.event-input');
+            if (!input) return;
             
-            if (highlighted !== text && highlighted.includes('char-name-highlight')) {
-                eventNode.innerHTML = highlighted;
-                attachCharacterNameHandlers();
-            }
+            const text = input.innerText || input.textContent || "";
+            const highlighted = highlightCharacterNames(text);
+            input.innerHTML = highlighted;
+            
+            attachCharacterNameHandlers();
         }
 
         function updateColumnWidths() {
@@ -6430,6 +6370,22 @@
                     characters = data.characters || [];
                     glossaryEntries = data.glossary || [];
                     
+                    // FORCE RESET: All events MUST use correct widths - no exceptions
+                    // This fixes any legacy data with wrong sizes
+                    Object.keys(plotsByYear).forEach(year => {
+                        if (plotsByYear[year].plots) {
+                            plotsByYear[year].plots.forEach(plot => {
+                                if (plot.events) {
+                                    plot.events.forEach(ev => {
+                                        // ALWAYS reset to correct values
+                                        ev.textWidth = 562;
+                                        ev.imageWidth = 460;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    
                     console.log('📖 Loaded glossary entries:', {
                         count: glossaryEntries.length,
                         entries: glossaryEntries.map(e => e.term).join(', ')
@@ -6976,6 +6932,11 @@
         // Allow Enter key to confirm year modal
         document.getElementById('year-input').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') confirmNewYear();
+        });
+        
+        // Allow Enter key to confirm event image URL
+        document.getElementById('event-image-url').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') confirmEventImage();
         });
     </script>
 </body>

@@ -8,11 +8,45 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            background: #0a0a0a;
+            background: transparent;
             color: #fff;
             font-family: 'Inter', -apple-system, sans-serif;
             height: 100vh;
             overflow: hidden;
+        }
+        
+        /* Backdrop blur layer */
+        .glossary-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            pointer-events: all;
+            z-index: 0;
+        }
+        
+        /* Center message */
+        .center-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            pointer-events: none;
+            z-index: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
         }
         
         /* Main Layout */
@@ -20,17 +54,20 @@
             display: flex;
             height: 100vh;
             padding: 20px;
-            gap: 20px;
+            gap: 0;
+            position: relative;
+            z-index: 2;
         }
         
         /* Left Panel - Entry List */
         .entry-list-panel {
-            width: 350px;
+            width: 450px;
             background: #111;
             border: 1px solid #333;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            margin-left: 20px;
         }
         
         .panel-header {
@@ -95,6 +132,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
         }
         
         .entry-item:hover {
@@ -105,6 +143,26 @@
         .entry-item.selected {
             background: #1a1a1a;
             border-color: #555;
+        }
+        
+        .entry-item.locked {
+            outline: 2px solid rgba(100, 200, 255, 0.6);
+            outline-offset: -2px;
+        }
+        
+        .entry-lock-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .entry-item.locked .entry-lock-icon {
+            opacity: 1;
         }
         
         .entry-icon {
@@ -141,11 +199,15 @@
         
         /* Right Panel - Entry Detail */
         .entry-detail-panel {
-            flex: 1;
+            width: 450px;
             background: #111;
             border: 1px solid #333;
             overflow-y: auto;
             padding: 30px;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            bottom: 20px;
         }
         
         .detail-empty {
@@ -172,7 +234,7 @@
             height: 200px;
             background: #000;
             border: 1px solid #333;
-            margin-bottom: 20px;
+            margin: 0 auto 20px auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -195,6 +257,7 @@
             font-size: 1.5rem;
             font-weight: 400;
             margin-bottom: 5px;
+            text-align: center;
         }
         
         .detail-type {
@@ -202,11 +265,49 @@
             color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
+            margin: 0 auto 15px auto;
             padding: 4px 10px;
             background: #0a0a0a;
             border: 1px solid #222;
             display: inline-block;
+            text-align: center;
+        }
+        
+        .detail-content {
+            display: none;
+            text-align: center;
+        }
+        
+        .detail-content.visible {
+            display: block;
+        }
+        
+        .detail-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .edit-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            width: 100%;
+            max-width: 250px;
+        }
+        
+        .edit-btn:hover {
+            background: #222;
+            color: #fff;
         }
         
         .detail-aliases {
@@ -255,23 +356,6 @@
             color: #888;
         }
         
-        .edit-btn {
-            padding: 10px 20px;
-            background: transparent;
-            border: 1px solid #333;
-            color: #888;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        
-        .edit-btn:hover {
-            background: #222;
-            color: #fff;
-        }
         
         /* Form Overlay */
         .form-overlay {
@@ -472,6 +556,12 @@
     </style>
 </head>
 <body>
+    <!-- Backdrop blur layer -->
+    <div class="glossary-backdrop"></div>
+    
+    <!-- Center message -->
+    <div class="center-message">Close the Glossary to Interact with the Workspace.</div>
+    
     <div class="glossary-container">
         <!-- Left Panel: Entry List -->
         <div class="entry-list-panel">
@@ -482,8 +572,8 @@
             
             <div style="display: flex; gap: 8px; margin: 0 15px 15px 15px;">
                 <button class="add-entry-btn" onclick="openForm()" style="flex: 1; margin: 0;">+ New Entry</button>
-                <button class="add-entry-btn" onclick="exportAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">📤 Export All</button>
-                <button class="add-entry-btn" onclick="importAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">📥 Import All</button>
+                <button class="add-entry-btn" onclick="exportAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">Export All</button>
+                <button class="add-entry-btn" onclick="importAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">Import All</button>
             </div>
             <input type="file" id="import-all-file" hidden accept=".json" onchange="handleImportAllFile(this)">
             
@@ -519,9 +609,11 @@
                     <div class="detail-episodes" id="detail-episodes">None</div>
                 </div>
                 
-                <button class="edit-btn" onclick="editSelectedEntry()">Edit Entry</button>
-                <button class="edit-btn" style="margin-top: 10px;" onclick="exportSingleEntry()">📤 Export Entry</button>
-                <button class="edit-btn" style="color: #ff4444; border-color: #442222; margin-top: 10px;" onclick="deleteSelectedEntry()">Delete Entry</button>
+                <div class="detail-buttons-container">
+                    <button class="edit-btn" onclick="editSelectedEntry()">Edit Entry</button>
+                    <button class="edit-btn" onclick="exportSingleEntry()">Export Entry</button>
+                    <button class="edit-btn" style="color: #ff4444; border-color: #442222;" onclick="deleteSelectedEntry()">Delete Entry</button>
+                </div>
             </div>
         </div>
     </div>
@@ -653,6 +745,7 @@
         let glossaryEntries = [];
         let selectedEntryId = null;
         let editingEntryId = null;
+        let lockedEntryId = null;  // Track locked entry for hover mode
         
         // Get universe ID from URL
         const params = new URLSearchParams(window.location.search);
@@ -744,23 +837,45 @@
             }
             
             list.innerHTML = glossaryEntries.map(entry => `
-                <div class="entry-item ${selectedEntryId === entry.id ? 'selected' : ''}" 
+                <div class="entry-item ${lockedEntryId === entry.id ? 'locked' : ''}" 
                      style="border-left-color: ${entry.color || '#888'}"
-                     onclick="selectEntry(${entry.id})">
+                     onclick="toggleLockEntry(${entry.id})"
+                     onmouseenter="handleEntryHover(${entry.id})"
+                     data-entry-id="${entry.id}">
                     <div class="entry-icon">${typeIcons[entry.type] || '📄'}</div>
                     <div class="entry-info">
                         <div class="entry-name">${entry.name || 'Untitled'}</div>
                         <div class="entry-type">${entry.type || 'Item'}</div>
                     </div>
+                    <div class="entry-lock-icon">🔒</div>
                 </div>
             `).join('');
         }
         
-        // Select entry
-        function selectEntry(id) {
-            selectedEntryId = id;
+        // Handle entry hover
+        function handleEntryHover(id) {
+            // Only show preview if not locked
+            if (!lockedEntryId) {
+                showEntryDetail(id);
+            }
+        }
+        
+        // Toggle lock on entry
+        function toggleLockEntry(id) {
+            if (lockedEntryId === id) {
+                // Unlock - return to hover mode
+                lockedEntryId = null;
+            } else {
+                // Lock to this entry
+                lockedEntryId = id;
+                showEntryDetail(id);
+            }
             renderEntryList();
-            showEntryDetail(id);
+        }
+        
+        // Legacy function kept for compatibility
+        function selectEntry(id) {
+            toggleLockEntry(id);
         }
         
         // Show entry detail
@@ -1205,6 +1320,9 @@
         
         // Close glossary
         function closeGlossary() {
+            // Reset to hover mode
+            lockedEntryId = null;
+            
             // Save one final time before closing
             saveGlossary();
             
