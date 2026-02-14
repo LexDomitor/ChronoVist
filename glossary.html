@@ -7,8 +7,12 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        html {
+            background: transparent !important;
+        }
+        
         body {
-            background: transparent;
+            background: transparent !important;
             color: #fff;
             font-family: 'Inter', -apple-system, sans-serif;
             height: 100vh;
@@ -22,10 +26,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(4.5px);
+            -webkit-backdrop-filter: blur(4.5px);
             pointer-events: all;
             z-index: 0;
+            cursor: pointer;
         }
         
         /* Center message */
@@ -35,18 +41,24 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
             text-transform: uppercase;
             letter-spacing: 2px;
             text-align: center;
             pointer-events: none;
             z-index: 1;
-            animation: pulse 2s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
+        .center-message.show {
+            animation: fadeOut 2s ease-out forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
         }
         
         /* Main Layout */
@@ -61,21 +73,26 @@
         
         /* Left Panel - Entry List */
         .entry-list-panel {
-            width: 450px;
+            width: 340px;
             background: #111;
             border: 1px solid #333;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            margin-left: 20px;
         }
         
         .panel-header {
             padding: 20px;
-            border-bottom: 1px solid #333;
+            border-bottom: 3px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .panel-title-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
         .panel-title {
@@ -83,6 +100,32 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 300;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .title-divider {
+            width: 2px;
+            height: 30px;
+            background: #555;
+        }
+        
+        .project-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .project-series {
+            font-size: 0.6rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .project-title {
+            font-size: 0.7rem;
+            color: #aaa;
+            letter-spacing: 0.5px;
         }
         
         .close-btn {
@@ -110,9 +153,234 @@
             font-family: inherit;
         }
         
+        .button-container {
+            margin: 15px;
+            padding-top: 15px;
+        }
+        
         .add-entry-btn:hover {
             background: #222;
             color: #fff;
+        }
+        
+        .add-entry-btn.selected {
+            background: #1a3a1a;
+            color: #4a4;
+            border-color: #2a4a2a;
+        }
+        
+        /* Categories Settings Panel */
+        .categories-panel {
+            width: 164px;
+            background: #111;
+            border: 1px solid #333;
+            position: absolute;
+            left: 370px;
+            top: 20px;
+            bottom: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 3;
+        }
+        
+        .categories-panel.visible {
+            display: flex;
+        }
+        
+        .categories-header {
+            padding: 12px 8px;
+            border-bottom: 2px solid #333;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 300;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .categories-close-btn {
+            font-size: 1.2rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+        
+        .categories-close-btn:hover {
+            color: #fff;
+        }
+        
+        .add-category-btn {
+            margin: 10px;
+            padding: 10px;
+            background: transparent;
+            border: 1px dashed #333;
+            color: #888;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+        }
+        
+        .add-category-btn:hover {
+            background: #222;
+            color: #fff;
+            border-color: #555;
+        }
+        
+        .categories-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 10px 10px;
+        }
+        
+        .category-item {
+            padding: 8px 6px;
+            margin-bottom: 4px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6rem;
+            text-align: center;
+        }
+        
+        .category-item:hover {
+            background: #161616;
+            border-color: #444;
+        }
+        
+        .category-icon {
+            font-size: 1.1rem;
+        }
+        
+        .category-name {
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Category Editor Panel */
+        .category-editor {
+            width: 240px;
+            background: #111;
+            border: 1px solid #333;
+            position: absolute;
+            left: 544px;
+            top: 20px;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 4;
+        }
+        
+        .category-editor.visible {
+            display: flex;
+        }
+        
+        .category-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .category-editor-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+        }
+        
+        .category-close-btn {
+            font-size: 1.3rem;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .category-close-btn:hover {
+            color: #fff;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 36px);
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 6px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            justify-content: center;
+        }
+        
+        .icon-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .icon-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .icon-grid::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+        
+        .icon-grid::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .icon-option {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: #111;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .icon-option:hover {
+            background: #1a1a1a;
+            border-color: #444;
+        }
+        
+        .icon-option.selected {
+            background: #1a3a1a;
+            border-color: #4a4;
+        }
+        
+        .char-count {
+            font-size: 0.55rem;
+            color: #666;
+            text-align: right;
+            margin-top: 4px;
+        }
+        
+        .panel-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #333;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .entry-list {
@@ -199,7 +467,7 @@
         
         /* Right Panel - Entry Detail */
         .entry-detail-panel {
-            width: 450px;
+            width: 340px;
             background: #111;
             border: 1px solid #333;
             overflow-y: auto;
@@ -379,23 +647,23 @@
             background: #111;
             border: 1px solid #333;
             width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
+            max-width: 550px;
+            max-height: 85vh;
             overflow-y: auto;
-            padding: 30px;
+            padding: 25px;
         }
         
         .form-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #333;
         }
         
         .form-title {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 300;
@@ -413,12 +681,12 @@
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .form-row {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
         
         .form-col-half {
@@ -456,7 +724,7 @@
         
         .form-textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 60px;
             line-height: 1.6;
         }
         
@@ -468,7 +736,7 @@
         
         .form-color-preview {
             width: 100%;
-            height: 42px;
+            height: 38px;
             border: 1px solid #333;
             cursor: pointer;
             transition: 0.2s;
@@ -479,11 +747,11 @@
         }
         
         .form-image-preview {
-            width: 120px;
-            height: 120px;
+            width: 100px;
+            height: 100px;
             background: #000;
             border: 1px solid #333;
-            margin-top: 10px;
+            margin-top: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -537,12 +805,29 @@
         }
         
         /* Scrollbar */
+        .entry-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .entry-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .entry-list::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+        
+        .entry-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
         ::-webkit-scrollbar {
             width: 8px;
         }
         
         ::-webkit-scrollbar-track {
-            background: #0a0a0a;
+            background: transparent;
         }
         
         ::-webkit-scrollbar-thumb {
@@ -566,19 +851,33 @@
         <!-- Left Panel: Entry List -->
         <div class="entry-list-panel">
             <div class="panel-header">
-                <div class="panel-title">Glossary</div>
+                <div class="panel-title-container">
+                    <div class="panel-title">CHRONOVIST</div>
+                    <div class="title-divider"></div>
+                    <div class="project-info">
+                        <div class="project-series" id="project-series">Series Name</div>
+                        <div class="project-title" id="project-title">Production Title</div>
+                    </div>
+                </div>
                 <div class="close-btn" onclick="closeGlossary()">×</div>
             </div>
             
-            <div style="display: flex; gap: 8px; margin: 0 15px 15px 15px;">
-                <button class="add-entry-btn" onclick="openForm()" style="flex: 1; margin: 0;">+ New Entry</button>
-                <button class="add-entry-btn" onclick="exportAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">Export All</button>
-                <button class="add-entry-btn" onclick="importAllGlossary()" style="flex: 0.7; margin: 0; font-size: 0.65rem;">Import All</button>
+            <div class="button-container">
+                <div style="display: flex; gap: 8px;">
+                    <button class="add-entry-btn" onclick="openForm()" style="flex: 1.2; margin: 0; font-size: 0.65rem;">+ New</button>
+                    <button class="add-entry-btn" onclick="exportAllGlossary()" style="flex: 0.9; margin: 0; font-size: 0.6rem; padding: 12px 8px;">Export</button>
+                    <button class="add-entry-btn" onclick="importAllGlossary()" style="flex: 0.9; margin: 0; font-size: 0.6rem; padding: 12px 8px;">Import</button>
+                    <button class="add-entry-btn" onclick="openSettings(event)" style="flex: 0.5; margin: 0; font-size: 0.9rem; padding: 12px 8px;">⚙</button>
+                </div>
             </div>
             <input type="file" id="import-all-file" hidden accept=".json" onchange="handleImportAllFile(this)">
             
             <div class="entry-list" id="entry-list">
                 <!-- Entries will be rendered here -->
+            </div>
+            
+            <div class="panel-footer">
+                <span id="entry-count">0 Entries</span>
             </div>
         </div>
         
@@ -613,6 +912,39 @@
                     <button class="edit-btn" onclick="editSelectedEntry()">Edit Entry</button>
                     <button class="edit-btn" onclick="exportSingleEntry()">Export Entry</button>
                     <button class="edit-btn" style="color: #ff4444; border-color: #442222;" onclick="deleteSelectedEntry()">Delete Entry</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categories Settings Panel -->
+        <div class="categories-panel" id="categories-panel">
+            <div class="categories-header">
+                <span>CATEGORIES</span>
+                <span class="categories-close-btn" onclick="closeCategoriesPanel()">×</span>
+            </div>
+            <div class="add-category-btn" onclick="openCategoryEditor()">+</div>
+            <div class="categories-list" id="categories-list">
+                <!-- Categories will be rendered here -->
+            </div>
+        </div>
+        
+        <!-- Category Editor Panel -->
+        <div class="category-editor" id="category-editor">
+            <div class="category-editor-header">
+                <div class="category-editor-title" id="editor-title">New Category</div>
+                <div class="category-close-btn" onclick="closeCategoryEditor()">×</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Category Name</label>
+                <input type="text" id="category-name" class="form-input" placeholder="Enter category name" maxlength="30" oninput="updateCategoryCharCount(); saveCategoryChanges()">
+                <div class="char-count" id="category-char-count">0 / 30 Characters Limit</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Icon</label>
+                <div class="icon-grid" id="icon-grid">
+                    <!-- Icons will be rendered here -->
                 </div>
             </div>
         </div>
@@ -661,8 +993,8 @@
                 </div>
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Description (max 1000 characters)</label>
+            <div class="form-group" style="margin-top: 20px;">
+                <label class="form-label">Description</label>
                 <textarea id="form-description" class="form-textarea" placeholder="Enter description..." maxlength="1000" oninput="updateCharCount()"></textarea>
                 <div class="char-count" id="description-char-count">0 / 1000</div>
             </div>
@@ -746,12 +1078,24 @@
         let selectedEntryId = null;
         let editingEntryId = null;
         let lockedEntryId = null;  // Track locked entry for hover mode
+        let hoveredEntryId = null;  // Track currently hovered entry
+        let editingCategoryId = null;  // Track category being edited
+        let categories = [];  // User-defined categories
         
         // Get universe ID from URL
         const params = new URLSearchParams(window.location.search);
         universeId = params.get('id');
         
-        // Type icons
+        // Available icons for categories (50 icons)
+        const availableIcons = [
+            '⚔️', '🌍', '📍', '⚙️', '🏰', '👑', '🗡️', '🛡️', '📜', '💎',
+            '🔮', '⭐', '🌙', '☀️', '⚡', '🔥', '💧', '🌿', '🏔️', '🌊',
+            '🦅', '🐉', '🦁', '🐺', '🦇', '🕊️', '🦋', '🐍', '🦊', '🐴',
+            '📖', '🎭', '🎨', '🎵', '🔔', '⚖️', '🔑', '🗝️', '💰', '👁️',
+            '🌟', '💫', '✨', '🔱', '⚓', '🎯', '🏹', '🪓', '🔨', '⛏️'
+        ];
+        
+        // Default type icons (backwards compatibility)
         const typeIcons = {
             'Item': '⚔️',
             'World': '🌍',
@@ -772,7 +1116,16 @@
                 try {
                     const data = JSON.parse(saved);
                     glossaryEntries = data.glossary || [];
-                    console.log('Loaded', glossaryEntries.length, 'glossary entries');
+                    categories = data.glossaryCategories || [];
+                    
+                    console.log('✓ Loaded', glossaryEntries.length, 'glossary entries');
+                    console.log('✓ Loaded', categories.length, 'custom categories');
+                    console.log('✓ Categories:', categories);
+                    
+                    // Update typeIcons with custom categories
+                    categories.forEach(cat => {
+                        typeIcons[cat.id] = cat.icon;
+                    });
                 } catch (e) {
                     console.error('Failed to load glossary:', e);
                 }
@@ -801,6 +1154,7 @@
                     plots: {},
                     characters: [],
                     glossary: [],
+                    glossaryCategories: [],
                     terminology: {
                         timelineUnit: "Episode",
                         subunitPlot: "Plot",
@@ -812,10 +1166,12 @@
             try {
                 const data = JSON.parse(saved);
                 data.glossary = glossaryEntries;
+                data.glossaryCategories = categories;
                 const stringified = JSON.stringify(data);
                 localStorage.setItem(storageKey, stringified);
                 
-                console.log('Glossary saved:', glossaryEntries.length, 'entries');
+                console.log('✓ Glossary saved:', glossaryEntries.length, 'entries,', categories.length, 'custom categories');
+                console.log('✓ Categories:', categories);
                 
                 // Notify parent workspace of changes
                 window.parent.postMessage({
@@ -831,29 +1187,40 @@
         function renderEntryList() {
             const list = document.getElementById('entry-list');
             
+            // Update footer count
+            const count = glossaryEntries.length;
+            document.getElementById('entry-count').textContent = `${count} ${count === 1 ? 'Entry' : 'Entries'}`;
+            
             if (glossaryEntries.length === 0) {
                 list.innerHTML = '<div style="text-align: center; padding: 20px; color: #444; font-size: 0.7rem;">No entries yet</div>';
                 return;
             }
             
-            list.innerHTML = glossaryEntries.map(entry => `
-                <div class="entry-item ${lockedEntryId === entry.id ? 'locked' : ''}" 
-                     style="border-left-color: ${entry.color || '#888'}"
-                     onclick="toggleLockEntry(${entry.id})"
-                     onmouseenter="handleEntryHover(${entry.id})"
-                     data-entry-id="${entry.id}">
-                    <div class="entry-icon">${typeIcons[entry.type] || '📄'}</div>
-                    <div class="entry-info">
-                        <div class="entry-name">${entry.name || 'Untitled'}</div>
-                        <div class="entry-type">${entry.type || 'Item'}</div>
+            list.innerHTML = glossaryEntries.map(entry => {
+                // Get category name from ID
+                const category = categories.find(c => c.id === entry.type);
+                const categoryName = category ? category.name : entry.type;
+                
+                return `
+                    <div class="entry-item ${lockedEntryId === entry.id ? 'locked' : ''}" 
+                         style="border-left-color: ${entry.color || '#888'}"
+                         onclick="toggleLockEntry(${entry.id})"
+                         onmouseenter="handleEntryHover(${entry.id})"
+                         data-entry-id="${entry.id}">
+                        <div class="entry-icon">${typeIcons[entry.type] || '📄'}</div>
+                        <div class="entry-info">
+                            <div class="entry-name">${entry.name || 'Untitled'}</div>
+                            <div class="entry-type">${categoryName}</div>
+                        </div>
+                        <div class="entry-lock-icon">🔒</div>
                     </div>
-                    <div class="entry-lock-icon">🔒</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         // Handle entry hover
         function handleEntryHover(id) {
+            hoveredEntryId = id;
             // Only show preview if not locked
             if (!lockedEntryId) {
                 showEntryDetail(id);
@@ -919,7 +1286,11 @@
             // Name and type
             document.getElementById('detail-name').innerText = entry.name || 'Untitled';
             document.getElementById('detail-name').style.color = entry.color || '#fff';
-            document.getElementById('detail-type').innerText = entry.type || 'Item';
+            
+            // Get category name from ID
+            const category = categories.find(c => c.id === entry.type);
+            const categoryName = category ? category.name : entry.type;
+            document.getElementById('detail-type').innerText = categoryName || 'Item';
             
             // Aliases
             const aliasesList = document.getElementById('detail-aliases-list');
@@ -942,6 +1313,19 @@
             formHasUnsavedChanges = false;
             const overlay = document.getElementById('form-overlay');
             const title = document.getElementById('form-title');
+            
+            // Populate category dropdown
+            const typeSelect = document.getElementById('form-type');
+            const allCategories = [
+                { id: 'Item', name: 'Item' },
+                { id: 'World', name: 'World' },
+                { id: 'Place', name: 'Place' },
+                { id: 'Technology', name: 'Technology' },
+                ...categories
+            ];
+            typeSelect.innerHTML = allCategories.map(cat => 
+                `<option value="${cat.id}">${cat.name}</option>`
+            ).join('');
             
             if (entryId) {
                 // Edit existing
@@ -1033,6 +1417,17 @@
         // Track form changes
         function markFormAsChanged() {
             formHasUnsavedChanges = true;
+            
+            // Check if conflict warning should be hidden
+            const name = document.getElementById('form-name').value.trim();
+            const aliasesRaw = document.getElementById('form-aliases').value;
+            const aliases = aliasesRaw.split(',').map(a => a.trim()).filter(a => a);
+            const hasConflict = checkNameConflict(name, aliases, editingEntryId);
+            const warningEl = document.getElementById('conflict-warning');
+            
+            if (!hasConflict) {
+                warningEl.classList.remove('visible');
+            }
         }
         
         // Update character count
@@ -1181,15 +1576,47 @@
         // Close form with unsaved changes warning
         function closeForm() {
             if (formHasUnsavedChanges) {
-                if (confirm('You have unsaved changes. Close without saving? All changes will be lost.')) {
-                    const overlay = document.getElementById('form-overlay');
-                    overlay.classList.remove('active');
+                // Create custom dialog
+                const dialogOverlay = document.createElement('div');
+                dialogOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+                
+                const dialogBox = document.createElement('div');
+                dialogBox.style.cssText = 'background: #111; border: 1px solid #444; padding: 30px; max-width: 400px; text-align: center;';
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = 'font-size: 0.9rem; margin-bottom: 20px; color: #ccc;';
+                messageDiv.textContent = 'You have unsaved changes.';
+                
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+                
+                // Discard button
+                const discardBtn = document.createElement('button');
+                discardBtn.style.cssText = 'background: #3a1a1a; color: #a44; border: 1px solid #4a2a2a; padding: 10px 20px; font-size: 0.7rem; text-transform: uppercase; cursor: pointer; font-family: inherit; letter-spacing: 0.5px;';
+                discardBtn.textContent = 'Discard Changes';
+                discardBtn.onclick = () => {
+                    document.body.removeChild(dialogOverlay);
+                    document.getElementById('form-overlay').classList.remove('active');
                     editingEntryId = null;
                     formHasUnsavedChanges = false;
-                    
-                    // Hide conflict warning
                     document.getElementById('conflict-warning').classList.remove('visible');
-                }
+                };
+                
+                // Cancel button
+                const cancelBtn = document.createElement('button');
+                cancelBtn.style.cssText = 'background: transparent; color: #888; border: 1px solid #333; padding: 10px 20px; font-size: 0.7rem; text-transform: uppercase; cursor: pointer; font-family: inherit; letter-spacing: 0.5px;';
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = () => {
+                    document.body.removeChild(dialogOverlay);
+                };
+                
+                buttonContainer.appendChild(discardBtn);
+                buttonContainer.appendChild(cancelBtn);
+                
+                dialogBox.appendChild(messageDiv);
+                dialogBox.appendChild(buttonContainer);
+                dialogOverlay.appendChild(dialogBox);
+                document.body.appendChild(dialogOverlay);
             } else {
                 const overlay = document.getElementById('form-overlay');
                 overlay.classList.remove('active');
@@ -1224,24 +1651,27 @@
         
         // Edit selected entry
         function editSelectedEntry() {
-            if (selectedEntryId) {
-                openForm(selectedEntryId);
+            const entryToEdit = lockedEntryId || hoveredEntryId;
+            if (entryToEdit) {
+                openForm(entryToEdit);
             }
         }
         
         // Delete selected entry
         function deleteSelectedEntry() {
-            if (!selectedEntryId) return;
+            const entryToDelete = lockedEntryId || hoveredEntryId;
+            if (!entryToDelete) return;
             
-            const entry = glossaryEntries.find(e => e.id === selectedEntryId);
+            const entry = glossaryEntries.find(e => e.id === entryToDelete);
             if (!entry) return;
             
             if (confirm(`Delete "${entry.name}"? This cannot be undone.`)) {
                 // Remove from array
-                glossaryEntries = glossaryEntries.filter(e => e.id !== selectedEntryId);
+                glossaryEntries = glossaryEntries.filter(e => e.id !== entryToDelete);
                 
-                // Clear selection
-                selectedEntryId = null;
+                // Clear lock and hover
+                lockedEntryId = null;
+                hoveredEntryId = null;
                 
                 // Save and re-render
                 saveGlossary();
@@ -1320,11 +1750,19 @@
         
         // Close glossary
         function closeGlossary() {
+            console.log('🚪 Closing glossary...');
+            console.log('📊 Categories at close:', JSON.parse(JSON.stringify(categories)));
+            
             // Reset to hover mode
             lockedEntryId = null;
             
             // Save one final time before closing
             saveGlossary();
+            
+            // Verify save
+            const storageKey = `alphaline_universe_${universeId}`;
+            const finalData = JSON.parse(localStorage.getItem(storageKey));
+            console.log('✅ FINAL SAVE VERIFICATION - Categories in localStorage:', finalData.glossaryCategories);
             
             // Small delay to ensure save completes
             setTimeout(() => {
@@ -1332,11 +1770,211 @@
             }, 100);
         }
         
+        // Open settings
+        function openSettings(event) {
+            const panel = document.getElementById('categories-panel');
+            const settingsBtn = event ? event.target : document.querySelector('[onclick="openSettings(event)"]');
+            
+            if (panel.classList.contains('visible')) {
+                // Close settings
+                closeCategoriesPanel();
+            } else {
+                // Open settings
+                panel.classList.add('visible');
+                if (settingsBtn) settingsBtn.classList.add('selected');
+                renderCategoriesList();
+            }
+        }
+        
+        // Close categories panel
+        function closeCategoriesPanel() {
+            const panel = document.getElementById('categories-panel');
+            const settingsBtn = document.querySelector('[onclick*="openSettings"]');
+            
+            panel.classList.remove('visible');
+            if (settingsBtn) settingsBtn.classList.remove('selected');
+            closeCategoryEditor();
+        }
+        
+        // Render categories list
+        function renderCategoriesList() {
+            const list = document.getElementById('categories-list');
+            
+            // Merge default categories with user categories
+            const allCategories = [
+                { id: 'Item', name: 'Item', icon: '⚔️', default: true },
+                { id: 'World', name: 'World', icon: '🌍', default: true },
+                { id: 'Place', name: 'Place', icon: '📍', default: true },
+                { id: 'Technology', name: 'Technology', icon: '⚙️', default: true },
+                ...categories
+            ];
+            
+            list.innerHTML = allCategories.map(cat => `
+                <div class="category-item" onclick="editCategory('${cat.id}')">
+                    <div class="category-icon">${cat.icon}</div>
+                    <div class="category-name" title="${cat.name}">${cat.name}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Update category character count
+        function updateCategoryCharCount() {
+            const input = document.getElementById('category-name');
+            const counter = document.getElementById('category-char-count');
+            const length = input.value.length;
+            counter.textContent = `${length} / 30 Characters Limit`;
+        }
+        
+        // Open category editor for new category
+        function openCategoryEditor() {
+            editingCategoryId = null;
+            document.getElementById('editor-title').textContent = 'New Category';
+            document.getElementById('category-name').value = '';
+            updateCategoryCharCount();
+            document.getElementById('category-editor').classList.add('visible');
+            renderIconGrid();
+        }
+        
+        // Edit existing category
+        function editCategory(categoryId) {
+            editingCategoryId = categoryId;
+            
+            // Find category
+            let category = categories.find(c => c.id === categoryId);
+            if (!category) {
+                // Check default categories
+                category = {
+                    id: categoryId,
+                    name: categoryId,
+                    icon: typeIcons[categoryId] || '📄',
+                    default: true
+                };
+            }
+            
+            document.getElementById('editor-title').textContent = 'Edit Category';
+            document.getElementById('category-name').value = category.name;
+            updateCategoryCharCount();
+            document.getElementById('category-editor').classList.add('visible');
+            renderIconGrid(category.icon);
+        }
+        
+        // Close category editor
+        function closeCategoryEditor() {
+            document.getElementById('category-editor').classList.remove('visible');
+            editingCategoryId = null;
+        }
+        
+        // Render icon grid
+        function renderIconGrid(selectedIcon = null) {
+            const grid = document.getElementById('icon-grid');
+            grid.innerHTML = availableIcons.map(icon => `
+                <div class="icon-option ${icon === selectedIcon ? 'selected' : ''}" onclick="selectIcon('${icon}')">${icon}</div>
+            `).join('');
+        }
+        
+        // Select icon
+        function selectIcon(icon) {
+            // Update UI
+            document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            // Auto-save
+            saveCategoryChanges();
+        }
+        
+        // Save category changes (auto-save)
+        function saveCategoryChanges() {
+            const name = document.getElementById('category-name').value.trim();
+            if (!name) {
+                console.warn('⚠️ Category name is empty, skipping save');
+                return;
+            }
+            
+            const selectedIconEl = document.querySelector('.icon-option.selected');
+            const icon = selectedIconEl ? selectedIconEl.textContent : '📄';
+            
+            console.log('💾 Saving category:', { name, icon, editingCategoryId });
+            console.log('📊 Categories BEFORE save:', JSON.parse(JSON.stringify(categories)));
+            
+            // Check for duplicate names (excluding current category being edited)
+            const allCategories = [
+                { id: 'Item', name: 'Item' },
+                { id: 'World', name: 'World' },
+                { id: 'Place', name: 'Place' },
+                { id: 'Technology', name: 'Technology' },
+                ...categories
+            ];
+            
+            const duplicate = allCategories.find(cat => 
+                cat.name.toLowerCase() === name.toLowerCase() && cat.id !== editingCategoryId
+            );
+            
+            if (duplicate) {
+                alert(`A category named "${name}" already exists. Please choose a different name.`);
+                return;
+            }
+            
+            if (editingCategoryId) {
+                // Update existing category
+                const existingCat = categories.find(c => c.id === editingCategoryId);
+                if (existingCat) {
+                    console.log('✏️ Updating existing category:', editingCategoryId);
+                    existingCat.name = name;
+                    existingCat.icon = icon;
+                } else {
+                    console.log('➕ Adding override for default category:', editingCategoryId);
+                    // Updating a default category - add as custom override
+                    const newCat = {
+                        id: editingCategoryId,
+                        name: name,
+                        icon: icon,
+                        default: false
+                    };
+                    categories.push(newCat);
+                }
+                
+                // Update typeIcons for backwards compatibility
+                typeIcons[editingCategoryId] = icon;
+            } else {
+                // Create new category
+                const newId = name.replace(/\s+/g, '_') + '_' + Date.now();
+                console.log('🆕 Creating new category with ID:', newId);
+                const newCat = {
+                    id: newId,
+                    name: name,
+                    icon: icon,
+                    default: false
+                };
+                categories.push(newCat);
+                
+                // Add to typeIcons
+                typeIcons[newId] = icon;
+                
+                editingCategoryId = newId;
+            }
+            
+            console.log('📊 Categories AFTER save:', JSON.parse(JSON.stringify(categories)));
+            console.log('🔧 TypeIcons:', typeIcons);
+            
+            // Save to localStorage immediately
+            saveGlossary();
+            
+            // Verify it was actually saved
+            const storageKey = `alphaline_universe_${universeId}`;
+            const verifyData = JSON.parse(localStorage.getItem(storageKey));
+            console.log('✅ VERIFICATION - Categories in localStorage:', verifyData.glossaryCategories);
+            
+            // Update UI
+            renderCategoriesList();
+            renderEntryList();
+        }
+        
         // Export single entry
         function exportSingleEntry() {
-            if (!selectedEntryId) return;
+            const entryToExport = lockedEntryId || hoveredEntryId;
+            if (!entryToExport) return;
             
-            const entry = glossaryEntries.find(e => e.id === selectedEntryId);
+            const entry = glossaryEntries.find(e => e.id === entryToExport);
             if (!entry) return;
             
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entry, null, 2));
@@ -1458,9 +2096,77 @@
         
         // Initialize
         window.onload = async () => {
+            console.log('🚀 Glossary initializing...');
+            console.log('🆔 Universe ID:', universeId);
+            
+            // Check what's in localStorage BEFORE loading
+            const storageKey = `alphaline_universe_${universeId}`;
+            const rawData = localStorage.getItem(storageKey);
+            console.log('📦 Raw localStorage data exists:', !!rawData);
+            if (rawData) {
+                try {
+                    const parsed = JSON.parse(rawData);
+                    console.log('📊 Categories in localStorage at startup:', parsed.glossaryCategories);
+                } catch (e) {
+                    console.error('❌ Failed to parse localStorage:', e);
+                }
+            }
+            
             await initImageDB();
             loadGlossary();
             updateColorPreview();
+            
+            // Check categories after load
+            console.log('📊 Categories array after loadGlossary():', JSON.parse(JSON.stringify(categories)));
+            console.log('🔧 TypeIcons after loadGlossary():', typeIcons);
+            
+            // Load project info from localStorage (matching workspace.html approach)
+            if (universeId) {
+                const universes = JSON.parse(localStorage.getItem('alphaline_universes') || '[]');
+                const currentUniverse = universes.find(u => u.id === parseInt(universeId));
+                
+                const seriesEl = document.getElementById('project-series');
+                const titleEl = document.getElementById('project-title');
+                const infoContainer = document.querySelector('.project-info');
+                
+                let seriesName = '';
+                let projectTitle = 'UNTITLED PROJECT';
+                
+                if (currentUniverse) {
+                    projectTitle = currentUniverse.name || 'UNTITLED PROJECT';
+                    seriesName = currentUniverse.series || '';
+                }
+                
+                // Show what we have, center if only one
+                if (seriesName && projectTitle) {
+                    seriesEl.textContent = seriesName;
+                    titleEl.textContent = projectTitle;
+                    seriesEl.style.display = 'block';
+                    titleEl.style.display = 'block';
+                    infoContainer.style.justifyContent = 'flex-start';
+                } else if (seriesName) {
+                    seriesEl.textContent = seriesName;
+                    seriesEl.style.display = 'block';
+                    titleEl.style.display = 'none';
+                    infoContainer.style.justifyContent = 'center';
+                } else {
+                    titleEl.textContent = projectTitle;
+                    titleEl.style.display = 'block';
+                    seriesEl.style.display = 'none';
+                    infoContainer.style.justifyContent = 'center';
+                }
+            }
+            
+            // Add backdrop click handler for message
+            const backdrop = document.querySelector('.glossary-backdrop');
+            const message = document.querySelector('.center-message');
+            
+            backdrop.addEventListener('click', () => {
+                message.classList.remove('show');
+                // Force reflow to restart animation
+                void message.offsetWidth;
+                message.classList.add('show');
+            });
         };
     </script>
 </body>
